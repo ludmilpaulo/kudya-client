@@ -16,7 +16,7 @@ function JoinScreen({ navigation }: JoinScreenProps) {
         <View style={tailwind`flex-1 justify-center items-center`}>
         <Image
           source={require("../assets/logo.png")}
-          style={tailwind`h-64 w-64 object-contain z-10`}
+          style={tailwind`h-64 w-64 z-10`}
         />
         </View>
 

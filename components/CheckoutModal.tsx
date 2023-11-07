@@ -2,12 +2,20 @@ import React from "react";
 import { View, TouchableOpacity, Text } from "react-native";
 import { useSelector } from "react-redux";
 import tailwind from "tailwind-react-native-classnames";
-import { selectCartItems, selectTotalPrice } from "../redux/slices/basketSlice";
+
 import { useNavigation } from "@react-navigation/native";
+import { selectBasketItems } from "../redux/slices/basketSlice";
+import { RootState } from "../redux/types";
 
 const CheckoutModal = ({ setModalVisible }: { setModalVisible: any }) => {
-  const totalPrice = useSelector(selectTotalPrice);
-  const allCartItems = useSelector(selectCartItems);
+
+
+  const allCartItems = useSelector((state: RootState) => selectBasketItems(state));
+  // Calculate total price and count of items
+  const totalPrice = allCartItems.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
   const navigation = useNavigation<any>();
 
   const addOrder = () => {
@@ -26,19 +34,24 @@ const CheckoutModal = ({ setModalVisible }: { setModalVisible: any }) => {
           Detalhes do checkout
         </Text>
         <View style={tailwind`mb-5`}>
-          {allCartItems?.map((item: any) => (
-            <OrderItem
-              key={item.resName}
-              name={item.resName}
-              value={`${item?.foods
-                .reduce(
-                  (total: any, item: any) => total + item.price * item.quantity,
-                  0
-                )
-                .toFixed(1)}Kz • (${item?.foods?.length})`}
-              total={undefined}
-            />
-          ))}
+        {allCartItems?.map((item: any) => (
+  <OrderItem
+    key={item.resName}
+    name={item.resName}
+    value={`${
+      item?.foods
+        ? item.foods
+            .reduce(
+              (total: any, food: any) => total + food.price * food.quantity,
+              0
+            )
+            .toFixed(1)
+        : '0.0'
+    }Kz • (${item?.foods?.length || 0})`}
+    total={undefined}
+  />
+))}
+
           <OrderItem name="Preço total" value={`${totalPrice}Kz`} total />
         </View>
         <TouchableOpacity

@@ -8,7 +8,7 @@ module.exports = function (api) {
           unstable_disableES6Transforms: true,
         },
       ],
-     // 'module:metro-react-native-babel-preset',
+      // 'module:metro-react-native-babel-preset',
       // Add the following preset for web support
       'babel-preset-expo',
     ],
@@ -20,7 +20,6 @@ module.exports = function (api) {
         },
       ],
       'react-native-reanimated/plugin',
-      'tailwindcss-react-native/babel',
     ],
   };
 };

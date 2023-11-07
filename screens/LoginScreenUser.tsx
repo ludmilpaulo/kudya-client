@@ -1,31 +1,13 @@
-import React, { useContext, useState, useEffect } from "react";
-import {
-  Keyboard,
-  Alert,
-  TextInput,
-  Image,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  ToastAndroid,
-} from "react-native";
+import React, { useState } from "react";
+import { TextInput, Image, Text, View, TouchableOpacity } from "react-native";
 import Screen from "../components/Screen";
-import colors from "../configs/colors";
-import { useDispatch, useSelector } from "react-redux";
-
-import { useNavigation } from "@react-navigation/native";
-
-import { loginUser } from "../redux/slices/authSlice";
-
+import { useDispatch } from "react-redux";
 import tailwind from "tailwind-react-native-classnames";
-
-import * as Updates from "expo-updates";
+import { loginUser } from "../redux/slices/authSlice";
 
 export default function LoginScreenUser({ navigation }: { navigation: any }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
   const dispatch = useDispatch();
 
   const LoginUser = async () => {
@@ -44,11 +26,8 @@ export default function LoginScreenUser({ navigation }: { navigation: any }) {
 
       if (response.status == 200) {
         let data = await response.json();
-
         dispatch(loginUser(data));
-
         //  Updates.reloadAsync();
-
         return true;
       } else {
         let resp = await response.json();
@@ -60,145 +39,39 @@ export default function LoginScreenUser({ navigation }: { navigation: any }) {
   };
 
   return (
-    <Screen style={styles.container}>
-      <View style={styles.wrapper}>
-        <View style={tailwind`py-4 rounded-2xl`}>
-          <Image style={styles.logo} source={require("../assets/logo.png")} />
-        </View>
-
-        <Text style={styles.wellcomeTo}>
-          Conecte-se ao{"\n"} <Text style={styles.brand}>SD Kudya</Text>
+    <Screen style={tailwind`flex-1 justify-center`}>
+      <View style={tailwind`px-4 py-4 rounded-2xl items-center`}>
+        <Image style={tailwind`h-64 w-64`} source={require("../assets/logo.png")} />
+        <Text style={tailwind`text-2xl font-bold text-secondary mt-4`}>
+          Conecte-se ao{"\n"}<Text style={tailwind`text-primary font-semibold`}></Text>
         </Text>
-
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
+        <View style={tailwind`w-64 mt-4`}>
+        <TextInput
+            style={tailwind`w-full border border-medium bg-light p-4 rounded mb-4`}
             placeholder="Seu Nome"
-            autoCapitalize={"none"}
+            autoCapitalize="none"
             value={username}
             onChangeText={(text) => setUsername(text)}
           />
-
           <TextInput
-            style={styles.input}
+            style={tailwind`w-full border border-medium bg-light p-4 rounded mb-4`}
             placeholder="Senha"
-            autoCompleteType="off"
-            password={true}
+            autoComplete="off"
+            secureTextEntry={true}
             value={password}
             onChangeText={(text) => setPassword(text)}
-            secureTextEntry={true}
-            autoCapitalize={"none"}
+            autoCapitalize="none"
           />
 
-          <TouchableOpacity style={styles.containerbot} onPress={LoginUser}>
-            <Text style={styles.vamosJuntos}>Conecte-se</Text>
+          <TouchableOpacity style={tailwind`bg-black p-4 rounded items-center`} onPress={LoginUser}>
+            <Text style={tailwind`text-white text-lg font-bold`}>Conecte-se</Text>
           </TouchableOpacity>
         </View>
-
-        <Text style={styles.join} onPress={() => navigation.navigate("Signup")}>
+        <Text style={tailwind`mt-4 text-center text-black`} onPress={() => navigation.navigate("Signup")}>
           Não é um membro?{" "}
-          <Text style={{ color: colors.primary }}>Inscrever-se</Text>
+          <Text style={tailwind`text-primary`}>Inscrever-se</Text>
         </Text>
       </View>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    // backgroundColor: colors.white,
-    justifyContent: "center",
-  },
-  wrapper: {
-    paddingHorizontal: 20,
-  },
-  logo: {
-    height: 160,
-    resizeMode: "contain",
-    alignSelf: "center",
-    marginTop: 30,
-  },
-  wellcomeTo: {
-    fontSize: 23,
-    fontWeight: "700",
-    color: colors.secondary,
-    marginTop: 20,
-    textAlign: "center",
-  },
-  brand: {
-    fontSize: 23,
-    color: colors.primary,
-    textAlign: "center",
-    fontWeight: "500",
-  },
-  form: {
-    marginTop: 10,
-  },
-  join: {
-    marginTop: 16,
-    textAlign: "center",
-    color: colors.black,
-  },
-  or: {
-    color: colors.gray,
-    textAlign: "center",
-    marginVertical: 20,
-  },
-
-  containertest: {
-    position: "relative",
-  },
-  input: {
-    borderColor: colors.medium,
-    backgroundColor: colors.light,
-    borderWidth: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderRadius: 10,
-    marginTop: 15,
-  },
-  inputError: {
-    borderColor: colors.denger,
-  },
-  icon: {
-    position: "absolute",
-    right: 15,
-    top: 32,
-  },
-  button: {
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    padding: 15,
-    marginVertical: 5,
-    marginTop: 15,
-  },
-  text: {
-    color: colors.white,
-    fontSize: 18,
-    // textTransform: 'uppercase',
-    fontWeight: "700",
-  },
-
-  containerbot: {
-    backgroundColor: "rgba(0,74,173,1)",
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    padding: 15,
-    marginVertical: 5,
-    marginTop: 15,
-  },
-  containertext: {
-    width: 159,
-    height: 32,
-  },
-  vamosJuntos: {
-    color: colors.white,
-    fontSize: 18,
-    // textTransform: 'uppercase',
-    fontWeight: "700",
-  },
-});
