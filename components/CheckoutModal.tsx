@@ -34,9 +34,9 @@ const CheckoutModal = ({ setModalVisible }: { setModalVisible: any }) => {
           Detalhes do checkout
         </Text>
         <View style={tailwind`mb-5`}>
-        {allCartItems?.map((item: any) => (
+        {allCartItems?.map((item: any, index: number) => (
   <OrderItem
-    key={item.resName}
+    key={item.id} // Use a unique identifier as the key
     name={item.resName}
     value={`${
       item?.foods

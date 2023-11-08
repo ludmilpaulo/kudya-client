@@ -85,8 +85,8 @@ const MenuItems = ({ resId, food, resName, resImage }: Meals) => {
           <View style={tailwind`flex-1 pr-2`}>
             <Text style={tailwind`text-lg mb-1`}>{food.name}</Text>
             <Text style={tailwind`text-gray-400`}>{food.short_description}</Text>
-            <Text style={tailwind`text-gray-400 mt-2`}>
-              <Currency quantity={food.price} currency="GBP" />
+            <Text style={tailwind`text-gray-400 mt-2 font-bold`}>
+            {food.price} KZ
             </Text>
           </View>
 
@@ -113,7 +113,7 @@ const MenuItems = ({ resId, food, resName, resImage }: Meals) => {
             onPress={removeItemFromBasket}
           >
             <MinusCircleIcon
-              color={quantity > 0 ? "#00CCBB" : "gray"}
+              color={quantity > 0 ? "#004AAD" : "gray"}
               size={40}
             />
           </TouchableOpacity>
@@ -121,7 +121,7 @@ const MenuItems = ({ resId, food, resName, resImage }: Meals) => {
           <Text>{quantity}</Text>
 
           <TouchableOpacity onPress={addItemToBasket}>
-            <PlusCircleIcon color="#00CCBB" size={40} />
+            <PlusCircleIcon color="#004AAD" size={40} />
           </TouchableOpacity>
         </View>
       </View>

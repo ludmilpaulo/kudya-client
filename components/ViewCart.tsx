@@ -11,9 +11,9 @@ const ViewCart = ({ total, count }: { total: any; count: any }) => {
       {!!count && (
         <TouchableOpacity
           onPress={() => navigation.navigate("Cart")}
-          style={tailwind`bg-black absolute bottom-4 self-center py-3 px-12 rounded-full z-50`}
+          style={tailwind`bg-blue-500 absolute bottom-4 self-center py-3 px-12 h-12 rounded-full z-50`}
         >
-          <Text style={tailwind`text-white text-sm`}>
+          <Text style={tailwind`text-white text-xl font-bold`}>
             Ver sua Bandeja • {total}Kz ({count})
           </Text>
         </TouchableOpacity>

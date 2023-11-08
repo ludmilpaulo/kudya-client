@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -18,16 +18,12 @@ import MenuItems from "../components/MenuItems";
 import ViewCart from "../components/ViewCart";
 import {
   selectBasketItems,
-  selectTotalItems,
-  selectTotalPrice,
 } from "../redux/slices/basketSlice";
 import { useSelector } from "react-redux";
 
 import { useNavigation } from "@react-navigation/native";
 import { useRoute } from "@react-navigation/native";
 
-import Geolocation from "react-native-geolocation-service";
-import * as Location from "expo-location";
 import Geocoder from "react-native-geocoding";
 import { googleAPi } from "../configs/variable";
 import { Meals } from "../configs/types";

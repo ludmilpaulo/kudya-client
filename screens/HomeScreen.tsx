@@ -70,19 +70,25 @@ const HomeScreen = () => {
   >(driverPosition?.location);
 
   const pickUser = async () => {
-    fetch("https://www.sunshinedeliver.com/api/customer/profile/")
-      .then((response) => {
-        if (response.status === 200) {
-          return response.json();
-        } else {
-          throw new Error("API request failed with status: " + response.status);
-        }
-      })
+    let response = await fetch(
+      "https://www.sunshinedeliver.com/api/customer/profile/",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: user?.user_id,
+        }),
+      }
+    )
+      .then((response) => response.json())
       .then((responseJson) => {
         setUserPhoto(responseJson.customer_detais.avatar);
       })
       .catch((error) => {
-        console.error(error);
+        // console.error(error);
       });
   };
 
