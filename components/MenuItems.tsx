@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import Currency from "react-currency-formatter";
 import { MinusCircleIcon, PlusCircleIcon } from "react-native-heroicons/solid";
@@ -24,6 +24,7 @@ interface Meals {
 }
 
 const MenuItems = ({ resId, food, resName, resImage }: Meals) => {
+  const [isPressed, setIsPressed] = useState(false);
   const items = useSelector((state: RootState) => selectBasketItems(state));
   const dispatch = useDispatch();
 
@@ -80,7 +81,9 @@ const MenuItems = ({ resId, food, resName, resImage }: Meals) => {
 
   return (
     <>
-      <TouchableOpacity style={tailwind`bg-white border p-4 border-gray-200`}>
+      <TouchableOpacity 
+       onPress={() => setIsPressed(!isPressed)}
+      style={tailwind`bg-white border p-4 border-gray-200`}>
         <View style={tailwind`flex-row`}>
           <View style={tailwind`flex-1 pr-2`}>
             <Text style={tailwind`text-lg mb-1`}>{food.name}</Text>
@@ -107,6 +110,7 @@ const MenuItems = ({ resId, food, resName, resImage }: Meals) => {
       </TouchableOpacity>
 
       <View style={tailwind`bg-white px-4`}>
+      {isPressed && (
         <View style={tailwind`flex-row items-center space-x-2 pb-3`}>
           <TouchableOpacity
             disabled={quantity === 0}
@@ -124,6 +128,7 @@ const MenuItems = ({ resId, food, resName, resImage }: Meals) => {
             <PlusCircleIcon color="#004AAD" size={40} />
           </TouchableOpacity>
         </View>
+      )}
       </View>
     </>
   );

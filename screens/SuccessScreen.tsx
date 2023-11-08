@@ -10,7 +10,7 @@ const SuccessScreen = () => {
 
   useEffect(() => {
     setTimeout(() => {
-      navigation.navigate("DeliveryInfo");
+      navigation.navigate("Delivery");
     }, 4000);
   }, []);
 
