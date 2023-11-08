@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import HomeScreen from "../screens/HomeScreen";
+import DeliveryInfo from "../screens/DeliveryInfo";
 import DetailsScreen from "../screens/DetailsScreen";
 import SuccessScreen from "../screens/SuccessScreen";
 import CheckoutScreen from "../screens/CheckoutScreen";
@@ -28,6 +28,7 @@ export default function HomeNavigator() {
       <Stack.Screen name="SuccessScreen" component={SuccessScreen} />
       <Stack.Screen name="CheckoutScreen" component={CheckoutScreen} />
       <Stack.Screen name="OrderHistory" component={OrderHistory} />
+      <Stack.Screen name="DeliveryInfo" component={DeliveryInfo} />
     </Stack.Navigator>
   );
 }

@@ -3,7 +3,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../types";
 
-interface BasketItem {
+export interface BasketItem {
   id: number;
   name: string;
   short_description: string;
@@ -62,10 +62,14 @@ const basketSlice = createSlice({
         // You can add more logic here to update other properties if needed
       }
     },
+    clearBasket: (state) => {
+      // Clear the basket by resetting items to an empty array
+      state.items = [];
+    },
   },
 });
 
-export const { addToBasket, removeFromBasket, updateBasket } = basketSlice.actions;
+export const { addToBasket, removeFromBasket, updateBasket, clearBasket } = basketSlice.actions;
 
 export const selectBasketItems = (state: RootState) => state.basket.items;
 

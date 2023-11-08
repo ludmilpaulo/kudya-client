@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import colors from "../configs/colors";
 import { useNavigation } from "@react-navigation/native";
 
-function AppHead({ title, icon = null }) {
+function AppHead({ title, icon = null }: any) {
   const navigation = useNavigation();
 
   return (

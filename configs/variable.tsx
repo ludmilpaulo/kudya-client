@@ -1,5 +1,19 @@
-import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+import * as Device from "expo-device";
+import * as Location from "expo-location";
+import { useState } from "react";
+import { Platform } from "react-native";
+
+
+//const [longitude, setLongitude] = useState(0);
+//const [latitude, setLatitude] = useState(0);
+//const [location, setLocation] = useState({});
+
+//const [loading, setLoading] = useState(true);
+//const [loadingOrder, setLoadingOrder] = useState(false);
+
+
+export const googleAPi = "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78";
 
 const apiUrl = "https://www.sunshinedeliver.com";
 
@@ -13,4 +27,25 @@ export const fetchData = async (endpoint: string) => {
   }
 };
 
-export const googleAPi = "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78";
+
+
+export const userLocation = async () => {
+  if (Platform.OS === "android" && !Device.isDevice) {
+    alert(
+      "Oops, this will not work on Snack in an Android Emulator. Try it on your device!"
+    );
+    return;
+  }
+  let { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== "granted") {
+    alert("Permission to access location was denied");
+    return;
+  }
+
+  let location = await Location.getCurrentPositionAsync({});
+  return location.coords;
+  //setLatitude(location.coords.latitude);
+
+};
+
+
