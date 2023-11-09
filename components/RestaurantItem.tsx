@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import tailwind from "tailwind-react-native-classnames";
-import { Entypo } from "@expo/vector-icons";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { ArrowRightIcon, StarIcon } from "react-native-heroicons/solid";
+import Icon from 'react-native-vector-icons/FontAwesome';
+
+
 import { useNavigation } from "@react-navigation/native";
 
 interface Restaurant {
@@ -29,6 +31,20 @@ const RestaurantItem = ({ restaurantData }: any) => {
 
   return (
     <View>
+    <View  style={tailwind`mt-4 flex-row items-center justify-between px-4`}>
+      <Text  style={tailwind`font-bold text-lg`}>title</Text>
+      <ArrowRightIcon color="#00CCBB" />
+    </View>
+
+    <Text style={tailwind`text-xs text-gray-500 px-4`}>description</Text>
+       <ScrollView
+        horizontal
+        contentContainerStyle={{
+          paddingHorizontal: 15,
+        }}
+        showsHorizontalScrollIndicator={false}
+        style={tailwind`pt-4`}
+      >
       {restaurantData?.map((item: any, index: any) => (
         <RestaurantItemCard
           key={index}
@@ -36,6 +52,7 @@ const RestaurantItem = ({ restaurantData }: any) => {
           onPress={() => handlePress(item)}
         />
       ))}
+      </ScrollView>
     </View>
   );
 };
@@ -43,47 +60,35 @@ const RestaurantItem = ({ restaurantData }: any) => {
 export default RestaurantItem;
 
 const RestaurantItemCard = ({ item, onPress }: { item: any; onPress: any }) => {
-  const [loved, setLoved] = useState(false);
-
+ 
   return (
-    <TouchableOpacity style={tailwind`mx-4 mb-4`} onPress={onPress}>
-      <Image
-        source={{ uri: item.logo }}
-        style={tailwind`w-full h-48 rounded-lg`}
-      />
-      <TouchableOpacity
-        style={tailwind`absolute top-2 right-2`}
-        onPress={() => setLoved((e) => !e)}
-      >
-        <Entypo
-          name={`${loved ? "heart" : "heart-outlined"}`}
-          size={28}
-          color="#fff"
-        />
-      </TouchableOpacity>
-      <View style={tailwind`flex-row items-center mt-1`}>
-        <View style={tailwind`flex-grow`}>
-          <Text style={tailwind`font-bold text-lg`} numberOfLines={1}>
-            {item.name}
-          </Text>
-          <View style={tailwind`flex-row items-center`}>
-            <MaterialCommunityIcons
-              name="clock-time-four"
-              size={13}
-              color="#06C167"
-            />
-            <Text style={tailwind`text-xs text-gray-700`}>
-              {" "}
-              20-30 • min • {item.price}
-            </Text>
-          </View>
-        </View>
-        <View
-          style={tailwind`w-8 h-8 justify-center items-center bg-gray-100 rounded-full`}
-        >
-          <Text style={tailwind`text-gray-600 text-xs`}>{item.rating}</Text>
-        </View>
+
+    <TouchableOpacity
+    onPress={onPress}
+  
+    style={tailwind`bg-white mr-3 shadow`}
+  >
+    <Image
+       source={{ uri: item.logo }}
+       style={tailwind`h-36 w-64 rounded-sm`}
+    />
+
+    <View style={tailwind`px-3 pb-4`}>
+      <Text style={tailwind`font-bold text-lg pt-2`}>{item.name}</Text>
+      <View style={tailwind`flex-row items-center space-x-1`}>
+        <StarIcon color="green" opacity={0.5} size={22} />
+        <Text style={tailwind`text-xs text-gray-500`}>
+          <Text style={tailwind`text-green-500`}>ratin</Text> · genre
+        </Text>
       </View>
-    </TouchableOpacity>
+
+      <View style={tailwind`flex-row items-center space-x-1`}>
+      <Icon name="location-arrow" size={30} opacity={0.4} color="black" />
+        
+        <Text style={tailwind`text-xs text-gray-500`}>Nearby · {item.address}</Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+
   );
 };

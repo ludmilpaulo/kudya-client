@@ -7,14 +7,19 @@ import {
   TextInput,
   ActivityIndicator,
   Platform,
+  SafeAreaView,
 } from "react-native";
 import {
+  UserIcon,
+  ChevronDownIcon,
   AdjustmentsVerticalIcon,
   MagnifyingGlassIcon,
 } from "react-native-heroicons/outline";
+
+
 import tailwind from "tailwind-react-native-classnames";
 import RestaurantItem from "../components/RestaurantItem";
-import Screen from "../components/Screen";
+
 import colors from "../configs/colors";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../redux/slices/authSlice";
@@ -29,6 +34,7 @@ import {
   selectDriverLocation,
   setDriverLocation,
 } from "../redux/slices/driverLocationSlice";
+import Categories from "../components/Categories";
 
 interface Restaurant {
   id: number;
@@ -202,38 +208,57 @@ const HomeScreen = () => {
   };
 
   return (
-    <Screen style={tailwind`pt-5`}>
-      <View style={tailwind`text-red-500`}>
-        {/* header*/}
-        <View style={tailwind`flex-row pb-3 items-center mx-4 px-4`}>
-          <Image
+    <SafeAreaView style={tailwind`bg-white pt-5`}>
+      {/* Header */}
+      <View style={tailwind`flex-row pb-3 items-center mx-4 space-x-2`}>
+      <Image
             source={{ uri: customer_image }}
             style={tailwind`h-12 w-12 p-4 rounded-full`}
           />
+        
 
-          <View style={tailwind`flex-1`}>
-            <Text style={tailwind`font-bold text-gray-400 text-xs`}>
-              Entregue agora!
-            </Text>
-            <Text style={tailwind`font-bold text-xl`}>{address}</Text>
-          </View>
+        <View style={tailwind`flex-1`}>
+          <Text style={tailwind`font-bold text-gray-400 text-xs`}>Deliver Now!</Text>
+          <Text style={tailwind`font-bold text-xl`}>
+            Current Location
+            <ChevronDownIcon size={20} color="#00CCBB" />
+          </Text>
         </View>
-        {/**Search */}
-        <View style={tailwind`flex-row items-center pb-2 mx-4 px-4`}>
-          <View style={tailwind`rounded-full flex-row flex-1 bg-gray-100 p-3`}>
-            <MagnifyingGlassIcon color="#004AAD" size={20} />
-            <TextInput
+
+        <UserIcon size={35} color="#00CCBB" />
+      </View>
+
+
+
+    
+
+
+        <View style={tailwind`flex-row items-center space-x-2 pb-2 mx-4`}>
+        <View style={tailwind`flex-row flex-1 space-x-2 bg-gray-200 p-3`}>
+        <MagnifyingGlassIcon color="#004AAD" size={20} />
+          <TextInput
               onChangeText={(text) => searchFilterFunction(text)}
               value={search}
               placeholder="Restaurantes e cozinhas"
               keyboardType="default"
             />
-          </View>
-          <AdjustmentsVerticalIcon color="#004AAD" />
         </View>
-      </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+        <AdjustmentsVerticalIcon color="#004AAD" />
+      </View>
+ 
+
+      
+
+      {/* Body */}
+      <ScrollView
+       style={tailwind`"bg-gray-100`}
+        contentContainerStyle={{
+          paddingBottom: 100,
+        }}
+      >
+        {/* Categories */}
+        <Categories />
         {loading && (
           <ActivityIndicator
             size="large"
@@ -243,7 +268,7 @@ const HomeScreen = () => {
         )}
         <RestaurantItem restaurantData={filteredDataSource} />
       </ScrollView>
-    </Screen>
+      </SafeAreaView>
   );
 };
 

@@ -190,7 +190,7 @@ const CheckoutScreen = ({ navigation }: NavigationProps) => {
           style={tailwind`h-10 w-full bg-blue-500 my-6 rounded-full items-center justify-center border border-blue-500`}
           onPress={useCurrentLocation}
         >
-          <Text>Use Current Location</Text>
+          <Text>Usar localização atual</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

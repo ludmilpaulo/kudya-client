@@ -23,7 +23,7 @@ function JoinScreen({ navigation }: JoinScreenProps) {
         <View style={tailwind`flex-1 justify-end`}>
           <View style={tailwind`bg-white px-5 pb-5 pt-6 rounded-t-2xl`}>
             <Text style={tailwind`text-2xl font-bold mb-3`}>
-              SD Food: Entrega de alimentos
+              SD Kudya: Entrega de alimentos
             </Text>
             <Text style={tailwind`text-base text-gray-500 mb-3`}>
               Receba comida à sua porta de milhares de restaurantes locais e
