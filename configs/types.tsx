@@ -4,6 +4,10 @@ export interface Restaurant {
   phone: number;
   address: string;
   logo: string;
+  category?: {
+    name: string;
+    image: string;
+  };
 }
 
 export interface Meals {

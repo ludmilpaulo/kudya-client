@@ -42,6 +42,10 @@ interface Restaurant {
   phone: number;
   address: string;
   logo: string;
+  category?: {
+    name: string;
+    image: string;
+  };
 }
 
 Geocoder.init(googleAPi);
@@ -258,7 +262,9 @@ const HomeScreen = () => {
         }}
       >
         {/* Categories */}
-        <Categories />
+        <Categories onSelectCategory={(category) => setSearch(category)} />
+
+
         {loading && (
           <ActivityIndicator
             size="large"
@@ -266,7 +272,13 @@ const HomeScreen = () => {
             style={tailwind`mt-2 mb-6`}
           />
         )}
-        <RestaurantItem restaurantData={filteredDataSource} />
+        <RestaurantItem
+          restaurantData={filteredDataSource.filter(
+            (restaurant) =>
+              !search ||
+              (restaurant.category && restaurant.category.name === search)
+          )}
+        />
       </ScrollView>
       </SafeAreaView>
   );
