@@ -11,11 +11,30 @@ const CheckoutModal = ({ setModalVisible }: { setModalVisible: any }) => {
 
 
   const allCartItems = useSelector((state: RootState) => selectBasketItems(state));
-  // Calculate total price and count of items
-  const totalPrice = allCartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+    // Group items by resName
+    const groupedItems: Record<string, any[]> = {};
+    allCartItems.forEach((item) => {
+      const key = item.resName;
+      if (!groupedItems[key]) {
+        groupedItems[key] = [];
+      }
+      groupedItems[key].push(item);
+    });
+  
+    // Calculate total price and count of items for each group
+    const groupedTotalPrices: Record<string, number> = {};
+    Object.keys(groupedItems).forEach((key) => {
+      groupedTotalPrices[key] = groupedItems[key].reduce(
+        (total, item) => total + item.price * item.quantity,
+        0
+      );
+    });
+  
+    const totalPrice = Object.values(groupedTotalPrices).reduce(
+      (total, price) => total + price,
+      0
+    );
+  
   const navigation = useNavigation<any>();
 
   const addOrder = () => {
@@ -34,26 +53,17 @@ const CheckoutModal = ({ setModalVisible }: { setModalVisible: any }) => {
           Detalhes do checkout
         </Text>
         <View style={tailwind`mb-5`}>
-        {allCartItems?.map((item: any, index: number) => (
-  <OrderItem
-    key={item.id} // Use a unique identifier as the key
-    name={item.resName}
-    value={`${
-      item?.foods
-        ? item.foods
-            .reduce(
-              (total: any, food: any) => total + food.price * food.quantity,
-              0
-            )
-            .toFixed(1)
-        : '0.0'
-    }Kz • (${item?.foods?.length || 0})`}
-    total={undefined}
-  />
-))}
+        {Object.keys(groupedItems).map((resName: string) => (
+          <OrderItem
+            key={resName}
+            name={resName}
+            value={`${groupedTotalPrices[resName].toFixed(1)}Kz • (${groupedItems[resName].length || 0})`}
+            total={undefined}
+          />
+        ))}
+        <OrderItem name="Preço total" value={`${totalPrice}Kz`} total />
+      </View>
 
-          <OrderItem name="Preço total" value={`${totalPrice}Kz`} total />
-        </View>
         <TouchableOpacity
           style={tailwind`py-3 px-10 self-center bg-black rounded-full`}
           onPress={addOrder}

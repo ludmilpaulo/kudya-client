@@ -111,7 +111,7 @@ const MenuItems = ({ resId, food, resName, resImage }: Meals) => {
 
       <View style={tailwind`bg-white px-4`}>
       {isPressed && (
-        <View style={tailwind`flex-row items-center space-x-2 pb-3`}>
+        <View style={tailwind`flex-row items-center ml-2 pb-3`}>
           <TouchableOpacity
             disabled={quantity === 0}
             onPress={removeItemFromBasket}

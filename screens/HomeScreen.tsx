@@ -52,7 +52,7 @@ interface Restaurant {
 
 Geocoder.init(googleAPi);
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }: { navigation: any }) => {
   const user = useSelector(selectUser);
 
   //const userPosition = useSelector(setUserLocation);
@@ -81,38 +81,66 @@ const HomeScreen = () => {
     any | null
   >(driverPosition?.location);
 
-  const pickUser = async () => {
-    let response = await fetch(
-      "https://www.sunshinedeliver.com/api/customer/profile/",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: user?.user_id,
-        }),
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await pickUser();
+        const timer = setInterval(() => userLocation(), 2000);
+        return () => clearInterval(timer);
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
       }
-    )
-      .then((response) => response.json())
-      .then((responseJson) => {
-        setUserPhoto(responseJson.customer_detais.avatar);
-      })
-      .catch((error) => {
-        // console.error(error);
-      });
+    };
+  
+    fetchData();
+  }, []);
+  
+  const pickUser = async () => {
+    try {
+      let response = await fetch(
+        "https://www.sunshinedeliver.com/api/customer/profile/",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: user?.user_id,
+          }),
+        }
+      );
+  
+      if (response.ok) {
+        let responseJson = await response.json();
+        const customerDetails = responseJson.customer_details;
+  
+        // Check if customer_details is defined before accessing its properties
+        if (customerDetails && customerDetails.avatar !== undefined) {
+          // Avatar is not null, set the user photo
+          setUserPhoto(customerDetails.avatar);
+        } else {
+          // Avatar is null or undefined, redirect to UserProfile
+          navigation.navigate("UserProfile");
+        }
+      } else {
+        // Handle non-successful response
+        console.error("Error fetching user profile");
+      }
+    } catch (error) {
+      // Handle network errors or other exceptions
+      console.error("Error in pickUser:", error);
+      throw error; // Rethrow the error to be caught by the calling function
+    }
   };
+  
+  
+  
 
   const customer_avatar = `${userPhoto}`;
   const customer_image = `${url}${customer_avatar}`;
 
-  useEffect(() => {
-    pickUser();
-    const timer = setInterval(() => userLocation(), 2000);
-    return () => clearInterval(timer);
-  }, []);
-
+ 
   const userLocation = async () => {
     if (Platform.OS === "android" && !Device.isDevice) {
       alert(
@@ -216,13 +244,12 @@ const HomeScreen = () => {
   return (
     <SafeAreaView style={tailwind`bg-white pt-5`}>
       {/* Header */}
-      <View style={tailwind`flex-row pb-3 items-center mx-4 space-x-2`}>
-      <Image
-            source={{ uri: customer_image }}
-            style={tailwind`h-12 w-12 p-4 rounded-full`}
-          />
-        
-
+      <View style={tailwind`flex-row pb-3 items-center mx-4 ml-2`}>
+        <Image
+          source={{ uri: customer_image }}
+          style={tailwind`h-12 w-12 p-4 rounded-full`}
+        />
+  
         <View style={tailwind`flex-1`}>
           <Text style={tailwind`font-bold text-gray-400 text-xs`}>Deliver Now!</Text>
           <Text style={tailwind`font-bold text-xl`}>
@@ -230,43 +257,34 @@ const HomeScreen = () => {
             <ChevronDownIcon size={20} color="#004AAD" />
           </Text>
         </View>
-
+  
         <UserIcon size={35} color="#004AAD" />
       </View>
-
-
-
-    
-
-
-        <View style={tailwind`flex-row items-center space-x-2 pb-2 mx-4`}>
-        <View style={tailwind`flex-row flex-1 space-x-2 bg-gray-200 p-3`}>
-        <MagnifyingGlassIcon color="#004AAD" size={20} />
+  
+      <View style={tailwind`flex-row items-center ml-2 pb-2 mx-4`}>
+        <View style={tailwind`flex-row flex-1 ml-2 bg-gray-200 p-3`}>
+          <MagnifyingGlassIcon color="#004AAD" size={20} />
           <TextInput
-              onChangeText={(text) => searchFilterFunction(text)}
-              value={search}
-              placeholder="Restaurantes e cozinhas"
-              keyboardType="default"
-            />
+            onChangeText={(text) => searchFilterFunction(text)}
+            value={search}
+            placeholder="Restaurantes e cozinhas"
+            keyboardType="default"
+          />
         </View>
-
+  
         <AdjustmentsVerticalIcon color="#004AAD" />
       </View>
- 
-
-      
-
+  
       {/* Body */}
       <ScrollView
-       style={tailwind`"bg-gray-100`}
+        style={tailwind`bg-white`}
         contentContainerStyle={{
           paddingBottom: 100,
         }}
       >
         {/* Categories */}
         <Categories onSelectCategory={(category) => setSearch(category)} />
-
-
+  
         {loading && (
           <ActivityIndicator
             size="large"
@@ -274,28 +292,31 @@ const HomeScreen = () => {
             style={tailwind`mt-2 mb-6`}
           />
         )}
-       <RestaurantItem
-    restaurantData={filteredDataSource
-      .filter(
-        (restaurant) =>
-          (!search ||
-            (restaurant.category && restaurant.category.name === search)) &&
-          restaurant.is_approved === true &&
-          restaurant.barnner === true
-      )}
-  />
+  
         <RestaurantItem
-    restaurantData={filteredDataSource
-      .filter(
-        (restaurant) =>
-          (!search ||
-            (restaurant.category && restaurant.category.name === search)) &&
-          restaurant.is_approved === true
-      )}
-  />
+          restaurantData={filteredDataSource
+            .filter(
+              (restaurant) =>
+                (!search ||
+                  (restaurant.category && restaurant.category.name === search)) &&
+                restaurant.is_approved === true &&
+                restaurant.barnner === true
+            )}
+        />
+  
+        <RestaurantItem
+          restaurantData={filteredDataSource
+            .filter(
+              (restaurant) =>
+                (!search ||
+                  (restaurant.category && restaurant.category.name === search)) &&
+                restaurant.is_approved === true
+            )}
+        />
       </ScrollView>
-      </SafeAreaView>
+    </SafeAreaView>
   );
-};
-
-export default HomeScreen;
+  };
+  
+  export default HomeScreen;
+  

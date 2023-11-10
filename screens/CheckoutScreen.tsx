@@ -29,6 +29,8 @@ const CheckoutScreen = ({ navigation }: NavigationProps) => {
   const [loading, setLoading] = useState(true);
   const [loadingOrder, setLoadingOrder] = useState(false);
 
+  const [showPaymentButton, setShowPaymentButton] = useState(false);
+
   const user = useSelector(selectUser);
   const allCartItems = useSelector((state: RootState) => selectBasketItems(state));
 
@@ -101,38 +103,57 @@ const CheckoutScreen = ({ navigation }: NavigationProps) => {
     if (!userAddress) {
       alert('Por favor Preencha o Endereço de Entrega');
     } else {
-      let response = await fetch('https://www.sunshinedeliver.com/api/customer/order/add/', {
-        //mode: 'no-cors',
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          access_token: user?.token,
-          restaurant_id: restaurantIds,
-          address: userAddress,
-          order_details: transformedOrderDetails,
-        }),
-      })
-        .then((response) => response.json())
-        .then((responseJson) => {
-          alert(responseJson.status);
-          //alert(responseJson.error);
-          console.log('Response', responseJson);
-          setTimeout(() => {
-            setLoadingOrder(false);
-            dispatch(clearBasket());
-            navigation.navigate('SuccessScreen');
-          }, 2000);
-        })
-        .catch((error) => {
-          alert('Selecione Comida apenas de um restaurante');
-          navigation.navigate('CartScreen');
-          console.log(error);
+      try {
+        const uniqueRestaurantId = allCartItems.length > 0 ? allCartItems[0].resId : null;
+  
+        if (!uniqueRestaurantId) {
+          alert('No items in the cart or unable to determine the restaurant.');
+          return;
+        }
+  
+        let response = await fetch("https://www.sunshinedeliver.com/api/customer/order/add/", {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            access_token: user?.token,
+            restaurant_id: uniqueRestaurantId.toString(),
+            address: userAddress,
+            order_details: transformedOrderDetails[0].order_details,
+          }),
         });
+  
+        if (response.ok) {
+          let responseJson = await response.json();
+          console.log('Response', responseJson);
+  
+          if (responseJson.status === 'success') {
+            // If status is 'success', dispatch clearBasket() and navigate to SuccessScreen
+            setTimeout(() => {
+              setLoadingOrder(false);
+              dispatch(clearBasket());
+              navigation.navigate('SuccessScreen');
+            }, 2000);
+          } else {
+            // If status is not 'success', redirect to HomeScreen
+            alert('Selecione Comida apenas de um restaurante');
+            navigation.navigate('HomeScreen');
+          }
+        } else {
+          // Handle non-successful response (e.g., redirect to HomeScreen)
+          alert('Selecione Comida apenas de um restaurante');
+          navigation.navigate('HomeScreen');
+        }
+      } catch (error) {
+        // Handle network errors or other exceptions
+        console.error(error);
+        alert('An error occurred. Please try again.');
+      }
     }
   };
+  
 
   const useCurrentLocation = () => {
     fetchUserLocation()
@@ -140,6 +161,7 @@ const CheckoutScreen = ({ navigation }: NavigationProps) => {
         if (location) {
           const formattedAddress = `Latitude: ${location.latitude}, Longitude: ${location.longitude}`;
           setUserAddress(formattedAddress);
+          setShowPaymentButton(true);
         } else {
           alert('Failed to get current location');
         }
@@ -169,14 +191,16 @@ const CheckoutScreen = ({ navigation }: NavigationProps) => {
       </View>
 
       <View>
+        {/* GooglePlacesAutocomplete component */}
         <GooglePlacesAutocomplete
           placeholder="Adicione seu endereço"
           onPress={(data, details = null) => {
             console.log('endereco done', data?.description);
             setUserAddress(data?.description);
+            setShowPaymentButton(true);
           }}
           query={{
-            key: 'AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78',
+            key: 'YOUR_GOOGLE_MAPS_API_KEY',
             language: 'en',
             types: ['(cities)'],
           }}
@@ -186,22 +210,24 @@ const CheckoutScreen = ({ navigation }: NavigationProps) => {
             listView: tailwind`bg-white border border-gray-300 border-t-0 mt-1 mx-2 rounded-md shadow-md`,
           }}
         />
+
+        {/* Button to use the current location */}
         <TouchableOpacity
-          style={tailwind`h-10 w-full bg-blue-500 my-6 rounded-full items-center justify-center border border-blue-500`}
+          style={tailwind`h-10 w-full bg-blue-500 my-6 rounded-full mt-24 items-center justify-center border border-blue-500`}
           onPress={useCurrentLocation}
         >
           <Text>Usar localização atual</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-  style={tailwind`h-10 w-full bg-blue-500 my-6 rounded-full items-center justify-center border border-blue-500`}
-  onPress={completeOrder}
->
-  <Text style={tailwind`text-white`}>Pagar na entrega</Text>
-</TouchableOpacity>
-
-
-
+        {/* Button to complete the order (conditionally rendered) */}
+        {showPaymentButton && (
+          <TouchableOpacity
+            style={tailwind`h-10 w-full bg-blue-500 my-6 rounded-full items-center justify-center border border-blue-500`}
+            onPress={completeOrder}
+          >
+            <Text style={tailwind`text-white`}>Pagar na entrega</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </>
   );

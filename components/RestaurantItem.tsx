@@ -76,14 +76,14 @@ const RestaurantItemCard = ({ item, onPress }: { item: any; onPress: any }) => {
 
     <View style={tailwind`px-3 pb-4`}>
       <Text style={tailwind`font-bold text-lg pt-2`}>{item.name}</Text>
-      <View style={tailwind`flex-row items-center space-x-1`}>
+      <View style={tailwind`flex-row items-center ml-1`}>
         <StarIcon color="#004AAD" opacity={0.5} size={22} />
         <Text style={tailwind`text-xs text-gray-500`}>
           <Text style={tailwind`text-green-500`}>ratin</Text> · genre
         </Text>
       </View>
 
-      <View style={tailwind`flex-row items-center space-x-1`}>
+      <View style={tailwind`flex-row items-center ml-1`}>
       <Icon name="location-arrow" size={30} opacity={0.4} color="black" />
         
         <Text style={tailwind`text-xs text-gray-500`}>Nearby · {item.address}</Text>
