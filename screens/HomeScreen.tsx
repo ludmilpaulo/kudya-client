@@ -46,6 +46,8 @@ interface Restaurant {
     name: string;
     image: string;
   };
+  is_approved: boolean;
+  barnner: boolean;
 }
 
 Geocoder.init(googleAPi);
@@ -225,11 +227,11 @@ const HomeScreen = () => {
           <Text style={tailwind`font-bold text-gray-400 text-xs`}>Deliver Now!</Text>
           <Text style={tailwind`font-bold text-xl`}>
             Current Location
-            <ChevronDownIcon size={20} color="#00CCBB" />
+            <ChevronDownIcon size={20} color="#004AAD" />
           </Text>
         </View>
 
-        <UserIcon size={35} color="#00CCBB" />
+        <UserIcon size={35} color="#004AAD" />
       </View>
 
 
@@ -272,13 +274,25 @@ const HomeScreen = () => {
             style={tailwind`mt-2 mb-6`}
           />
         )}
+       <RestaurantItem
+    restaurantData={filteredDataSource
+      .filter(
+        (restaurant) =>
+          (!search ||
+            (restaurant.category && restaurant.category.name === search)) &&
+          restaurant.is_approved === true &&
+          restaurant.barnner === true
+      )}
+  />
         <RestaurantItem
-          restaurantData={filteredDataSource.filter(
-            (restaurant) =>
-              !search ||
-              (restaurant.category && restaurant.category.name === search)
-          )}
-        />
+    restaurantData={filteredDataSource
+      .filter(
+        (restaurant) =>
+          (!search ||
+            (restaurant.category && restaurant.category.name === search)) &&
+          restaurant.is_approved === true
+      )}
+  />
       </ScrollView>
       </SafeAreaView>
   );

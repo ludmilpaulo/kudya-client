@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, TouchableOpacity, Image, Text } from "react-native";
 import tailwind from "tailwind-react-native-classnames";
 import CategoryCard from "./CategoryCard";
 import { Restaurant } from "../configs/types";
@@ -48,13 +48,19 @@ const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
     showsHorizontalScrollIndicator={false}
   >
     {categories.map((category, index) => (
+
+<TouchableOpacity
+style={tailwind`relative mr-2`}
+onPress={() => onSelectCategory(category?.name || '')}
+>
+<Image
+  source={{ uri : category?.image}}
+  style={tailwind`h-20 w-20 rounded`}
+/>
+<Text style={tailwind`text-black font-bold`}>{category?.name}</Text>
+</TouchableOpacity>
       
-      <CategoryCard
-        key={index} // Use index as the key, assuming categories have unique indices
-        title={category?.name}
-        imgUrl={category?.image || ''}
-        onPress={() => onSelectCategory(category?.name || '')}
-      />
+     
     ))}
   </ScrollView>
   );

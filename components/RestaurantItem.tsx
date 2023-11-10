@@ -33,7 +33,7 @@ const RestaurantItem = ({ restaurantData }: any) => {
     <View>
     <View  style={tailwind`mt-4 flex-row items-center justify-between px-4`}>
       <Text  style={tailwind`font-bold text-lg`}>title</Text>
-      <ArrowRightIcon color="#00CCBB" />
+      <ArrowRightIcon color="#004AAD" />
     </View>
 
     <Text style={tailwind`text-xs text-gray-500 px-4`}>description</Text>
@@ -52,6 +52,7 @@ const RestaurantItem = ({ restaurantData }: any) => {
           onPress={() => handlePress(item)}
         />
       ))}
+     
       </ScrollView>
     </View>
   );
@@ -76,7 +77,7 @@ const RestaurantItemCard = ({ item, onPress }: { item: any; onPress: any }) => {
     <View style={tailwind`px-3 pb-4`}>
       <Text style={tailwind`font-bold text-lg pt-2`}>{item.name}</Text>
       <View style={tailwind`flex-row items-center space-x-1`}>
-        <StarIcon color="green" opacity={0.5} size={22} />
+        <StarIcon color="#004AAD" opacity={0.5} size={22} />
         <Text style={tailwind`text-xs text-gray-500`}>
           <Text style={tailwind`text-green-500`}>ratin</Text> · genre
         </Text>
