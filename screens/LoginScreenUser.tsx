@@ -45,7 +45,7 @@ export default function LoginScreenUser({ navigation }: { navigation: any }) {
   return (
     <Screen style={tailwind`flex-1 justify-center`}>
       <View style={tailwind`px-4 py-4 rounded-2xl items-center`}>
-        <Image style={tailwind`h-64 w-64`} source={require("../assets/logo.png")} />
+        <Image style={tailwind`h-64 w-64`} source={require("../assets/azul.png")} />
         <Text style={tailwind`text-2xl font-bold mt-4`}>
           Conecte-se {"\n"}<Text style={tailwind`text-black font-semibold`}></Text>
         </Text>

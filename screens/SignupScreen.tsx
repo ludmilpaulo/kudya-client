@@ -46,7 +46,7 @@ export default function SignupScreen() {
   return (
     <Screen style={tailwind`flex-1 justify-center items-center`}>
       <View style={tailwind`rounded-2xl`}>
-        <Image style={styles.logo} source={require("../assets/logo.png")} />
+        <Image style={styles.logo} source={require("../assets/azul.png")} />
       </View>
       
       <View style={tailwind`w-64`}>

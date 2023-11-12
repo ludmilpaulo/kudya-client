@@ -38,7 +38,7 @@ const ChatComponent: React.FC<{ user: 'customer' | 'driver'; accessToken: string
   const onSend = (newMessages: IMessage[]) => {
     // Send new message to Django backend
     axios
-      .post(`https://webhook.site/6a7e9e53-78c3-491e-9901-f3cf8915ca88`, {
+      .post(`${apiUrl}/api/send_chat_message/`, {
         user_id:userData?.user_id,
         order_id: orderId,
         message: newMessages[0].text,
@@ -49,9 +49,10 @@ const ChatComponent: React.FC<{ user: 'customer' | 'driver'; accessToken: string
       })
       .catch((error) => console.error('Error sending message:', error));
   };
+  const chatHeight = messages.length * 60;
 
   return (
-     <View style={tailwind`bg-white flex-1`}>
+    <View style={[tailwind`bg-white flex-1`, { height: chatHeight }]}>
       <GiftedChat
         messages={messages}
         onSend={(newMessages) => onSend(newMessages)}

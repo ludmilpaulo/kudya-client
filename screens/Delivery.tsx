@@ -26,10 +26,13 @@ type Props = {}
 const Delivery = (props: Props) => {
   const navigation = useNavigation<any>();
   const [ driverLocation, setDriverLocation ] = useState<any>();
-  const [data, setData ]= useState([{}]);
+  const [data, setData] = useState<any>([]);
+
   const [driverData, setdriverData] = useState<any>({});
   const [restaurantData, setRestaurantData] = useState<any>([]);
-  const [orderData, setOrderData] = useState<any>([]);
+  const [orderData, setOrderData] = useState<any>();
+
+  const [ order_id, setOrder_id ] = useState<any>()
 
   const user = useSelector(selectUser);
   let userData = user;
@@ -64,7 +67,7 @@ const Delivery = (props: Props) => {
         }
       );
       const locationData = await response.json();
-      console.log("Location Data:", locationData);
+     
       // Replace single quotes with double quotes and parse as JSON
       setDriverLocation(JSON.parse(locationData?.location.replace(/'/g, '"')));
     } catch (error) {
@@ -104,31 +107,43 @@ const Delivery = (props: Props) => {
       })
        .then((response) => response.json())
        .then((responseJson) => {
-        console.log("my rsponse ,",responseJson)
-         if(responseJson.order.total==null){ 
-
-         alert(" Voce Nao tem nenhum Pedido a Caminho")
-          navigation.navigate("Home")
-           
-            }
-            else{
-        setData(responseJson.order);
-        setdriverData(responseJson.order.driver);
-  
-        setRestaurantData(responseJson.order.restaurant);
-        setOrderData(responseJson.order.order_details);
-    }
+       
+        if (responseJson.order.length === 0) {
+          alert("Você não tem nenhum pedido a caminho");
+          navigation.navigate("Home");
+        } else {
+          setData(responseJson);
+          setdriverData(responseJson.order.driver);
+          setRestaurantData(responseJson.order.restaurant);
+          setOrderData(responseJson.order.order_details);
+        }
+        
         })  
         .catch((error) => {
           console.error(error);
         });
 }
 
-useEffect(() =>{
+useEffect(() => {
+  const fetchData = async () => {
+    await pickOrder();
 
-  pickOrder();
+    if (data && data.order) {
+      const orderId = data.order.id;
+      setOrder_id(orderId);
+      console.log("Order ID:", orderId);
+    } else {
+      console.error("Data is not defined or does not contain an order.");
+    }
+  };
 
-}, []);
+  fetchData();
+}, [data]);
+
+
+
+
+
 
 
 return (
@@ -145,7 +160,7 @@ return (
         <View style={tailwind`flex-row justify-between`}>
           <View>
             <Text style={tailwind`text-lg text-gray-400`}>
-              {driverData?.name} chegará estimado em
+              {driverData?.name}chegará estimado em
             </Text>
             <Text style={tailwind`text-4xl font-bold`}>45-55 Minutos</Text>
           </View>
@@ -195,15 +210,13 @@ return (
         style={tailwind`w-12 h-12 p-4 ml-5 bg-gray-300 rounded-full`}
       />
       <View style={tailwind`flex-1`}>
-        <Text style={tailwind`text-lg`}>{driverData?.name}</Text>
-        <Text style={tailwind`text-gray-400`}>Enviar messagem</Text>
 
         {/* Assuming ChatComponent is a valid component */}
         <ChatComponent
           user="customer"
           userData={userData}
           accessToken={user?.token}
-          orderId={orderData?.id}
+          orderId={order_id}
         />
       </View>
       <Text
