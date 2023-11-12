@@ -22,11 +22,6 @@ import { googleAPi } from "../configs/variable";
 
 import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
-import {
-  launchCamera,
-  launchImageLibrary,
-  Asset,
-} from "react-native-image-picker";
 
 import { useNavigation } from "@react-navigation/native";
 import * as Updates from "expo-updates";
@@ -99,36 +94,37 @@ const UserProfile = () => {
   useEffect(() => {
     userLocation();
 
-    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
-      setKeyboardStatus("Keyboard Shown");
-    });
-    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
-      setKeyboardStatus("Keyboard Hidden");
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
   }, []);
 
   const [imageInfo, setImageInfo] = useState<ImageInfo | undefined>();
 
+  const handleImagePickerResult = (result: ImagePicker.ImagePickerResult) => {
+    if (result.cancelled) {
+      // Handle the cancellation case
+      alert("Image selection was canceled");
+    } else {
+      // Handle the success case
+      const selectedAsset = (result as ImagePicker.ImagePickerSuccessResult).assets[0];
+      const { uri, mediaType } = selectedAsset;
+      setImageInfo({ uri, type: mediaType, width: 0, height: 0 });
+    }
+  };
+  
+  
+
   const handleTakePhoto = async () => {
     const { status } = await Permissions.askAsync(Permissions.CAMERA);
-    //let { status } = await Camera.requestPermissionsAsync();
     if (status !== "granted") {
       alert("Permission to access camera denied");
       return;
     }
-    const result = await ImagePicker.launchCameraAsync({
+
+    const result: ImagePicker.ImagePickerResult = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
-    if (!result.cancelled) {
-      setImageInfo(result);
-    }
+    handleImagePickerResult(result);
   };
 
   const handleSelectPhoto = async () => {
@@ -137,69 +133,72 @@ const UserProfile = () => {
       alert("Permission to access media library denied");
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
+
+    const result: ImagePicker.ImagePickerResult = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
     });
-    if (!result.cancelled) {
-      setImageInfo(result);
-    }
+    handleImagePickerResult(result);
   };
 
+
   const userUpdate = async () => {
-    // ImagePicker saves the taken photo to disk and returns a local URI to it
     if (!imageInfo) {
       alert("Please select an image first");
       return;
     }
-    const { uri, type } = imageInfo;
-
-    // Upload the image using the fetch and FormData APIs
-    let formData = new FormData();
-    // Assume "photo" is the name of the form field the server expects
-    formData.append("avatar", { uri, type, name: "image.jpg" });
-    formData.append("access_token", user?.token);
-    formData.append("address", address);
-    formData.append("first_name", first_name);
-    formData.append("last_name", last_name);
-    formData.append("phone", phone);
-
-    console.log("shool ==>", formData);
-
-    // try {
-    let response = await fetch(
-      "https://www.sunshinedeliver.com/api/customer/profile/update/",
-      {
+  
+    const { uri } = imageInfo;
+  
+    try {
+      const response = await fetch(uri);
+  
+      if (!response.ok) {
+        throw new Error("Failed to fetch image");
+      }
+  
+      const blob = await response.blob();
+  
+      // Create FormData
+      let formData = new FormData();
+      formData.append("avatar", blob, "image.jpg");
+      formData.append("access_token", user?.token);
+      formData.append("address", address);
+      formData.append("first_name", first_name);
+      formData.append("last_name", last_name);
+      formData.append("phone", phone);
+  
+      // Make API request
+      const apiEndpoint = "https://www.sunshinedeliver.com/api/customer/profile/update/";
+      const apiResponse = await fetch(apiEndpoint, {
         method: "POST",
         headers: {
           Accept: "application/json",
           "Content-Type": "multipart/form-data",
         },
         body: formData,
+      });
+  
+      // Handle API response
+      if (apiResponse.ok) {
+        const data = await apiResponse.json();
+        alert(data.status);
+        navigation.navigate("HomeScreen");
+      } else {
+        const errorData = await apiResponse.json();
+        alert("" + errorData.non_field_errors);
+        console.log("err", errorData);
       }
-    );
-    //response = await response.json();
-
-    if (response.status == 200) {
-      let data = await response.json();
-
-      alert(data.status);
-      navigation.navigate("HomeScreen");
-      return true;
-    } else {
-      let resp = await response.json();
-      alert("" + resp.non_field_errors);
-      console.log("err", resp);
+    } catch (error) {
+      console.error("Error converting image data or making API request:", error?.message);
+      // Provide additional information or handle the error as needed
+      alert("Error updating profile. Please try again later.");
     }
-    //  } catch (e) {
-    //  console.log("alila", e);
-    // alert("O usuário não existe, inscreva-se ou tente fazer login novamente");
-
-    Updates.reloadAsync();
-    //  }
   };
+  
+
 
   return (
     <>

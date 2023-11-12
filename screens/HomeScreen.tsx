@@ -85,16 +85,23 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
     const fetchData = async () => {
       try {
         await pickUser();
-        const timer = setInterval(() => userLocation(), 2000);
-        return () => clearInterval(timer);
       } catch (error) {
         console.error("Error fetching user profile:", error);
       }
     };
   
-    fetchData();
+    fetchData(); // Call fetchData immediately when the component mounts
+  
+    const timer = setInterval(() => {
+      fetchData(); // Fetch user data every 2000 milliseconds (2 seconds)
+    }, 2000);
+  
+    // Clear the interval when the component is unmounted
+    return () => clearInterval(timer);
   }, []);
   
+
+
   const pickUser = async () => {
     try {
       let response = await fetch(
@@ -113,30 +120,52 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
   
       if (response.ok) {
         let responseJson = await response.json();
-        const customerDetails = responseJson.customer_details;
+     
   
         // Check if customer_details is defined before accessing its properties
-        if (customerDetails && customerDetails.avatar !== undefined) {
-          // Avatar is not null, set the user photo
-          setUserPhoto(customerDetails.avatar);
+        if (responseJson.customer_detais) {
+          const customerDetails = responseJson.customer_detais;
+  
+          // Check if avatar is not null or undefined
+          if (
+            customerDetails.avatar !== undefined &&
+            customerDetails.avatar !== null
+          ) {
+            // Avatar is not null, set the user photo
+            setUserPhoto(customerDetails.avatar);
+          } else {
+            // Avatar is null or undefined, redirect to UserProfile
+            navigation.navigate("UserProfile");
+            console.error(
+              "Avatar is null or undefined. Redirect to UserProfile."
+            );
+          }
+  
+          // Assuming you want to set user phone as well, update the state
+          setUserPhone(customerDetails.phone);
+  
+          // Assuming you want to set user ID as well, update the state
+          setUserId(customerDetails.user_id);
         } else {
-          // Avatar is null or undefined, redirect to UserProfile
-          navigation.navigate("UserProfile");
+          // customer_details is not defined
+          console.error("customer_details is not defined");
         }
       } else {
         // Handle non-successful response
-        console.error("Error fetching user profile");
+        console.error(
+          "Error fetching user profile. HTTP status:",
+          response.status
+        );
       }
     } catch (error) {
       // Handle network errors or other exceptions
       console.error("Error in pickUser:", error);
-      throw error; // Rethrow the error to be caught by the calling function
+      // You may want to throw the error to be caught by the calling function
+      throw error;
     }
   };
   
   
-  
-
   const customer_avatar = `${userPhoto}`;
   const customer_image = `${url}${customer_avatar}`;
 
@@ -165,23 +194,6 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
       })
     );
 
-    let response = await fetch(
-      "https://www.sunshinedeliver.com/api/customer/driver/location/",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          access_token: user?.token,
-        }),
-      }
-    );
-    const locationData = await response.json();
-    dispatch(setDriverLocation(locationData));
-
-    setDriverCurrentLocation(locationData?.location);
 
     Geocoder.from(location?.coords)
       .then((response) => {

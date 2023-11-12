@@ -15,7 +15,7 @@ import { Platform } from "react-native";
 
 export const googleAPi = "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78";
 
-const apiUrl = "https://www.sunshinedeliver.com";
+export const apiUrl = "https://www.sunshinedeliver.com";
 
 export const fetchData = async (endpoint: string) => {
   try {

@@ -11,20 +11,30 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/310d9e3d-aa61-4e69-830d-0f0826cef607"
+    },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ludmil.kudyamobile"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "foregroundImage": "./assets/LogoVertical.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.ludmil.kudyamobile"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/LogoVertical.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "310d9e3d-aa61-4e69-830d-0f0826cef607"
+      }
+    },
+    "runtimeVersion": "1.0.0"
   }
 }

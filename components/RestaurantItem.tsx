@@ -32,11 +32,11 @@ const RestaurantItem = ({ restaurantData }: any) => {
   return (
     <View>
     <View  style={tailwind`mt-4 flex-row items-center justify-between px-4`}>
-      <Text  style={tailwind`font-bold text-lg`}>title</Text>
+      <Text  style={tailwind`font-bold text-lg`}></Text>
       <ArrowRightIcon color="#004AAD" />
     </View>
 
-    <Text style={tailwind`text-xs text-gray-500 px-4`}>description</Text>
+    <Text style={tailwind`text-xs text-gray-500 px-4`}></Text>
        <ScrollView
         horizontal
         contentContainerStyle={{
