@@ -4,12 +4,15 @@ import Screen from "../components/Screen";
 import { useDispatch } from "react-redux";
 import tailwind from "tailwind-react-native-classnames";
 import { loginUser } from "../redux/slices/authSlice";
+import { useNavigation } from "@react-navigation/native";
 
-export default function LoginScreenUser({ navigation }: { navigation: any }) {
+export default function LoginScreenUser() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+
+  const navigation = useNavigation<any>();
 
   const LoginUser = async () => {
     try {
@@ -45,7 +48,8 @@ export default function LoginScreenUser({ navigation }: { navigation: any }) {
   return (
     <Screen style={tailwind`flex-1 justify-center`}>
       <View style={tailwind`px-4 py-4 rounded-2xl items-center`}>
-        <Image style={tailwind`h-64 w-64`} source={require("../assets/azul.png")} />
+      <Image source={require("../assets/azul.png")} style={tailwind`h-64 w-64`} />
+
         <Text style={tailwind`text-2xl font-bold mt-4`}>
           Conecte-se {"\n"}<Text style={tailwind`text-black font-semibold`}></Text>
         </Text>
@@ -77,6 +81,10 @@ export default function LoginScreenUser({ navigation }: { navigation: any }) {
         <Text style={tailwind`mt-4 text-center text-black`} onPress={() => navigation.navigate("Signup")}>
           Não é um membro?{" "}
           <Text style={tailwind`font-bold`}>Inscrever-se</Text>
+        </Text>
+        <Text style={tailwind`mt-4 text-center text-black`} onPress={() => navigation.navigate("ForgotPasswordScreen")}>
+          Esqueceu a Senha?{" "}
+          <Text style={tailwind`font-bold`}>Clique aqui</Text>
         </Text>
       </View>
     </Screen>

@@ -82,14 +82,14 @@ const RestaurantItemCard = ({ item, onPress }: { item: any; onPress: any }) => {
       <View style={tailwind`flex-row items-center ml-1`}>
         <StarIcon color="#004AAD" opacity={0.5} size={22} />
         <Text style={tailwind`text-xs text-gray-500`}>
-          <Text style={tailwind`text-green-500`}>ratin</Text> · genre
+          <Text style={tailwind`text-green-500`}></Text> 
         </Text>
       </View>
 
       <View style={tailwind`flex-row items-center ml-1`}>
-      <Icon name="location-arrow" size={30} opacity={0.4} color="black" />
+      <Icon name="location-arrow" size={30} style={{ opacity: 0.4, color: 'black' }} />
         
-        <Text style={tailwind`text-xs text-gray-500`}>Nearby · {item.address}</Text>
+        <Text style={tailwind`text-xs text-gray-500`}>Próximo· {item.address}</Text>
       </View>
     </View>
   </TouchableOpacity>

@@ -3,6 +3,7 @@ import * as Device from "expo-device";
 import * as Location from "expo-location";
 import { useState } from "react";
 import { Platform } from "react-native";
+import { ForgotPasswordRequest } from "./types";
 
 
 //const [longitude, setLongitude] = useState(0);
@@ -47,5 +48,33 @@ export const userLocation = async () => {
   //setLatitude(location.coords.latitude);
 
 };
+
+
+
+
+
+export const requestPasswordReset = async (data: ForgotPasswordRequest) => {
+  try {
+    const response = await fetch(`${apiUrl}/api/request-password-reset/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'An unexpected error occurred.');
+    }
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to reset password. Please try again.');
+  }
+};
+
 
 

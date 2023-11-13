@@ -191,7 +191,7 @@ const UserProfile = () => {
       if (apiResponse.ok) {
         const data = await apiResponse.json();
         alert(data.status);
-        //setLoading(false); 
+        setLoading(false); 
         navigation.navigate("HomeScreen");
       } else {
         const errorData = await apiResponse.json();
@@ -206,64 +206,71 @@ const UserProfile = () => {
     }
   };
   
+
+
   return (
     <>
       <Screen style={tailwind`flex-1 `}>
-        {loading ? (
-          <ActivityIndicator style={tailwind`mt-4`} size="large" color="#0000ff" />
-        ) : (
-          <View style={styles.wrapper}>
-            <View style={tailwind`justify-center items-center`}>
-              <View style={tailwind`rounded-full overflow-hidden w-48 h-48 mt-4`}>
-                {imageInfo && (
-                  <Image source={{ uri: imageInfo.uri }} style={tailwind`w-48 h-48`} />
-                )}
-              </View>
-              <TouchableOpacity onPress={() => handleTakePhoto()}>
-                <Text style={styles.wellcomeTo}>Tire uma Foto{"\n"} ou </Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleSelectPhoto()}>
-                <Text style={styles.brand}>Carregue sua Foto</Text>
-              </TouchableOpacity>
+        <View style={styles.wrapper}>
+          <View style={tailwind`justify-center items-center`}>
+            <View style={tailwind`rounded-full overflow-hidden w-48 h-48 mt-4`}>
+              {imageInfo && (
+                <Image
+                  source={{ uri: imageInfo.uri }}
+                  style={tailwind`w-48 h-48`}
+                />
+              )}
             </View>
-            <View>
-              <View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Primeiro Nome"
-                  autoCapitalize={"none"}
-                  onChangeText={(text) => setFirst_name(text)}
-                  value={first_name}
-                  onSubmitEditing={Keyboard.dismiss}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Ultimo Nome"
-                  onChangeText={(text) => setLast_name(text)}
-                  value={last_name}
-                  autoCapitalize={"none"}
-                  onSubmitEditing={Keyboard.dismiss}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Número de Telefone"
-                  autoComplete="off"
-                  value={phone}
-                  onChangeText={(text) => setPhone(text)}
-                  autoCapitalize={"none"}
-                  onSubmitEditing={Keyboard.dismiss}
-                />
-              </View>
-              <TouchableOpacity style={styles.containerbot} onPress={() => userUpdate()}>
-                <Text style={styles.vamosJuntos}>Atualize seu Perfil</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity onPress={() => handleTakePhoto()}>
+              <Text style={styles.wellcomeTo}>Tire uma Foto{"\n"} ou </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleSelectPhoto()}>
+              <Text style={styles.brand}>Carregue sua Foto</Text>
+            </TouchableOpacity>
           </View>
-        )}
+          {loading && <ActivityIndicator style={tailwind`mt-4`} size="large" color="#0000ff" />}
+          <View>
+            <View>
+              <TextInput
+                style={styles.input}
+                placeholder="Primeiro Nome"
+                autoCapitalize={"none"}
+                onChangeText={(text) => setFirst_name(text)}
+                value={first_name}
+                onSubmitEditing={Keyboard.dismiss}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Ultimo Nome"
+                onChangeText={(text) => setLast_name(text)}
+                value={last_name}
+                autoCapitalize={"none"}
+                onSubmitEditing={Keyboard.dismiss}
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder="Número de Telefone"
+                autoComplete="off"
+                value={phone}
+                onChangeText={(text) => setPhone(text)}
+                autoCapitalize={"none"}
+                onSubmitEditing={Keyboard.dismiss}
+              />
+            </View>
+          
+            <TouchableOpacity
+              style={styles.containerbot}
+              onPress={() => userUpdate()}
+            >
+              <Text style={styles.vamosJuntos}>Atualize seu Perfil</Text>
+            </TouchableOpacity>
+            
+          </View>
+        </View>
       </Screen>
     </>
   );
-  
 };
 
 const styles = StyleSheet.create({

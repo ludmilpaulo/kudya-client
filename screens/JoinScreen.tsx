@@ -5,11 +5,18 @@ import AppButton from "../components/AppButton";
 import Screen from "../components/Screen";
 import { StackNavigationProp } from "@react-navigation/stack"; // Import the necessary type
 
+import { useNavigation } from "@react-navigation/native";
+
+// ...
+
+
+
 type JoinScreenProps = {
   navigation: StackNavigationProp<{}>; // Define the type for the navigation prop
 };
 
-function JoinScreen({ navigation }: JoinScreenProps) {
+function JoinScreen() {
+  const navigation = useNavigation<any>();
   return (
     <Screen style={tailwind`flex-1`}>
       <View style={tailwind`flex-1`}>
@@ -30,11 +37,12 @@ function JoinScreen({ navigation }: JoinScreenProps) {
               nacionais incríveis.
             </Text>
             <AppButton
-              title="Let's go"
-              onPress={() => (navigation as any).navigate("UserLogin")}
-              color="primary"
-              disabled={false}
-            />
+  title="Let's go"
+  onPress={() => navigation.navigate("Signup")}
+  color="primary"
+  disabled={false}
+/>
+
           </View>
         </View>
       </View>

@@ -95,3 +95,11 @@ export interface Order {
   status: string;
   address: string;
 }
+
+
+// interfaces.ts
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
