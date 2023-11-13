@@ -9,17 +9,21 @@ import tailwind from "tailwind-react-native-classnames";
 const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState('');
 
-  const handleForgotPassword = async () => {
-    try {
-      // Make API request to Django backend to initiate password reset
-      await requestPasswordReset({ email });
-      Alert.alert('Success', 'E-mail de redefinição de senha enviado.');
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', error?.message || 'An unknown error occurred');
+  const [loading, setLoading] = useState(false);
 
-    }
-  };
+const handleForgotPassword = async () => {
+  try {
+    setLoading(true);
+    // Make API request to Django backend to initiate password reset
+    await requestPasswordReset({ email });
+    Alert.alert('Success', 'E-mail de redefinição de senha enviado.');
+  } catch (error) {
+    console.error(error);
+    Alert.alert('Error', error?.message || 'An unknown error occurred');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={tailwind`flex-1 justify-center items-center`}>

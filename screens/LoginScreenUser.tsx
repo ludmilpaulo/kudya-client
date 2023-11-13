@@ -82,10 +82,12 @@ export default function LoginScreenUser() {
           Não é um membro?{" "}
           <Text style={tailwind`font-bold`}>Inscrever-se</Text>
         </Text>
+        {/**
         <Text style={tailwind`mt-4 text-center text-black`} onPress={() => navigation.navigate("ForgotPasswordScreen")}>
           Esqueceu a Senha?{" "}
           <Text style={tailwind`font-bold`}>Clique aqui</Text>
         </Text>
+  */}
       </View>
     </Screen>
   );

@@ -38,7 +38,7 @@ function JoinScreen() {
             </Text>
             <AppButton
   title="Let's go"
-  onPress={() => navigation.navigate("Signup")}
+  onPress={() => navigation.navigate("UserLogin")}
   color="primary"
   disabled={false}
 />

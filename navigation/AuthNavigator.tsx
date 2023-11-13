@@ -3,6 +3,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import JoinScreen from "../screens/JoinScreen";
 import SignupScreen from "../screens/SignupScreen";
 import LoginScreenUser from "../screens/LoginScreenUser";
+import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 
 const Stack = createStackNavigator();
 
@@ -15,6 +16,7 @@ export default function AuthNavigator() {
     >
       <Stack.Screen name="Join" component={JoinScreen} />
       <Stack.Screen name="UserLogin" component={LoginScreenUser} />
+      <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen}/>
       <Stack.Screen name="Signup" component={SignupScreen} />
     </Stack.Navigator>
   );
