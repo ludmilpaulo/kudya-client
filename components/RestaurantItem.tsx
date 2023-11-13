@@ -4,19 +4,21 @@ import tailwind from "tailwind-react-native-classnames";
 import { ArrowRightIcon, StarIcon } from "react-native-heroicons/solid";
 import Icon from 'react-native-vector-icons/FontAwesome';
 
+import PropTypes from 'prop-types';
+
 
 import { useNavigation } from "@react-navigation/native";
+import { Restaurant } from "../configs/types";
 
-interface Restaurant {
-  id: number;
-  name: string;
-  phone: number;
-  address: string;
-  logo: string;
+interface RestaurantItemProps {
+  title: string;
+  description: string;
+  restaurantData: Restaurant[];
 }
 
-const RestaurantItem = ({ restaurantData }: any) => {
+const RestaurantItem: React.FC<RestaurantItemProps> = ({ title, description, restaurantData }) => {
   const navigation = useNavigation<any>();
+ 
 
   const handlePress = (item: Restaurant) => {
     navigation.navigate("DetailsScreen", {
@@ -32,11 +34,11 @@ const RestaurantItem = ({ restaurantData }: any) => {
   return (
     <View>
     <View  style={tailwind`mt-4 flex-row items-center justify-between px-4`}>
-      <Text  style={tailwind`font-bold text-lg`}></Text>
+      <Text  style={tailwind`font-bold text-lg`}>{title}</Text>
       <ArrowRightIcon color="#004AAD" />
     </View>
 
-    <Text style={tailwind`text-xs text-gray-500 px-4`}></Text>
+    <Text style={tailwind`text-xs text-gray-500 px-4`}>{description}</Text>
        <ScrollView
         horizontal
         contentContainerStyle={{
@@ -45,7 +47,8 @@ const RestaurantItem = ({ restaurantData }: any) => {
         showsHorizontalScrollIndicator={false}
         style={tailwind`pt-4`}
       >
-      {restaurantData?.map((item: any, index: any) => (
+      {restaurantData?.map((item: Restaurant, index: number) => (
+
         <RestaurantItemCard
           key={index}
           item={item}
@@ -92,4 +95,21 @@ const RestaurantItemCard = ({ item, onPress }: { item: any; onPress: any }) => {
   </TouchableOpacity>
 
   );
+ 
 };
+
+RestaurantItemCard.propTypes = {
+  item: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+    phone: PropTypes.number.isRequired,
+    address: PropTypes.string.isRequired,
+    logo: PropTypes.string.isRequired,
+    category: PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      image: PropTypes.string.isRequired,
+    }),
+  }).isRequired,
+  onPress: PropTypes.func.isRequired,
+};
+

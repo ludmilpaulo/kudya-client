@@ -136,9 +136,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
           } else {
             // Avatar is null or undefined, redirect to UserProfile
             navigation.navigate("UserProfile");
-            console.error(
-              "Avatar is null or undefined. Redirect to UserProfile."
-            );
+            
           }
   
           // Assuming you want to set user phone as well, update the state
@@ -306,6 +304,8 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
         )}
   
         <RestaurantItem
+         title={"Apresentou"}
+         description={"Canais pagos de nossos parceiros"}
           restaurantData={filteredDataSource
             .filter(
               (restaurant) =>
@@ -317,6 +317,8 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
         />
   
         <RestaurantItem
+        title={"Ofertas perto de você"}
+        description={"por que não apoiar o seu restaurante local"}
           restaurantData={filteredDataSource
             .filter(
               (restaurant) =>

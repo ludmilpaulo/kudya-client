@@ -4,37 +4,27 @@
     "slug": "kudya-client",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/azul.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/azul.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "updates": {
-      "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/310d9e3d-aa61-4e69-830d-0f0826cef607"
-    },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.ludmil.kudyamobile"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/azul.png",
-        "backgroundColor": "#FFFFFF"
-      },
-      "package": "com.ludmil.kudyamobile"
+        "backgroundColor": "#ffffff"
+      }
     },
     "web": {
       "favicon": "./assets/azul.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "310d9e3d-aa61-4e69-830d-0f0826cef607"
-      }
-    },
-    "runtimeVersion": "1.0.0"
+    }
   }
 }
