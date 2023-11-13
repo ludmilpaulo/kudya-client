@@ -102,7 +102,7 @@ RestaurantItemCard.propTypes = {
   item: PropTypes.shape({
     id: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
-    phone: PropTypes.number.isRequired,
+    phone: PropTypes.string.isRequired, // Change this to string
     address: PropTypes.string.isRequired,
     logo: PropTypes.string.isRequired,
     category: PropTypes.shape({

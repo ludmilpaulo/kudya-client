@@ -51,46 +51,6 @@ const Delivery = (props: Props) => {
     });
   };
 
-  const getDriverLocation = async () => {
-    try {
-      let response = await fetch(
-        "https://www.sunshinedeliver.com/api/customer/driver/location/",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            access_token: user?.token,
-          }),
-        }
-      );
-      const locationData = await response.json();
-     
-      // Replace single quotes with double quotes and parse as JSON
-      setDriverLocation(JSON.parse(locationData?.location.replace(/'/g, '"')));
-    } catch (error) {
-      console.error("Error fetching driver location:", error);
-    }
-  };
-  
-
-  useEffect(() => {
-    // Fetch driver location immediately
-    getDriverLocation();
-
-    // Set up interval to fetch driver location every 2 seconds
-    const intervalId = setInterval(() => {
-      //console.log("Driver Location:", driverLocation.latitude);
-
-      getDriverLocation();
-    }, 2000);
-
-    // Clear the interval when the component is unmounted
-    return () => clearInterval(intervalId);
-  }, []);
-
   const pickOrder = async() => {
    
 
@@ -139,6 +99,48 @@ useEffect(() => {
 
   fetchData();
 }, [data]);
+
+  const getDriverLocation = async () => {
+    try {
+      let response = await fetch(
+        "https://www.sunshinedeliver.com/api/customer/driver/location/",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            access_token: user?.token,
+          }),
+        }
+      );
+      const locationData = await response.json();
+     
+      // Replace single quotes with double quotes and parse as JSON
+      setDriverLocation(JSON.parse(locationData?.location.replace(/'/g, '"')));
+    } catch (error) {
+      console.error("Error fetching driver location:", error);
+    }
+  };
+  
+
+  useEffect(() => {
+    // Fetch driver location immediately
+    getDriverLocation();
+
+    // Set up interval to fetch driver location every 2 seconds
+    const intervalId = setInterval(() => {
+      //console.log("Driver Location:", driverLocation.latitude);
+
+      getDriverLocation();
+    }, 2000);
+
+    // Clear the interval when the component is unmounted
+    return () => clearInterval(intervalId);
+  }, []);
+
+
 
 
 

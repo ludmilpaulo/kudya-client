@@ -21,10 +21,21 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ludmil.kudyaclient"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "config": {
+      "googleMaps": {
+        "apiKey": "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "99701b72-553c-46bc-9d6a-e9538edac243"
+      }
     }
   }
 }
