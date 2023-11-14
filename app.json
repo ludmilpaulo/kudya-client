@@ -15,14 +15,25 @@
       "**/*"
     ],
     "ios": {
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78"
+        }
+      },
       "supportsTablet": true
     },
     "android": {
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78"
+        }
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.ludmil.kudyaclient"
+      "package": "com.ludmil.kudyaclient",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"
