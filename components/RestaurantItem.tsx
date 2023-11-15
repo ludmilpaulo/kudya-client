@@ -63,7 +63,8 @@ const RestaurantItem: React.FC<RestaurantItemProps> = ({ title, description, res
 
 export default RestaurantItem;
 
-const RestaurantItemCard = ({ item, onPress }: { item: any; onPress: any }) => {
+const RestaurantItemCard = ({ item, onPress }: { item: Restaurant; onPress: any }) => {
+
  
   return (
 

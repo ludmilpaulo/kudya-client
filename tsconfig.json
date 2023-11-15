@@ -3,8 +3,8 @@
   "compilerOptions": {
     "types": ["react-native", "react-native-vector-icons"],
     "strict": true,
-    "target": "es5",
-    "lib": ["ES2015", "dom"],
+    "target": "es2017", // or a later version
+    "lib": ["ES2017", "dom"],
   },
   "exclude": ["node_modules"]
 }

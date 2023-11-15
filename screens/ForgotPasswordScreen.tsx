@@ -19,7 +19,8 @@ const handleForgotPassword = async () => {
     Alert.alert('Success', 'E-mail de redefinição de senha enviado.');
   } catch (error) {
     console.error(error);
-    Alert.alert('Error', error?.message || 'An unknown error occurred');
+    Alert.alert('Error', (error as Error)?.message || 'An unknown error occurred');
+
   } finally {
     setLoading(false);
   }

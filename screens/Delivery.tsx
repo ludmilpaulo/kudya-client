@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 import {
@@ -11,11 +11,12 @@ import {
 } from "react-native";
 import { XCircleIcon } from "react-native-heroicons/outline";
 import * as Progress from "react-native-progress";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, Polyline } from "react-native-maps";
+
 import tailwind from "tailwind-react-native-classnames"; 
 import { useSelector } from "react-redux";
 import { selectUser } from "../redux/slices/authSlice";
-import { Restaurant, UserOrder } from "../configs/types";
+import { Restaurant, UserOrder, Order } from '../configs/types';
 import { apiUrl } from "../configs/variable";
 
 
@@ -24,6 +25,8 @@ import ChatComponent from "../components/ChatComponent";
 type Props = {}
 
 const Delivery = (props: Props) => {
+  const ref = useRef<MapView | null>(null);
+
   const navigation = useNavigation<any>();
   const [ driverLocation, setDriverLocation ] = useState<any>();
   const [data, setData] = useState<any>([]);
@@ -51,79 +54,126 @@ const Delivery = (props: Props) => {
     });
   };
 
-  const pickOrder = async() => {
-   
+  const pickOrder = async () => {
+    try {
+      let response = await fetch('https://www.sunshinedeliver.com/api/customer/order/latest/', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          access_token: user?.token,
+        }),
+      });
+  
+      let responseJson = await response.json();
+  
+     if (responseJson.order.total === null) {
+        alert("O restaurante ainda não aceitou o seu pedido");
+        navigation.navigate("Home");
+      }
+  
+      if (responseJson.order.length === 0) {
+        alert("Você não tem nenhum pedido a caminho");
+        navigation.navigate("Home");
+      } else {
+        setData(responseJson);
+        setdriverData(responseJson.order.driver);
+        setRestaurantData(responseJson.order.restaurant);
+        setOrderData(responseJson.order.order_details);
+  
+     
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  
 
-    let response = await fetch('https://www.sunshinedeliver.com/api/customer/order/latest/', {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            access_token: user?.token
-          
-          })
-      })
-       .then((response) => response.json())
-       .then((responseJson) => {
-       
-        if (responseJson.order.length === 0) {
-          alert("Você não tem nenhum pedido a caminho");
-          navigation.navigate("Home");
-        } else {
-          setData(responseJson);
-          setdriverData(responseJson.order.driver);
-          setRestaurantData(responseJson.order.restaurant);
-          setOrderData(responseJson.order.order_details);
-        }
-        
-        })  
-        .catch((error) => {
-          console.error(error);
-        });
-}
 
 useEffect(() => {
+  pickOrder();
   const fetchData = async () => {
-    await pickOrder();
+   // await pickOrder();
 
     if (data && data.order) {
       const orderId = data.order.id;
       setOrder_id(orderId);
-      console.log("Order ID:", orderId);
+    //  console.log("Order ID:", orderId);
     } else {
       console.error("Data is not defined or does not contain an order.");
     }
   };
 
   fetchData();
-}, [data]);
+}, []);
 
-  const getDriverLocation = async () => {
-    try {
-      let response = await fetch(
-        "https://www.sunshinedeliver.com/api/customer/driver/location/",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            access_token: user?.token,
-          }),
-        }
-      );
-      const locationData = await response.json();
-     
-      // Replace single quotes with double quotes and parse as JSON
-      setDriverLocation(JSON.parse(locationData?.location.replace(/'/g, '"')));
-    } catch (error) {
-      console.error("Error fetching driver location:", error);
+
+const getDriverLocation = async () => {
+  try {
+    let response = await fetch(
+      "https://www.sunshinedeliver.com/api/customer/driver/location/",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          access_token: user?.token,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      // If the response is not okay, show an alert and return
+      alert("Your order is being prepared by the restaurant. Please check again in 5 minutes.");
+      return;
     }
-  };
+
+    // Log the raw response before attempting JSON parsing
+    const rawResponse = await response.text();
+    // console.log("Raw response from the server:", rawResponse);
+
+    const locationData = await response.json();
+
+    console.log("Driver location", locationData);
+
+    // Replace single quotes with double quotes and parse as JSON
+    setDriverLocation(
+      JSON.parse(locationData?.location.replace(/'/g, '"'))
+    );
+  } catch (error) {
+    console.error("Error fetching driver location:", error);
+  }
+};
+
+
+const driverCoordinates = useMemo(() => {
+  const longitude = driverLocation?.longitude || 0;
+  const latitude = driverLocation?.latitude || 0;
   
+  return {
+    longitude: parseFloat(longitude),
+    latitude: parseFloat(latitude),
+  };
+}, [driverLocation]);
+
+useEffect(() => {
+  if (driverCoordinates) {
+    console.debug(driverCoordinates);
+    ref.current?.animateCamera({ center: driverCoordinates, zoom: 5 });
+  }
+}, [driverCoordinates]);
+
+let center = {
+  latitude: driverCoordinates ? driverCoordinates?.latitude : 0,
+  longitude: driverCoordinates ? driverCoordinates?.longitude : 0,
+  latitudeDelta: 0.005,
+  longitudeDelta: 0.005,
+};
+
 
   useEffect(() => {
     // Fetch driver location immediately
@@ -139,13 +189,6 @@ useEffect(() => {
     // Clear the interval when the component is unmounted
     return () => clearInterval(intervalId);
   }, []);
-
-
-
-
-
-
-
 
 
 return (
@@ -172,7 +215,16 @@ return (
           />
         </View>
 
-        <Progress.Bar size={30} color="#004AAD" indeterminate={true} />
+        <Progress.Bar
+  style={{
+    height: 8, // Set the desired height
+    borderRadius: 15, // Set half of the height to make it a circle
+  }}
+  color="#004AAD"
+  indeterminate={true}
+/>
+
+
 
         <Text style={tailwind`mt-3 text-gray-500`}>
           Seu pedido no {restaurantData?.name} está a caminho
@@ -180,16 +232,19 @@ return (
       </View>
     </SafeAreaView>
 
-    <MapView
-      region={{
-        latitude: driverLocation?.latitude || 0,
-        longitude: driverLocation?.longitude || 0,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
-      }}
-      style={tailwind`z-0 flex-1 -mt-10`}
-      mapType="mutedStandard"
-    >
+    {center && (
+        
+       
+            <MapView
+              ref={ref}
+             // mapType="satellite"
+             region={{
+              ...center
+            }}
+              style={tailwind`h-full w-full`}
+            >
+          
+           
       <Marker
         coordinate={{
           latitude: driverLocation?.latitude || 0,
@@ -204,7 +259,9 @@ return (
           style={tailwind`w-8 h-8 p-4 ml-5 bg-gray-300 rounded-full`}
         />
       </Marker>
-    </MapView>
+      </MapView>
+          
+        )}
 
     <SafeAreaView style={tailwind`flex-row items-center mr-5 bg-white h-28`}>
       <Image

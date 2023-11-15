@@ -1,9 +1,13 @@
 import React from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity, GestureResponderEvent } from "react-native";
 import colors from "../configs/colors";
 import { Ionicons } from "@expo/vector-icons";
 
-const TabCartButton = ({ onPress }) => {
+interface TabCartButtonProps {
+  onPress: (event: GestureResponderEvent) => void;
+}
+
+const TabCartButton: React.FC<TabCartButtonProps> = ({ onPress }) => {
   return (
     <TouchableOpacity onPress={onPress}>
       <View style={styles.container}>

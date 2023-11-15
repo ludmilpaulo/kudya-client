@@ -1,13 +1,20 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, ViewStyle } from "react-native";
 import colors from "../configs/colors";
 
-export default function ({
+interface MyButtonProps {
+  title: string;
+  onPress: () => void;
+  color?: keyof typeof colors; // Color should be one of the keys in the 'colors' object
+  disabled?: boolean;
+}
+
+const AppButton: React.FC<MyButtonProps> = ({
   title,
   onPress,
   color = "primary",
   disabled = false,
-}) {
+}) => {
   return (
     <TouchableOpacity
       style={[styles.button, { backgroundColor: colors[color] }]}
@@ -17,7 +24,7 @@ export default function ({
       <Text style={styles.text}>{title}</Text>
     </TouchableOpacity>
   );
-}
+};
 
 const styles = StyleSheet.create({
   button: {
@@ -32,7 +39,8 @@ const styles = StyleSheet.create({
   text: {
     color: colors.white,
     fontSize: 18,
-    // textTransform: 'uppercase',
     fontWeight: "700",
   },
 });
+
+export default AppButton;

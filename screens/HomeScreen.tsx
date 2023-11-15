@@ -42,13 +42,14 @@ interface Restaurant {
   phone: number;
   address: string;
   logo: string;
-  category?: {
+  category?: Array<{
     name: string;
     image: string;
-  };
+  }>;
   is_approved: boolean;
   barnner: boolean;
 }
+
 
 Geocoder.init(googleAPi);
 

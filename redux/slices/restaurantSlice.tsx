@@ -1,6 +1,19 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const initialState = {
+interface RestaurantState {
+  restaurant: {
+    id: string | null;
+    imgUrl: string | null;
+    title: string | null;
+    rating: number | null;
+    genre: string | null;
+    address: string | null;
+    short_description: string | null;
+    dishes: string[] | null;
+  };
+}
+
+const initialState: RestaurantState = {
   restaurant: {
     id: null,
     imgUrl: null,
@@ -17,7 +30,7 @@ export const restaurantSlice = createSlice({
   name: "restaurant",
   initialState,
   reducers: {
-    setRestaurant: (state, action) => {
+    setRestaurant: (state, action: PayloadAction<RestaurantState["restaurant"]>) => {
       state.restaurant = action.payload;
     },
   },
@@ -26,6 +39,6 @@ export const restaurantSlice = createSlice({
 // Action creators are generated for each case reducer function
 export const { setRestaurant } = restaurantSlice.actions;
 
-export const selectRestaurant = (state) => state.restaurant.restaurant;
+export const selectRestaurant = (state: { restaurant: RestaurantState }) => state.restaurant.restaurant;
 
 export default restaurantSlice.reducer;
