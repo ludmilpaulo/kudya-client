@@ -92,7 +92,7 @@ const Delivery = (props: Props) => {
   useEffect(() => {
     const fetchData = async () => {
       await pickOrder();
-
+  
       if (data && data.order) {
         const orderId = data.order.id;
         setOrder_id(orderId);
@@ -100,9 +100,14 @@ const Delivery = (props: Props) => {
         console.error("Data is not defined or does not contain an order.");
       }
     };
-
+  
+    // Reset necessary state variables when the component mounts
+    setDriverLocationFetchDone(false);
+    setLoading(true);
+  
     fetchData();
   }, []);
+  
 
   const getDriverLocation = async () => {
     try {
@@ -166,7 +171,7 @@ const Delivery = (props: Props) => {
 
   useEffect(() => {
     if (driverCoordinates) {
-      ref.current?.animateCamera({ center: driverCoordinates, zoom: 5 });
+      ref.current?.animateCamera({ center: driverCoordinates, zoom: 15 });
     }
   }, [driverCoordinates]);
 
@@ -214,7 +219,7 @@ const Delivery = (props: Props) => {
             Seu pedido no {restaurantData?.name} está a caminho
           </Text>
         </View>
-      </SafeAreaView>
+    
 
       {loading ? (
         <ActivityIndicator size="large" color="#004AAD" />
@@ -243,7 +248,7 @@ const Delivery = (props: Props) => {
         </MapView>
       ) : null}
 
-      <SafeAreaView style={tailwind`flex-row items-center mr-5 bg-white h-28`}>
+      <View style={tailwind`flex-row items-center mb-8 mr-5 bg-white h-28`}>
         <Image
           source={{ uri: `${apiUrl}${driverData?.avatar}` || "" }}
           style={tailwind`w-12 h-12 p-4 ml-5 bg-gray-300 rounded-full`}
@@ -263,7 +268,9 @@ const Delivery = (props: Props) => {
         >
           Ligar
         </Text>
+      </View>
       </SafeAreaView>
+
     </View>
   );
 };
