@@ -35,20 +35,8 @@ import {
   setDriverLocation,
 } from "../redux/slices/driverLocationSlice";
 import Categories from "../components/Categories";
+import { Restaurant } from "../configs/types";
 
-interface Restaurant {
-  id: number;
-  name: string;
-  phone: number;
-  address: string;
-  logo: string;
-  category?: Array<{
-    name: string;
-    image: string;
-  }>;
-  is_approved: boolean;
-  barnner: boolean;
-}
 
 
 Geocoder.init(googleAPi);
@@ -303,35 +291,38 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
             style={tailwind`mt-2 mb-6`}
           />
         )}
-  
-        <RestaurantItem
-         title={"Apresentou"}
-         description={"Canais pagos de nossos parceiros"}
-          restaurantData={filteredDataSource
-            .filter(
-              (restaurant) =>
-                (!search ||
-                  (restaurant.category && restaurant.category.some(
-                    (cat) => cat.name === search
-                  )))  &&
-                restaurant.is_approved === true &&
-                restaurant.barnner === true
-            )}
-        />
-  
-        <RestaurantItem
-        title={"Ofertas perto de você"}
-        description={"por que não apoiar o seu restaurante local"}
-          restaurantData={filteredDataSource
-            .filter(
-              (restaurant) =>
-                (!search ||
-                  (restaurant.category && restaurant.category.some(
-                    (cat) => cat.name === search
-                  ))) &&
-                restaurant.is_approved === true
-            )}
-        />
+
+
+<RestaurantItem
+  title={"Apresentou"}
+  description={"Canais pagos de nossos parceiros"}
+  restaurantData={filteredDataSource
+    .filter(
+      (restaurant) =>
+        (!search ||
+          (Array.isArray(restaurant.category) && restaurant.category.some(
+            (cat) => cat.name === search
+          ))) &&
+        restaurant.is_approved === true &&
+        restaurant.barnner === true
+    )}
+/>
+
+<RestaurantItem
+  title={"Ofertas perto de você"}
+  description={"por que não apoiar o seu restaurante local"}
+  restaurantData={filteredDataSource
+    .filter(
+      (restaurant) =>
+        (!search ||
+          (Array.isArray(restaurant.category) && restaurant.category.some(
+            (cat) => cat.name === search
+          ))) &&
+        restaurant.is_approved === true
+    )}
+/>
+
+
       </ScrollView>
     </SafeAreaView>
   );
