@@ -4,13 +4,15 @@ export interface Restaurant {
   phone: string;
   address: string;
   logo: string;
-  category?: Array<{
+  category?: {
+    id: number;
     name: string;
     image: string;
-  }>;
+  };
   is_approved: boolean;
   barnner: boolean;
 }
+
 
 
 export interface Meals {

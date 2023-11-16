@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Platform,
   SafeAreaView,
+  TouchableOpacity,
 } from "react-native";
 import {
   UserIcon,
@@ -34,8 +35,20 @@ import {
   selectDriverLocation,
   setDriverLocation,
 } from "../redux/slices/driverLocationSlice";
-import Categories from "../components/Categories";
+
 import { Restaurant } from "../configs/types";
+
+interface Category {
+  id?: number;
+  name?: string;
+  image?: string;
+  // Add other category properties if needed
+}
+
+interface CategoriesProps {
+  onSelectCategory: (category: string) => void;
+}
+
 
 
 
@@ -69,6 +82,16 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
   const [driverCurrentLocation, setDriverCurrentLocation] = useState<
     any | null
   >(driverPosition?.location);
+
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const [categories, setCategories] = useState<Category[]>([]);
+
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -240,6 +263,82 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("https://www.sunshinedeliver.com/api/customer/restaurants/");
+      const data = await response.json();
+  
+      // Initialize an object to track unique categories based on their names
+      const uniqueCategories: { [key: string]: Category } = {};
+  
+      // Iterate through the restaurants and add their primary category names to the uniqueCategories object
+      data?.restaurants.forEach((restaurant:any) => {
+        const restaurantCategory = restaurant?.category;
+  
+        if (
+          restaurantCategory &&
+          typeof restaurantCategory === 'object' &&
+          'name' in restaurantCategory &&
+          typeof restaurantCategory.name === 'string' &&
+          typeof restaurantCategory.image === 'string'
+        ) {
+          const categoryName = restaurantCategory.name;
+  
+          // Add the category to the uniqueCategories object using its name as the key
+          uniqueCategories[categoryName] = {
+            id: Object.keys(uniqueCategories).length, // Use the current length as a unique identifier
+            name: categoryName,
+            image: restaurantCategory.image || 'defaultImageUrl',
+          };
+        }
+      });
+  
+      // Convert the values of uniqueCategories object to an array
+      const categoriesArray: Category[] = Object.values(uniqueCategories);
+  
+      console.log("Categories Array", categoriesArray);
+  
+      setCategories(categoriesArray);
+      setLoading(false); // Set loading to false once categories are set
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  const filterType = (category: string, showBanner: boolean | null = null) => {
+    setSelectedCategory(category);
+  
+    setFilteredDataSource(
+      masterDataSource.filter((item) => {
+        // Check if the category matches
+        const categoryMatch = item?.category?.name === category;
+  
+        // Check if the item is approved
+        const isApproved = item.is_approved === true;
+  
+        // Check if the banner condition matches
+        const bannerMatch =
+          showBanner === null || item.barnner === showBanner;
+  
+        // Return true if all conditions are met
+        return categoryMatch && isApproved && bannerMatch;
+      })
+    );
+  };
+  
+  
+  
+  
+  if (loading) {
+    return (
+      <ActivityIndicator
+        size="large"
+        color="#0000ff"
+        accessibilityLabel="Loading categories"
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={tailwind`bg-white pt-5`}>
       {/* Header */}
@@ -274,16 +373,36 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
         <AdjustmentsVerticalIcon color="#004AAD" />
       </View>
   
-      {/* Body */}
-      <ScrollView
+  {/* Body */}
+  <ScrollView
         style={tailwind`bg-white`}
         contentContainerStyle={{
           paddingBottom: 100,
         }}
       >
+
+         {/* Categories */}
+         <ScrollView
+          contentContainerStyle={{
+            paddingHorizontal: 15,
+            paddingTop: 10,
+          }}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          {categories.map((category, index) => (
+            <TouchableOpacity
+              key={category.id}
+              style={tailwind`relative mr-2`}
+              onPress={() => filterType(category.name)}
+            >
+              <Image source={{ uri: category.image }} style={tailwind`h-20 w-20 rounded`} />
+              <Text style={tailwind`text-black font-bold`}>{category.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
         {/* Categories */}
-        <Categories onSelectCategory={(category) => setSearch(category)} />
-  
+
         {loading && (
           <ActivityIndicator
             size="large"
@@ -292,41 +411,20 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
           />
         )}
 
-
 <RestaurantItem
   title={"Apresentou"}
   description={"Canais pagos de nossos parceiros"}
-  restaurantData={filteredDataSource
-    .filter(
-      (restaurant) =>
-        (!search ||
-          (Array.isArray(restaurant.category) && restaurant.category.some(
-            (cat) => cat.name === search
-          ))) &&
-        restaurant.is_approved === true &&
-        restaurant.barnner === true
-    )}
+  restaurantData={filteredDataSource.filter(item => item.barnner === true)}
 />
 
-<RestaurantItem
-  title={"Ofertas perto de você"}
-  description={"por que não apoiar o seu restaurante local"}
-  restaurantData={filteredDataSource
-    .filter(
-      (restaurant) =>
-        (!search ||
-          (Array.isArray(restaurant.category) && restaurant.category.some(
-            (cat) => cat.name === search
-          ))) &&
-        restaurant.is_approved === true
-    )}
-/>
-
-
+        <RestaurantItem
+          title={"Ofertas perto de você"}
+          description={"por que não apoiar o seu restaurante local"}
+          restaurantData={filteredDataSource}
+        />
       </ScrollView>
     </SafeAreaView>
   );
-  };
-  
-  export default HomeScreen;
-  
+};
+
+export default HomeScreen;

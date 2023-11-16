@@ -1,71 +1,84 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, TouchableOpacity, Image, Text } from "react-native";
+import { ScrollView, TouchableOpacity, Image, Text, ActivityIndicator } from "react-native";
 import tailwind from "tailwind-react-native-classnames";
 import { Restaurant } from "../configs/types";
 
+// Define the category type
 interface Category {
-  id?: number;
+  id: number;
   name: string;
   image: string;
+  // Add other category properties if needed
 }
 
 interface CategoriesProps {
   onSelectCategory: (category: string) => void;
 }
 
+// ... (imports and interfaces)
+
 const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("https://www.sunshinedeliver.com/api/customer/restaurants/");
+      const data = await response.json();
   
-  // ...
-
-const fetchCategories = async () => {
-  try {
-    const response = await fetch("https://www.sunshinedeliver.com/api/customer/restaurants/");
-    const data = await response.json();
-
-    // Use a Set to ensure unique categories
-    const uniqueCategories = new Set<string>();
-
-    // Iterate through the restaurants and add their primary categories to the Set
-    data?.restaurants.forEach((restaurant: Restaurant) => {
-      const restaurantCategory = restaurant?.category || {};
-
-      // Make sure to access the name property correctly
-      const categoryName = (restaurantCategory as { name?: string }).name || "";
-
-      uniqueCategories.add(categoryName);
-    });
-
-    // Convert the Set back to an array
-    const categoriesData: Category[] = Array.from(uniqueCategories).map((name, index) => {
-      // Fetch the default image URL for each category from your data
-      const matchingRestaurant = data.restaurants.find(
-        (restaurant: Restaurant) => restaurant.category?.name === name
-      );
-
-      // Use the category image from the first restaurant that matches the category name
-      const defaultImage = matchingRestaurant?.category?.image || "";
-
-      return {
-        id: index + 1,
-        name: name,
-        image: defaultImage,
-      };
-    });
-
-    setCategories(categoriesData);
-  } catch (error) {
-    console.error("Error fetching categories:", error);
+      // Initialize an object to track unique categories based on their names
+      const uniqueCategories: { [key: string]: Category } = {};
+  
+      // Iterate through the restaurants and add their primary category names to the uniqueCategories object
+      data?.restaurants.forEach((restaurant:any) => {
+        const restaurantCategory = restaurant?.category;
+  
+        if (
+          restaurantCategory &&
+          typeof restaurantCategory === 'object' &&
+          'name' in restaurantCategory &&
+          typeof restaurantCategory.name === 'string' &&
+          typeof restaurantCategory.image === 'string'
+        ) {
+          const categoryName = restaurantCategory.name;
+  
+          // Add the category to the uniqueCategories object using its name as the key
+          uniqueCategories[categoryName] = {
+            id: Object.keys(uniqueCategories).length, // Use the current length as a unique identifier
+            name: categoryName,
+            image: restaurantCategory.image || 'defaultImageUrl',
+          };
+        }
+      });
+  
+      // Convert the values of uniqueCategories object to an array
+      const categoriesArray: Category[] = Object.values(uniqueCategories);
+  
+      console.log("Categories Array", categoriesArray);
+  
+      setCategories(categoriesArray);
+      setLoading(false); // Set loading to false once categories are set
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+  
+  
+  
+  if (loading) {
+    return (
+      <ActivityIndicator
+        size="large"
+        color="#0000ff"
+        accessibilityLabel="Loading categories"
+      />
+    );
   }
-};
-
-// ...
-
+  
 
   return (
     <ScrollView
@@ -76,12 +89,12 @@ const fetchCategories = async () => {
       horizontal
       showsHorizontalScrollIndicator={false}
     >
-      {categories.map((category) => (
+      {categories.map((category, index) => (
         <TouchableOpacity
-          key={category.id}
-          style={tailwind`relative mr-2`}
-          onPress={() => onSelectCategory(category.name)}
-        >
+        key={category.id}
+        style={tailwind`relative mr-2`}
+        onPress={() => onSelectCategory(category.name)}
+      >
           <Image source={{ uri: category.image }} style={tailwind`h-20 w-20 rounded`} />
           <Text style={tailwind`text-black font-bold`}>{category.name}</Text>
         </TouchableOpacity>
@@ -91,3 +104,4 @@ const fetchCategories = async () => {
 };
 
 export default Categories;
+
