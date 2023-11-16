@@ -8,12 +8,12 @@ import PropTypes from 'prop-types';
 
 
 import { useNavigation } from "@react-navigation/native";
-import { Restaurant } from "../configs/types";
+import { Restaurant, SimpleRestaurant } from "../configs/types";
 
 interface RestaurantItemProps {
   title: string;
   description: string;
-  restaurantData: Restaurant[];
+  restaurantData: Restaurant[]; // Check if this matches the type in configs/types
 }
 
 const RestaurantItem: React.FC<RestaurantItemProps> = ({ title, description, restaurantData }) => {

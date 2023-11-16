@@ -103,3 +103,11 @@ export interface ForgotPasswordRequest {
   email: string;
 }
 
+
+export interface SimpleRestaurant {
+  id: number;
+  name: string;
+  phone: number;
+  address: string;
+}
+

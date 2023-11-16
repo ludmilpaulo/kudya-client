@@ -311,7 +311,9 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
             .filter(
               (restaurant) =>
                 (!search ||
-                  (restaurant.category && restaurant.category.name === search)) &&
+                  (restaurant.category && restaurant.category.some(
+                    (cat) => cat.name === search
+                  )))  &&
                 restaurant.is_approved === true &&
                 restaurant.barnner === true
             )}
@@ -324,7 +326,9 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
             .filter(
               (restaurant) =>
                 (!search ||
-                  (restaurant.category && restaurant.category.name === search)) &&
+                  (restaurant.category && restaurant.category.some(
+                    (cat) => cat.name === search
+                  ))) &&
                 restaurant.is_approved === true
             )}
         />

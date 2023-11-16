@@ -8,17 +8,16 @@ import {
   TouchableOpacity,
   Linking,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { XCircleIcon } from "react-native-heroicons/outline";
 import * as Progress from "react-native-progress";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 
 import tailwind from "tailwind-react-native-classnames"; 
 import { useSelector } from "react-redux";
 import { selectUser } from "../redux/slices/authSlice";
-import { Restaurant, UserOrder, Order } from '../configs/types';
 import { apiUrl } from "../configs/variable";
-
 
 import ChatComponent from "../components/ChatComponent";
 
@@ -28,14 +27,15 @@ const Delivery = (props: Props) => {
   const ref = useRef<MapView | null>(null);
 
   const navigation = useNavigation<any>();
-  const [ driverLocation, setDriverLocation ] = useState<any>();
+  const [driverLocation, setDriverLocation] = useState<any>();
   const [data, setData] = useState<any>([]);
-
-  const [driverData, setdriverData] = useState<any>({});
+  const [driverData, setDriverData] = useState<any>({});
   const [restaurantData, setRestaurantData] = useState<any>([]);
   const [orderData, setOrderData] = useState<any>();
+  const [order_id, setOrder_id] = useState<any>();
+  const [driverLocationFetchDone, setDriverLocationFetchDone] = useState(false);
 
-  const [ order_id, setOrder_id ] = useState<any>()
+  const [loading, setLoading] = useState<boolean>(true);
 
   const user = useSelector(selectUser);
   let userData = user;
@@ -69,7 +69,7 @@ const Delivery = (props: Props) => {
   
       let responseJson = await response.json();
   
-     if (responseJson.order.total === null) {
+      if (responseJson.order.total === null) {
         alert("O restaurante ainda não aceitou o seu pedido");
         navigation.navigate("Home");
       }
@@ -79,214 +79,193 @@ const Delivery = (props: Props) => {
         navigation.navigate("Home");
       } else {
         setData(responseJson);
-        setdriverData(responseJson.order.driver);
+        setDriverData(responseJson.order.driver);
         setRestaurantData(responseJson.order.restaurant);
         setOrderData(responseJson.order.order_details);
-  
-     
+        setLoading(false);
       }
     } catch (error) {
       console.error(error);
     }
   };
-  
 
+  useEffect(() => {
+    const fetchData = async () => {
+      await pickOrder();
 
-useEffect(() => {
-  pickOrder();
-  const fetchData = async () => {
-   // await pickOrder();
-
-    if (data && data.order) {
-      const orderId = data.order.id;
-      setOrder_id(orderId);
-    //  console.log("Order ID:", orderId);
-    } else {
-      console.error("Data is not defined or does not contain an order.");
-    }
-  };
-
-  fetchData();
-}, []);
-
-
-const getDriverLocation = async () => {
-  try {
-    let response = await fetch(
-      "https://www.sunshinedeliver.com/api/customer/driver/location/",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          access_token: user?.token,
-        }),
+      if (data && data.order) {
+        const orderId = data.order.id;
+        setOrder_id(orderId);
+      } else {
+        console.error("Data is not defined or does not contain an order.");
       }
-    );
+    };
 
-    if (!response.ok) {
-      // If the response is not okay, show an alert and return
-      alert("Your order is being prepared by the restaurant. Please check again in 5 minutes.");
-      return;
-    }
+    fetchData();
+  }, []);
 
-    // Log the raw response before attempting JSON parsing
-    const rawResponse = await response.text();
-    // console.log("Raw response from the server:", rawResponse);
-
-    const locationData = await response.json();
-
-    console.log("Driver location", locationData);
-
-    // Replace single quotes with double quotes and parse as JSON
-    setDriverLocation(
-      JSON.parse(locationData?.location.replace(/'/g, '"'))
-    );
-  } catch (error) {
-    console.error("Error fetching driver location:", error);
-  }
-};
-
-
-const driverCoordinates = useMemo(() => {
-  const longitude = driverLocation?.longitude || 0;
-  const latitude = driverLocation?.latitude || 0;
+  const getDriverLocation = async () => {
+    try {
+      let response = await fetch(
+        "https://www.sunshinedeliver.com/api/customer/driver/location/",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            access_token: user?.token,
+          }),
+        }
+      );
   
-  return {
-    longitude: parseFloat(longitude),
-    latitude: parseFloat(latitude),
+      if (!response.ok) {
+        // If the response is not okay, show an alert and return
+        alert("Your order is being prepared by the restaurant. Please check again in 5 minutes.");
+        navigation.navigate("Home");
+  
+        // Set a flag to indicate that getDriverLocation should not be called again
+        setDriverLocationFetchDone(true);
+  
+        return;
+      }
+  
+      const locationData = await response.json();
+      setDriverLocation(JSON.parse(locationData?.location.replace(/'/g, '"')));
+    } catch (error) {
+      console.error("Error fetching driver location:", error);
+    }
   };
-}, [driverLocation]);
-
-useEffect(() => {
-  if (driverCoordinates) {
-    console.debug(driverCoordinates);
-    ref.current?.animateCamera({ center: driverCoordinates, zoom: 5 });
-  }
-}, [driverCoordinates]);
-
-let center = {
-  latitude: driverCoordinates ? driverCoordinates?.latitude : 0,
-  longitude: driverCoordinates ? driverCoordinates?.longitude : 0,
-  latitudeDelta: 0.005,
-  longitudeDelta: 0.005,
-};
-
-
+  
   useEffect(() => {
     // Fetch driver location immediately
     getDriverLocation();
-
-    // Set up interval to fetch driver location every 2 seconds
+  
+    // Set up interval to fetch driver location every 2 seconds, but only if it hasn't been fetched already
     const intervalId = setInterval(() => {
-      //console.log("Driver Location:", driverLocation.latitude);
-
-      getDriverLocation();
+      if (!driverLocationFetchDone) {
+        getDriverLocation();
+      }
     }, 2000);
-
+  
     // Clear the interval when the component is unmounted
     return () => clearInterval(intervalId);
-  }, []);
+  }, [driverLocationFetchDone]);
+  
 
+  const driverCoordinates = useMemo(() => {
+    const longitude = driverLocation?.longitude || 0;
+    const latitude = driverLocation?.latitude || 0;
+    
+    return {
+      longitude: parseFloat(longitude),
+      latitude: parseFloat(latitude),
+    };
+  }, [driverLocation]);
 
-return (
-  <View style={tailwind`bg-blue-500 flex-1`}>
-    <SafeAreaView style={tailwind`z-50`}>
-      <View style={tailwind`flex-row items-center justify-between p-5`}>
-        <TouchableOpacity onPress={() => navigation.navigate("Home")}>
-          <XCircleIcon color="#004AAD" size={30} />
-        </TouchableOpacity>
-        <Text style={tailwind`text-lg font-light text-white`}>Ajuda</Text>
-      </View>
+  useEffect(() => {
+    if (driverCoordinates) {
+      ref.current?.animateCamera({ center: driverCoordinates, zoom: 5 });
+    }
+  }, [driverCoordinates]);
 
-      <View style={tailwind`z-50 p-6 mx-5 my-2 bg-white rounded-md shadow-md`}>
-        <View style={tailwind`flex-row justify-between`}>
-          <View>
-            <Text style={tailwind`text-lg text-gray-400`}>
-              {driverData?.name}chegará estimado em
-            </Text>
-            <Text style={tailwind`text-4xl font-bold`}>45-55 Minutos</Text>
-          </View>
-          <Image
-            source={{ uri: `${apiUrl}${driverData?.avatar}` || "" }}
-            style={tailwind`w-20 h-20`}
-          />
+  let center = {
+    latitude: driverCoordinates ? driverCoordinates?.latitude : 0,
+    longitude: driverCoordinates ? driverCoordinates?.longitude : 0,
+    latitudeDelta: 0.005,
+    longitudeDelta: 0.005,
+  };
+
+  return (
+    <View style={tailwind`bg-blue-500 flex-1`}>
+      <SafeAreaView style={tailwind`z-50`}>
+        <View style={tailwind`flex-row items-center justify-between p-5`}>
+          <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+            <XCircleIcon color="#004AAD" size={30} />
+          </TouchableOpacity>
+          <Text style={tailwind`text-lg font-light text-white`}>Ajuda</Text>
         </View>
 
-        <Progress.Bar
-  style={{
-    height: 8, // Set the desired height
-    borderRadius: 15, // Set half of the height to make it a circle
-  }}
-  color="#004AAD"
-  indeterminate={true}
-/>
+        <View style={tailwind`z-50 p-6 mx-5 my-2 bg-white rounded-md shadow-md`}>
+          <View style={tailwind`flex-row justify-between`}>
+            <View>
+              <Text style={tailwind`text-lg text-gray-400`}>
+                {driverData?.name}chegará estimado em
+              </Text>
+              <Text style={tailwind`text-4xl font-bold`}>45-55 Minutos</Text>
+            </View>
+            <Image
+              source={{ uri: `${apiUrl}${driverData?.avatar}` || "" }}
+              style={tailwind`w-20 h-20`}
+            />
+          </View>
 
-
-
-        <Text style={tailwind`mt-3 text-gray-500`}>
-          Seu pedido no {restaurantData?.name} está a caminho
-        </Text>
-      </View>
-    </SafeAreaView>
-
-    {center && (
-        
-       
-            <MapView
-              ref={ref}
-             // mapType="satellite"
-             region={{
-              ...center
+          <Progress.Bar
+            style={{
+              height: 8,
+              borderRadius: 15,
             }}
-              style={tailwind`h-full w-full`}
-            >
-          
-           
-      <Marker
-        coordinate={{
-          latitude: driverLocation?.latitude || 0,
-          longitude: driverLocation?.longitude || 0,
-        }}
-        title={driverData?.name}
-        identifier="region"
-        anchor={{ x: 0.5, y: 0.5 }}
-      >
+            color="#004AAD"
+            indeterminate={true}
+          />
+
+          <Text style={tailwind`mt-3 text-gray-500`}>
+            Seu pedido no {restaurantData?.name} está a caminho
+          </Text>
+        </View>
+      </SafeAreaView>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#004AAD" />
+      ) : center ? (
+        <MapView
+          ref={ref}
+          region={{
+            ...center
+          }}
+          style={tailwind`h-full w-full`}
+        >
+          <Marker
+            coordinate={{
+              latitude: driverLocation?.latitude || 0,
+              longitude: driverLocation?.longitude || 0,
+            }}
+            title={driverData?.name}
+            identifier="region"
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
+            <Image
+              source={{ uri: `${apiUrl}${driverData?.avatar}` || "" }}
+              style={tailwind`w-8 h-8 p-4 ml-5 bg-gray-300 rounded-full`}
+            />
+          </Marker>
+        </MapView>
+      ) : null}
+
+      <SafeAreaView style={tailwind`flex-row items-center mr-5 bg-white h-28`}>
         <Image
           source={{ uri: `${apiUrl}${driverData?.avatar}` || "" }}
-          style={tailwind`w-8 h-8 p-4 ml-5 bg-gray-300 rounded-full`}
+          style={tailwind`w-12 h-12 p-4 ml-5 bg-gray-300 rounded-full`}
         />
-      </Marker>
-      </MapView>
-          
-        )}
-
-    <SafeAreaView style={tailwind`flex-row items-center mr-5 bg-white h-28`}>
-      <Image
-        source={{ uri: `${apiUrl}${driverData?.avatar}` || "" }}
-        style={tailwind`w-12 h-12 p-4 ml-5 bg-gray-300 rounded-full`}
-      />
-      <View style={tailwind`flex-1`}>
-
-        {/* Assuming ChatComponent is a valid component */}
-        <ChatComponent
-          user="customer"
-          userData={userData}
-          accessToken={user?.token}
-          orderId={order_id}
-        />
-      </View>
-      <Text
-        onPress={handlePhoneCall}
-        style={tailwind`text-blue-500 text-lg mr-5 font-bold`}
-      >
-        Ligar
-      </Text>
-    </SafeAreaView>
-  </View>
-);
+        <View style={tailwind`flex-1`}>
+          {/* Assuming ChatComponent is a valid component */}
+          <ChatComponent
+            user="customer"
+            userData={userData}
+            accessToken={user?.token}
+            orderId={order_id}
+          />
+        </View>
+        <Text
+          onPress={handlePhoneCall}
+          style={tailwind`text-blue-500 text-lg mr-5 font-bold`}
+        >
+          Ligar
+        </Text>
+      </SafeAreaView>
+    </View>
+  );
 };
 
 export default Delivery;
