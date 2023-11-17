@@ -54,6 +54,8 @@ const ChatComponent: React.FC<{ user: 'customer' | 'driver'; accessToken: string
   return (
     <View style={[tailwind`bg-white flex-1`, { height: chatHeight }]}>
       <GiftedChat
+        placeholder={'Digite sua mensagem'}
+       // label={'Enviar'}
         messages={messages}
         onSend={(newMessages) => onSend(newMessages)}
         user={{

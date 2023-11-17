@@ -191,7 +191,7 @@ const CheckoutScreen = ({ navigation }: NavigationProps) => {
       </View>
 
       <View>
-        {/* GooglePlacesAutocomplete component */}
+        {/* GooglePlacesAutocomplete component 
         <GooglePlacesAutocomplete
           placeholder="Adicione seu endereço"
           onPress={(data, details = null) => {
@@ -210,7 +210,7 @@ const CheckoutScreen = ({ navigation }: NavigationProps) => {
             listView: tailwind`bg-white border border-gray-300 border-t-0 mt-1 mx-2 rounded-md shadow-md`,
           }}
         />
-
+*/}
         {/* Button to use the current location */}
         <TouchableOpacity
           style={tailwind`h-10 w-full bg-blue-500 my-6 rounded-full mt-24 items-center justify-center border border-blue-500`}

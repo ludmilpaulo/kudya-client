@@ -28,7 +28,7 @@ import Geocoder from "react-native-geocoding";
 import * as Device from "expo-device";
 import * as Location from "expo-location";
 
-import { googleAPi } from "../configs/variable";
+import { apiUrl, googleAPi } from "../configs/variable";
 
 import { setUserLocation } from "../redux/slices/locationSlice";
 import {
@@ -117,7 +117,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
   const pickUser = async () => {
     try {
       let response = await fetch(
-        "https://www.sunshinedeliver.com/api/customer/profile/",
+        `${apiUrl}/api/customer/profile/`,
         {
           method: "POST",
           headers: {
@@ -221,7 +221,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
 
   const getRestaurant = async () => {
     try {
-      fetch("https://www.sunshinedeliver.com/api/customer/restaurants/")
+      fetch(`${apiUrl}/api/customer/restaurants/`)
         .then((response) => response.json())
         .then((responseJson) => {
           //  setRestaurantData(responseJson?.restaurants);
@@ -265,7 +265,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("https://www.sunshinedeliver.com/api/customer/restaurants/");
+      const response = await fetch(`${apiUrl}/api/customer/restaurants/`);
       const data = await response.json();
   
       // Initialize an object to track unique categories based on their names
@@ -296,7 +296,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
       // Convert the values of uniqueCategories object to an array
       const categoriesArray: Category[] = Object.values(uniqueCategories);
   
-      console.log("Categories Array", categoriesArray);
+    
   
       setCategories(categoriesArray);
       setLoading(false); // Set loading to false once categories are set
@@ -305,7 +305,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
     }
   };
 
-  const filterType = (category: string, showBanner: boolean | null = null) => {
+  const filterType = (category: any, showBanner: boolean | null = null) => {
     setSelectedCategory(category);
   
     setFilteredDataSource(

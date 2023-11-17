@@ -97,12 +97,11 @@ RestaurantItemCard.propTypes = {
     phone: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
     logo: PropTypes.string.isRequired,
-    category: PropTypes.arrayOf(
+    category: 
       PropTypes.shape({
         name: PropTypes.string.isRequired,
         image: PropTypes.string.isRequired,
-      })
-    ),
+      }),
   }).isRequired,
   onPress: PropTypes.func.isRequired,
 };

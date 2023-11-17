@@ -127,7 +127,7 @@ const Delivery = (props: Props) => {
   
       if (!response.ok) {
         // If the response is not okay, show an alert and return
-        alert("Your order is being prepared by the restaurant. Please check again in 5 minutes.");
+        alert("Seu pedido está sendo preparado pelo restaurante. Verifique novamente em 5 minutos.");
         navigation.navigate("Home");
   
         // Set a flag to indicate that getDriverLocation should not be called again
@@ -171,7 +171,7 @@ const Delivery = (props: Props) => {
 
   useEffect(() => {
     if (driverCoordinates) {
-      ref.current?.animateCamera({ center: driverCoordinates, zoom: 15 });
+      ref.current?.animateCamera({ center: driverCoordinates, zoom: 10 });
     }
   }, [driverCoordinates]);
 
@@ -219,17 +219,18 @@ const Delivery = (props: Props) => {
             Seu pedido no {restaurantData?.name} está a caminho
           </Text>
         </View>
-    
+      </SafeAreaView>
 
       {loading ? (
         <ActivityIndicator size="large" color="#004AAD" />
       ) : center ? (
+        <View style={[tailwind`bg-blue-300 relative`, { height: 350 }]}>
         <MapView
           ref={ref}
           region={{
             ...center
           }}
-          style={tailwind`h-full w-full`}
+          style={tailwind`h-full w-full z-10`}
         >
           <Marker
             coordinate={{
@@ -246,9 +247,10 @@ const Delivery = (props: Props) => {
             />
           </Marker>
         </MapView>
+        </View>
       ) : null}
 
-      <View style={tailwind`flex-row items-center mb-8 mr-5 bg-white h-28`}>
+      <SafeAreaView style={tailwind`flex-row items-center  bg-white h-28`}>
         <Image
           source={{ uri: `${apiUrl}${driverData?.avatar}` || "" }}
           style={tailwind`w-12 h-12 p-4 ml-5 bg-gray-300 rounded-full`}
@@ -268,9 +270,7 @@ const Delivery = (props: Props) => {
         >
           Ligar
         </Text>
-      </View>
       </SafeAreaView>
-
     </View>
   );
 };

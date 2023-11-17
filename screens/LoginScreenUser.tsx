@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import tailwind from "tailwind-react-native-classnames";
 import { loginUser } from "../redux/slices/authSlice";
 import { useNavigation } from "@react-navigation/native";
+import { apiUrl } from "../configs/variable";
 
 export default function LoginScreenUser() {
   const [username, setUsername] = useState("");
@@ -17,7 +18,7 @@ export default function LoginScreenUser() {
   const LoginUser = async () => {
     try {
       setLoading(true); // Start loading indicator
-      let response = await fetch("https://www.sunshinedeliver.com/login/", {
+      let response = await fetch(`${apiUrl}/login/`, {
         method: "POST",
         headers: {
           Accept: "application/json",

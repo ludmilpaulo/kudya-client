@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { Image, StyleSheet, Text, View, TextInput, TouchableOpacity } from "react-native";
 import Screen from "../components/Screen";
-import colors from "../configs/colors";
+
 import tailwind from "tailwind-react-native-classnames";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { loginUser } from "../redux/slices/authSlice";
+import { apiUrl } from "../configs/variable";
 
 export default function SignupScreen() {
   const navigation = useNavigation<any>();
@@ -16,7 +17,7 @@ export default function SignupScreen() {
 
   const onSignup = async () => {
     try {
-      let response = await fetch("https://www.sunshinedeliver.com/signup/", {
+      let response = await fetch(`${apiUrl}/signup/`, {
         method: "POST",
         headers: {
           Accept: "application/json",
