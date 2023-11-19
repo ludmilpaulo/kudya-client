@@ -23,6 +23,7 @@
       "supportsTablet": true
     },
     "android": {
+      "permissions": ["LOCATION"],
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78"
@@ -33,7 +34,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 6
+      "versionCode": 7
     },
     "web": {
       "favicon": "./assets/favicon.png"

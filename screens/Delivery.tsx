@@ -33,9 +33,11 @@ const Delivery = (props: Props) => {
   const [restaurantData, setRestaurantData] = useState<any>([]);
   const [orderData, setOrderData] = useState<any>();
   const [order_id, setOrder_id] = useState<any>();
+  const [counter, setCounter] = useState(0);
   const [driverLocationFetchDone, setDriverLocationFetchDone] = useState(false);
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const user = useSelector(selectUser);
   let userData = user;
@@ -54,59 +56,58 @@ const Delivery = (props: Props) => {
     });
   };
 
-  const pickOrder = async () => {
-    try {
-      let response = await fetch('https://www.sunshinedeliver.com/api/customer/order/latest/', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          access_token: user?.token,
-        }),
-      });
-  
-      let responseJson = await response.json();
-  
-      if (responseJson.order.total === null) {
-        alert("O restaurante ainda não aceitou o seu pedido");
-        navigation.navigate("Home");
-      }
-  
-      if (responseJson.order.length === 0) {
-        alert("Você não tem nenhum pedido a caminho");
-        navigation.navigate("Home");
-      } else {
-        setData(responseJson);
-        setDriverData(responseJson.order.driver);
-        setRestaurantData(responseJson.order.restaurant);
-        setOrderData(responseJson.order.order_details);
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+ 
+
 
   useEffect(() => {
+   // setLoading(true)
     const fetchData = async () => {
-      await pickOrder();
-  
-      if (data && data.order) {
-        const orderId = data.order.id;
-        setOrder_id(orderId);
-      } else {
-        console.error("Data is not defined or does not contain an order.");
+      try {
+        let response = await fetch('https://www.sunshinedeliver.com/api/customer/order/latest/', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            access_token: user?.token,
+          }),
+        });
+    
+        let responseJson = await response.json();
+    
+        if (responseJson.order.total === null) {
+          alert("O restaurante ainda não aceitou o seu pedido");
+          navigation.navigate("Home");
+          setLoading(false);
+
+        }
+    
+        if (responseJson.order.length === 0) {
+          alert("Você não tem nenhum pedido a caminho");
+          navigation.navigate("Home");
+        } else {
+          setData(responseJson);
+          setDriverData(responseJson.order.driver);
+          setRestaurantData(responseJson.order.restaurant);
+          setOrderData(responseJson.order.order_details);
+          setOrder_id(responseJson?.order.id);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error(error);
       }
     };
-  
+
     // Reset necessary state variables when the component mounts
     setDriverLocationFetchDone(false);
-    setLoading(true);
-  
-    fetchData();
-  }, []);
+   
+    // Run the effect three times
+    if (counter < 3) {
+      fetchData();
+      setCounter((prevCounter) => prevCounter + 1);
+    }
+  }, [order_id, counter]);
   
 
   const getDriverLocation = async () => {
@@ -124,6 +125,7 @@ const Delivery = (props: Props) => {
           }),
         }
       );
+     
   
       if (!response.ok) {
         // If the response is not okay, show an alert and return
@@ -137,6 +139,7 @@ const Delivery = (props: Props) => {
       }
   
       const locationData = await response.json();
+      //console.log(locationData)
       setDriverLocation(JSON.parse(locationData?.location.replace(/'/g, '"')));
     } catch (error) {
       console.error("Error fetching driver location:", error);
@@ -171,7 +174,7 @@ const Delivery = (props: Props) => {
 
   useEffect(() => {
     if (driverCoordinates) {
-      ref.current?.animateCamera({ center: driverCoordinates, zoom: 10 });
+      ref.current?.animateCamera({ center: driverCoordinates, zoom: 15 });
     }
   }, [driverCoordinates]);
 
@@ -180,6 +183,14 @@ const Delivery = (props: Props) => {
     longitude: driverCoordinates ? driverCoordinates?.longitude : 0,
     latitudeDelta: 0.005,
     longitudeDelta: 0.005,
+  };
+
+  const openChat = () => {
+    setIsChatOpen(true);
+  };
+
+  const closeChat = () => {
+    setIsChatOpen(false);
   };
 
   return (
@@ -250,27 +261,28 @@ const Delivery = (props: Props) => {
         </View>
       ) : null}
 
-      <SafeAreaView style={tailwind`flex-row items-center  bg-white h-28`}>
-        <Image
-          source={{ uri: `${apiUrl}${driverData?.avatar}` || "" }}
-          style={tailwind`w-12 h-12 p-4 ml-5 bg-gray-300 rounded-full`}
-        />
-        <View style={tailwind`flex-1`}>
-          {/* Assuming ChatComponent is a valid component */}
-          <ChatComponent
-            user="customer"
-            userData={userData}
-            accessToken={user?.token}
-            orderId={order_id}
-          />
-        </View>
-        <Text
-          onPress={handlePhoneCall}
-          style={tailwind`text-blue-500 text-lg mr-5 font-bold`}
-        >
-          Ligar
-        </Text>
-      </SafeAreaView>
+<SafeAreaView style={[tailwind`flex-row items-center bg-white h-32`, { position: 'absolute', bottom: 0, width: '100%' }]}>
+  <Image
+    source={{ uri: `${apiUrl}${driverData?.avatar}` || "" }}
+    style={tailwind`w-12 h-12 p-4 ml-5 bg-gray-300 rounded-full`}
+  />
+  <View style={tailwind`flex-1`}>
+    {/* Assuming ChatComponent is a valid component */}
+    <ChatComponent
+      user="customer"
+      userData={userData}
+      accessToken={user?.token}
+      orderId={order_id}
+    />
+  </View>
+  <Text
+    onPress={handlePhoneCall}
+    style={tailwind`text-blue-500 text-lg mr-5 font-bold`}
+  >
+    Ligar
+  </Text>
+</SafeAreaView>
+
     </View>
   );
 };
