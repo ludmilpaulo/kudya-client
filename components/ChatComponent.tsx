@@ -1,17 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { GiftedChat, IMessage } from 'react-native-gifted-chat';
 import axios from 'axios';
 import { apiUrl } from '../configs/variable';
 import tailwind from "tailwind-react-native-classnames"; 
+interface ChatComponentProps {
+  user: 'customer' | 'driver';
+  accessToken: string;
+  orderId: number;
+  userData: any;
+  onClose: () => void; // Define the onClose prop as a function
+  isChatModalVisible: boolean; 
 
-const ChatComponent: React.FC<{ user: 'customer' | 'driver'; accessToken: string; orderId: number , userData:any}> = ({
+ // Add isChatModalVisible as a prop
+  
+}
+
+const ChatComponent: React.FC<ChatComponentProps> = ({
   user,
   accessToken,
   orderId,
   userData,
+  onClose, // Use the onClose prop here
+  isChatModalVisible, 
 }) => {
   const [messages, setMessages] = useState<IMessage[]>([]);
+  //const [isChatModalVisible, setChatModalVisible] = useState(false);
+
+
+  const handleClose = () => {
+    console.log('Closing modal...'); // Add this line
+    onClose(); // Use the onClose prop here
+  };
   
   useEffect(() => {
     // Fetch chat messages from Django backend
@@ -52,6 +72,15 @@ const ChatComponent: React.FC<{ user: 'customer' | 'driver'; accessToken: string
   const chatHeight = messages.length * 60;
 
   return (
+    <Modal
+    visible={isChatModalVisible} // Use the isChatModalVisible state
+    animationType="slide"
+    onRequestClose={handleClose}
+  >
+        <View style={tailwind`flex-1 bg-white`}>
+          <TouchableOpacity onPress={onClose} style={tailwind`absolute top-5 left-5 z-10`}>
+            <Text style={tailwind`text-blue-500 font-bold`}>Fechar</Text>
+          </TouchableOpacity>
     <View style={[tailwind`bg-white flex-1`, { height: chatHeight }]}>
       <GiftedChat
         placeholder={'Digite sua mensagem'}
@@ -63,6 +92,8 @@ const ChatComponent: React.FC<{ user: 'customer' | 'driver'; accessToken: string
         }}
       />
     </View>
+    </View>
+    </Modal>
   );
 };
 

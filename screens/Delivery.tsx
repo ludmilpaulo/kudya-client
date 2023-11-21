@@ -38,6 +38,7 @@ const Delivery = (props: Props) => {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatModalVisible, setChatModalVisible] = useState(false);
 
   const user = useSelector(selectUser);
   let userData = user;
@@ -268,12 +269,24 @@ const Delivery = (props: Props) => {
   />
   <View style={tailwind`flex-1`}>
     {/* Assuming ChatComponent is a valid component */}
-    <ChatComponent
-      user="customer"
-      userData={userData}
-      accessToken={user?.token}
-      orderId={order_id}
-    />
+    <TouchableOpacity
+            onPress={() => setChatModalVisible(true)}
+            style={tailwind`text-blue-500 text-lg mr-2 font-bold`}
+          >
+           <Text> Abrir Chat</Text>
+          </TouchableOpacity>
+
+        
+          <ChatComponent
+  user="customer"
+  userData={userData}
+  accessToken={user?.token}
+  orderId={order_id}
+  onClose={() => setChatModalVisible(false)}
+  isChatModalVisible={isChatModalVisible} // Pass the boolean value here
+/>
+
+   
   </View>
   <Text
     onPress={handlePhoneCall}
