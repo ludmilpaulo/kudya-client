@@ -342,7 +342,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
   return (
     <SafeAreaView style={tailwind`bg-white pt-5`}>
       {/* Header */}
-      <View style={tailwind`flex-row pb-3 items-center mx-4 ml-2`}>
+      <View style={tailwind`flex-row pb-3 mt-8 items-center mx-4 ml-2`}>
         <Image
           source={{ uri: customer_image }}
           style={tailwind`h-12 w-12 p-4 rounded-full`}
