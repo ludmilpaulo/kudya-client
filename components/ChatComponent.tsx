@@ -64,8 +64,14 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         message: newMessages[0].text,
       })
       .then((response) => {
-        // Update local messages state
-        setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessages));
+        // Update local messages state with a unique _id for the new message
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            ...newMessages[0],
+            _id: String(new Date().getTime()), // Use a timestamp as a unique _id
+          },
+        ]);
       })
       .catch((error) => console.error('Error sending message:', error));
   };
