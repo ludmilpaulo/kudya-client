@@ -69,7 +69,7 @@ const OrderHistory: React.FC<Props> = () => {
     try {
      
       let response = await fetch(
-        'https://www.sunshinedeliver.com/api/customer/order/history/',
+        'https://www.kudya.shop/api/customer/order/history/',
         {
           method: 'POST',
           headers: {

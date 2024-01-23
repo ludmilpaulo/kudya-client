@@ -111,7 +111,7 @@ const CheckoutScreen = ({ navigation }: NavigationProps) => {
           return;
         }
   
-        let response = await fetch("https://www.sunshinedeliver.com/api/customer/order/add/", {
+        let response = await fetch("https://www.kudya.shop/api/customer/order/add/", {
           method: 'POST',
           headers: {
             Accept: 'application/json',

@@ -64,7 +64,7 @@ const Delivery = (props: Props) => {
    // setLoading(true)
     const fetchData = async () => {
       try {
-        let response = await fetch('https://www.sunshinedeliver.com/api/customer/order/latest/', {
+        let response = await fetch('https://www.kudya.shop/api/customer/order/latest/', {
           method: 'POST',
           headers: {
             Accept: 'application/json',
@@ -114,7 +114,7 @@ const Delivery = (props: Props) => {
   const getDriverLocation = async () => {
     try {
       let response = await fetch(
-        "https://www.sunshinedeliver.com/api/customer/driver/location/",
+        "https://www.kudya.shop/api/customer/driver/location/",
         {
           method: "POST",
           headers: {

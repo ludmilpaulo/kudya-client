@@ -18,7 +18,7 @@ const AccountScreen = () => {
 
   const dispatch = useDispatch();
 
-  const url = "https://www.sunshinedeliver.com";
+  const url = "https://www.kudya.shop";
 
   const [username, setUsername] = useState();
   const [userPhoto, setUserPhoto] = useState("");
@@ -32,7 +32,7 @@ const AccountScreen = () => {
 
   const pickUser = async () => {
     let response = await fetch(
-      "https://www.sunshinedeliver.com/api/customer/profile/",
+      "https://www.kudya.shop/api/customer/profile/",
       {
         method: "POST",
         headers: {

@@ -172,7 +172,7 @@ const UserProfile = () => {
       formData.append("phone", phone);
   
       // Make API request
-      const apiEndpoint = "https://www.sunshinedeliver.com/api/customer/profile/update/";
+      const apiEndpoint = "https://www.kudya.shop/api/customer/profile/update/";
   
       console.log("Sending API request to:", apiEndpoint);
   

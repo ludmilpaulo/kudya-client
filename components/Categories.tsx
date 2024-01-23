@@ -27,7 +27,7 @@ const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("https://www.sunshinedeliver.com/api/customer/restaurants/");
+      const response = await fetch("https://www.kudya.shop/api/customer/restaurants/");
       const data = await response.json();
   
       // Initialize an object to track unique categories based on their names

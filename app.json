@@ -17,7 +17,7 @@
     "ios": {
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78"
+          "apiKey": "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s"
         }
       },
       "supportsTablet": true
@@ -26,7 +26,7 @@
       "permissions": ["LOCATION"],
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78"
+          "apiKey": "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s"
         }
       },
       "adaptiveIcon": {
@@ -41,7 +41,7 @@
     },
     "config": {
       "googleMaps": {
-        "apiKey": "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78"
+        "apiKey": "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s"
       }
     },
     "extra": {

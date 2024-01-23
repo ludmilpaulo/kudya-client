@@ -63,7 +63,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
 
   const dispatch = useDispatch();
 
-  const url = "https://www.sunshinedeliver.com";
+  const url = "https://www.kudya.shop";
 
   const [search, setSearch] = useState("");
   const [address, setAddress] = useState("");
@@ -206,11 +206,11 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
 
 
     Geocoder.from(location?.coords)
-      .then((response) => {
+      .then((response: { results: { formatted_address: any; }[]; }) => {
         const formattedAddress = response.results[0].formatted_address;
         setAddress(formattedAddress);
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.log(error);
       });
   };
@@ -351,7 +351,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
         <View style={tailwind`flex-1`}>
           <Text style={tailwind`font-bold text-gray-400 text-xs`}>Deliver Now!</Text>
           <Text style={tailwind`font-bold text-xl`}>
-            Current Location
+            {address}
             <ChevronDownIcon size={20} color="#004AAD" />
           </Text>
         </View>

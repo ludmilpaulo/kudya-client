@@ -82,7 +82,7 @@ const DetailsScreen = (props: any) => {
     .catch((error) => console.warn(error));
 
   useEffect(() => {
-    fetch(`https://www.sunshinedeliver.com/api/customer/meals/${restaurantId}/`)
+    fetch(`https://www.kudya.shop/api/customer/meals/${restaurantId}/`)
       .then((response) => response.json())
       .then((responseJson) => {
         setFoods(responseJson.meals);
