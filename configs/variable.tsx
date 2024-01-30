@@ -6,7 +6,12 @@ import { Platform } from "react-native";
 import { ForgotPasswordRequest } from "./types";
 
 
+//const [longitude, setLongitude] = useState(0);
+//const [latitude, setLatitude] = useState(0);
+//const [location, setLocation] = useState({});
 
+//const [loading, setLoading] = useState(true);
+//const [loadingOrder, setLoadingOrder] = useState(false);
 
 
 export const googleAPi = "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s";
