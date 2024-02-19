@@ -29,7 +29,7 @@
           "apiKey": "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s"
         }
       },
-      "adaptiveIcon": {
+      "adaptiveIcon":  {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
