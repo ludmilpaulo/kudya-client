@@ -1,11 +1,35 @@
-// store.js
-import { configureStore } from '@reduxjs/toolkit';
-import rootReducer from './reducers'; // Import your combined reducers
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import authReducer from "./slices/authSlice";
+import basketReducer from "./slices/basketSlice";
+import storage from "redux-persist/lib/storage";
+import { persistReducer, persistStore } from "redux-persist";
 
-const store = configureStore({
-  reducer: rootReducer,
+
+const rootPersistConfig = {
+  key: "root",
+  storage,
+};
+
+const rootReducer = combineReducers({
+  
+  basket: basketReducer,
+  auth: authReducer,
 });
 
-export default store;
+const persistedReducer = persistReducer(rootPersistConfig, rootReducer);
 
+export const store = configureStore({
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
+});
+
+export const persistor = persistStore(store);
+
+export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+export const useAppDispatch: () => AppDispatch = useDispatch;
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;

@@ -1,23 +1,17 @@
-// basketSlice.ts
-
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "../types";
+import { RootState } from '../store'; // Adjust the import path according to your project structure
 
-export interface BasketItem {
+type Meal = {
   id: number;
   name: string;
-  short_description: string;
   price: number;
-  image: string;
-  resId: number;
-  resName: string;
-  resImage: string;
   quantity: number;
-}
+  restaurant: number; // Add restaurant property to the Meal type
+};
 
-export interface BasketState {
-  items: BasketItem[];
-}
+type BasketState = {
+  items: Meal[];
+};
 
 const initialState: BasketState = {
   items: [],
@@ -27,50 +21,35 @@ const basketSlice = createSlice({
   name: "basket",
   initialState,
   reducers: {
-    addToBasket: (state, action: PayloadAction<BasketItem>) => {
-      const newItem = action.payload;
-      const existingItem = state.items.find((item) => item.id === newItem.id);
-
+    addItem: (state, action: PayloadAction<Meal>) => {
+      const existingItem = state.items.find((item) => item.id === action.payload.id);
       if (existingItem) {
-        // Item already exists, update quantity
-        existingItem.quantity++;
+        existingItem.quantity += 1;
       } else {
-        state.items.push({ ...newItem, quantity: 1 });
+        state.items.push({ ...action.payload, quantity: 1 });
       }
     },
-    removeFromBasket: (state, action: PayloadAction<number>) => {
-      const idToRemove = action.payload;
-      const itemIndex = state.items.findIndex((item) => item.id === idToRemove);
-
-      if (itemIndex !== -1) {
-        if (state.items[itemIndex].quantity > 1) {
-          // Reduce quantity
-          state.items[itemIndex].quantity--;
+    removeItem: (state, action: PayloadAction<number>) => {
+      const index = state.items.findIndex((item) => item.id === action.payload);
+      if (index !== -1) {
+        if (state.items[index].quantity > 1) {
+          state.items[index].quantity -= 1;
         } else {
-          // Remove item if quantity is 1
-          state.items.splice(itemIndex, 1);
+          state.items.splice(index, 1);
         }
       }
     },
-    updateBasket: (state, action: PayloadAction<BasketItem>) => {
-      const updatedItem = action.payload;
-      const existingItem = state.items.find((item) => item.id === updatedItem.id);
-
-      if (existingItem) {
-        // Update the item based on your requirements
-        existingItem.quantity = updatedItem.quantity;
-        // You can add more logic here to update other properties if needed
-      }
+    clearCart: (state, action: PayloadAction<number>) => { // Add clearCart reducer
+      state.items = state.items.filter(item => item.restaurant !== action.payload);
     },
-    clearBasket: (state) => {
-      // Clear the basket by resetting items to an empty array
+    clearAllCart: (state) => {
       state.items = [];
     },
   },
 });
 
-export const { addToBasket, removeFromBasket, updateBasket, clearBasket } = basketSlice.actions;
+export const { addItem, removeItem, clearCart, clearAllCart } = basketSlice.actions;
 
-export const selectBasketItems = (state: RootState) => state.basket.items;
+export const selectCartItems = (state: RootState) => state.basket.items;
 
 export default basketSlice.reducer;

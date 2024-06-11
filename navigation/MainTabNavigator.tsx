@@ -7,7 +7,7 @@ import TabCartButton from "../components/TabCartButton";
 import { Ionicons } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 ///import BrowseScreen from "../screens/BrowseScreen";
-import CartScreen from "../screens/CartScreen";
+import CartPage from "../screens/CartPage";
 //import GroceryScreen from "../screens/GroceryScreen";
 import AccountScreen from "../screens/AccountScreen";
 import Delivery from "../screens/Delivery";
@@ -50,7 +50,7 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Cart"
-        component={CartScreen}
+        component={CartPage}
         options={({ navigation }) => ({
           tabBarButton: () => (
             <TabCartButton onPress={() => navigation.navigate("Cart")} />

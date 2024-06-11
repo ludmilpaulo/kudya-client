@@ -1,50 +1,41 @@
 import React from "react";
 import { View, Image, Text } from "react-native";
+import { useNavigation, StackNavigationProp } from "@react-navigation/native";
 import tailwind from "tailwind-react-native-classnames";
 import AppButton from "../components/AppButton";
 import Screen from "../components/Screen";
-import { StackNavigationProp } from "@react-navigation/stack"; // Import the necessary type
 
-import { useNavigation } from "@react-navigation/native";
-
-// ...
-
-
-
+// Define the type for the navigation prop
 type JoinScreenProps = {
-  navigation: StackNavigationProp<{}>; // Define the type for the navigation prop
+  navigation: StackNavigationProp<{}>;
 };
 
 function JoinScreen() {
   const navigation = useNavigation<any>();
+
   return (
-    <Screen style={tailwind`flex-1`}>
-      <View style={tailwind`flex-1`}>
-        <View style={tailwind`flex-1 justify-center items-center`}>
+    <Screen style={tailwind`flex-1 bg-gray-100`}>
+      <View style={tailwind`flex-1 justify-center items-center p-5`}>
         <Image
           source={require("../assets/azul.png")}
-          style={tailwind`h-64 w-64 z-10`}
+          style={tailwind`h-64 w-64 mb-6`}
         />
-        </View>
-
-        <View style={tailwind`flex-1 justify-end`}>
-          <View style={tailwind`bg-white px-5 pb-5 pt-6 rounded-t-2xl`}>
-            <Text style={tailwind`text-2xl font-bold mb-3`}>
-              SD Kudya: Entrega de alimentos
-            </Text>
-            <Text style={tailwind`text-base text-gray-500 mb-3`}>
-              Receba comida à sua porta de milhares de restaurantes locais e
-              nacionais incríveis.
-            </Text>
-            <AppButton
-  title="Let's go"
-  onPress={() => navigation.navigate("UserLogin")}
-  color="primary"
-  disabled={false}
-/>
-
-          </View>
-        </View>
+        <Text style={tailwind`text-3xl font-bold text-center mb-4`}>
+          Bem-vindo ao SD Kudya!
+        </Text>
+        <Text style={tailwind`text-base text-gray-700 text-center mb-6`}>
+          Experimente o melhor serviço de entrega de comida na sua porta. Milhares de restaurantes locais e nacionais ao seu alcance!
+        </Text>
+        <Text style={tailwind`text-base text-gray-700 text-center mb-6`}>
+          Está com fome? Não espere! Peça agora e desfrute de refeições deliciosas entregues rápido e frescas.
+        </Text>
+        <AppButton
+          title="Let's go"
+          onPress={() => navigation.navigate("UserLogin")}
+          color="primary"
+          disabled={false}
+         
+        />
       </View>
     </Screen>
   );

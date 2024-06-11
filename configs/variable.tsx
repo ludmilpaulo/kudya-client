@@ -16,7 +16,9 @@ import { ForgotPasswordRequest } from "./types";
 
 export const googleAPi = "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s";
 
-export const apiUrl = "https://www.kudya.shop";
+export const apiUrl = "https://ludmil.pythonanywhere.com";
+
+//export const apiUrl = "http://127.0.0.1:8000";
 
 export const fetchData = async (endpoint: string) => {
   try {
