@@ -27,10 +27,16 @@ type RestaurantProps = {
     barnner: boolean;
     is_approved: boolean;
     opening_hours: OpeningHour[];
+    latitude: number;
+    longitude: number;
+  };
+  location: {
+    latitude: number;
+    longitude: number;
   };
 };
 
-const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant }) => {
+const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => {
   const navigation = useNavigation();
 
   if (!restaurant) {
@@ -77,6 +83,25 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant }) => {
     }
   };
 
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      0.5 - Math.cos(dLat) / 2 +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * (1 - Math.cos(dLon)) / 2;
+    return R * 2 * Math.asin(Math.sqrt(a));
+  };
+
+  const calculateTime = (distance) => {
+    const speed = 40; // average speed in km/h
+    const time = distance / speed;
+    return `${Math.round(time * 60)} mins`;
+  };
+
+  const distance = location ? getDistance(location.latitude, location.longitude, restaurant.latitude, restaurant.longitude) : null;
+  const travelTime = distance ? calculateTime(distance) : null;
+
   return (
     <TouchableOpacity
       style={[
@@ -94,8 +119,9 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant }) => {
       )}
       <View style={tailwind`p-4`}>
         <Text style={tailwind`text-2xl font-semibold text-gray-800`}>{restaurant.name}</Text>
-        <Text style={tailwind`text-gray-600`}>{restaurant.address}</Text>
-        <Text style={tailwind`text-gray-600`}>{restaurant.phone}</Text>
+        {travelTime && (
+          <Text style={tailwind`text-gray-600`}>Aprox. {travelTime} de distância</Text>
+        )}
         {restaurant.category && (
           <Text style={tailwind`bg-blue-100 text-blue-800 text-xs px-2 py-1 mt-2 rounded-full`}>
             {restaurant.category.name}
@@ -103,7 +129,7 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant }) => {
         )}
         {restaurant.barnner && (
           <View style={tailwind`mt-4 bg-gradient-to-r from-yellow-400 to-blue-600 p-2 rounded text-white text-center`}>
-            <Text>Ver o Menu</Text>
+            <Text>Ofertas de Hoje</Text>
           </View>
         )}
         <View style={tailwind`mt-2`}>

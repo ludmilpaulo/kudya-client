@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import tailwind from 'tailwind-react-native-classnames';
+import { Modal, View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { baseAPI } from '../services/types';
 
 interface ForgotPasswordModalProps {
@@ -9,25 +8,22 @@ interface ForgotPasswordModalProps {
 }
 
 const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ show, onClose }) => {
-  const [email, setEmail] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [emailSent, setEmailSent] = useState<boolean>(false);
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const handleResetPassword = async () => {
     setLoading(true);
     try {
       const response = await fetch(`${baseAPI}/conta/reset-password/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         setEmailSent(true);
+        Alert.alert('Sucesso', 'Email enviado. Por favor, verifique seu email para redefinir sua senha.');
       } else {
         Alert.alert('Erro', data.message || 'Erro ao enviar o email de redefinição de senha.');
       }
@@ -43,43 +39,41 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ show, onClose
 
   return (
     <Modal transparent={true} visible={show} animationType="slide">
-      <View style={tailwind`flex-1 justify-center items-center bg-black bg-opacity-50`}>
-        <View style={tailwind`bg-white p-6 rounded shadow-lg w-80`}>
+      <View style={styles.centeredView}>
+        <View style={styles.modalView}>
           {emailSent ? (
             <View>
-              <Text style={tailwind`text-2xl mb-4`}>Email Enviado</Text>
-              <Text style={tailwind`mb-4`}>Por favor, verifique seu email para redefinir sua senha.</Text>
-              <TouchableOpacity
-                onPress={onClose}
-                style={tailwind`px-4 py-2 bg-indigo-700 text-white rounded hover:bg-indigo-600`}
-              >
-                <Text>Fechar</Text>
+              <Text style={styles.modalTextHeader}>Email Enviado</Text>
+              <Text style={styles.modalText}>Por favor, verifique seu email para redefinir sua senha.</Text>
+              <TouchableOpacity onPress={onClose} style={styles.buttonClose}>
+                <Text style={styles.textStyle}>Fechar</Text>
               </TouchableOpacity>
             </View>
           ) : (
             <View>
-              <Text style={tailwind`text-2xl mb-4`}>Redefinir Senha</Text>
-              <Text style={tailwind`block text-sm font-medium text-gray-700`}>Email</Text>
+              <Text style={styles.modalTextHeader}>Redefinir Senha</Text>
+              <Text style={styles.label}>Email</Text>
               <TextInput
                 keyboardType="email-address"
                 value={email}
-                onChangeText={(text) => setEmail(text)}
-                style={tailwind`w-full p-2 mt-2 mb-4 border border-gray-300 rounded`}
+                onChangeText={setEmail}
+                style={styles.input}
                 placeholder="Digite seu email"
               />
-              <View style={tailwind`flex-row justify-end space-x-4`}>
-                <TouchableOpacity
-                  onPress={onClose}
-                  style={tailwind`px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600`}
-                >
-                  <Text>Cancelar</Text>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity onPress={onClose} style={styles.buttonCancel}>
+                  <Text style={styles.textStyle}>Cancelar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleResetPassword}
-                  style={tailwind`px-4 py-2 bg-indigo-700 text-white rounded hover:bg-indigo-600`}
+                  style={styles.buttonSubmit}
                   disabled={loading}
                 >
-                  <Text>{loading ? 'Enviando...' : 'Enviar'}</Text>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.textStyle}>Enviar</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
@@ -89,5 +83,77 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ show, onClose
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Enhanced overlay background for better visibility
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTextHeader: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  label: {
+    alignSelf: 'flex-start',
+    marginBottom: 5,
+  },
+  input: {
+    width: '100%',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonCancel: {
+    backgroundColor: '#888',
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+    marginRight: 10,
+  },
+  buttonSubmit: {
+    backgroundColor: '#2196F3',
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+});
 
 export default ForgotPasswordModal;

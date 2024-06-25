@@ -1,27 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import tailwind from 'tailwind-react-native-classnames';
 import { useAppSelector } from '../redux/store';
 import { addItem, removeItem } from '../redux/slices/basketSlice';
 import { baseAPI } from '../services/types';
-
-type Meal = {
-  id: number;
-  image_url: string;
-  name: string;
-  short_description: string;
-  price: number;
-  quantity: number;
-  category: string;
-  restaurant: number;
-};
-
-type Category = string;
+import { RootStackParamList, Meal, Category } from '../services/types'; // Import your navigation types
 
 const RestaurantMenu: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -35,8 +23,12 @@ const RestaurantMenu: React.FC = () => {
       fetch(`${baseAPI}/customer/customer/meals/${restaurant_id}/`)
         .then((response) => response.json())
         .then((data) => {
-          setMeals(data.meals);
-          const uniqueCategories = Array.from(new Set<string>(data.meals.map((meal: Meal) => meal.category)));
+          const meals = data.meals.map((meal: any) => ({
+            ...meal,
+            price: parseFloat(meal.price),
+          }));
+          setMeals(meals);
+          const uniqueCategories: Category[] = Array.from(new Set(meals.map((meal: Meal) => meal.category)));
           setCategories(uniqueCategories);
           setLoading(false);
         })
@@ -81,7 +73,7 @@ const RestaurantMenu: React.FC = () => {
                   style={tailwind`px-4 py-2 rounded-full text-sm font-semibold ${selectedCategory === category ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}
                   onPress={() => setSelectedCategory(category)}
                 >
-                  <Text>{category}</Text>
+                  <Text>{category ?? "Sem Categoria"}</Text>
                 </TouchableOpacity>
               ))}
               <TouchableOpacity

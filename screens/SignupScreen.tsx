@@ -9,7 +9,7 @@ import {
   Image,
   ScrollView
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import tailwind from "tailwind-react-native-classnames";
 import { Eye, EyeOff } from "react-native-feather";
@@ -17,9 +17,10 @@ import { signup } from "../services/authService";
 import { loginUser } from "../redux/slices/authSlice";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
+import { RootStackParamList } from "../services/types"; // Import your navigation types
 
 const SignupScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useDispatch();
 
   const [signupData, setSignupData] = useState({

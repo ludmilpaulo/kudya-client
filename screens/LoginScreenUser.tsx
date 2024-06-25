@@ -1,160 +1,204 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import tailwind from "tailwind-react-native-classnames";
 import { Eye, EyeOff } from "react-native-feather";
 import { loginUserService } from "../services/authService";
-import { AxiosError } from "axios";
-import { loginUser } from "../redux/slices/authSlice";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import { clearAllCart } from "../redux/slices/basketSlice";
 import { LinearGradient } from "expo-linear-gradient";
-import { AnimatePresence, MotiView } from 'moti';
+import { MotiView } from 'moti';
+import { loginUser } from "../redux/slices/authSlice";
 
-const LoginScreenUser: React.FC = () => {
+const LoginScreenUser = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  const [username, setUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState<boolean>(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
+  const toggleForgotPasswordModal = () => {
+    setShowForgotPasswordModal(prev => !prev);
+  };
   useEffect(() => {
     dispatch(clearAllCart());
-  }, [dispatch]);
+  }, []);
 
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const startTime = performance.now();
-      const resJson = await loginUserService(username, password);
-
-      const endTime = performance.now();
-      console.log(`completeOrderRequest took ${(endTime - startTime) / 1000} seconds`);
-
-      if (resJson.is_customer === true) {
-        dispatch(loginUser(resJson));
-        Alert.alert("Success", "Você se conectou com sucesso! Agora você pode saborear sua refeição");
-        navigation.navigate("HomeScreen");
-      } else if (resJson.is_customer === false) {
-        dispatch(loginUser(resJson));
-        Alert.alert("Success", "Você se conectou com sucesso!");
-        navigation.navigate("RestaurantDashboard");
-      } else {
-        Alert.alert("Error", resJson.message);
-      }
+      const response = await loginUserService(username, password);
+      dispatch(loginUser(response));  // Assume loginUser action updates the Redux state accordingly
+      Alert.alert("Sucesso", "Você se conectou com sucesso!");
+      navigation.navigate(response.is_customer ? "HomeScreen" : "RestaurantDashboard");
     } catch (error) {
       console.error(error);
-      const err = error as AxiosError;
-      if (err.response && err.response.data && typeof err.response.data === "object" && "message" in err.response.data) {
-        Alert.alert("Error", (err.response.data as any).message);
-      } else if (err.response && err.response.status) {
-        switch (err.response.status) {
-          case 400:
-            Alert.alert("Error", "Erro de solicitação. Por favor, tente novamente.");
-            break;
-          case 401:
-            Alert.alert("Error", "Senha incorreta. Por favor, tente novamente.");
-            break;
-          case 404:
-            Alert.alert("Error", "Usuário não encontrado. Por favor, Cadastra se.");
-            break;
-          default:
-            Alert.alert("Error", "Login falhou. Por favor, tente novamente.");
-        }
-      } else {
-        Alert.alert("Error", "Login falhou. Por favor, tente novamente.");
-      }
+      Alert.alert("Erro", "Falha ao entrar. Por favor, tente novamente.");
     } finally {
       setLoading(false);
     }
   };
 
   const togglePasswordVisibility = () => {
-    setShowPassword((prevState) => !prevState);
+    setShowPassword(prevState => !prevState);
   };
 
   return (
-    <LinearGradient colors={['#FCB61A', '#0171CE']} style={tailwind`flex-1 justify-center items-center`}>
-      <View style={tailwind`absolute top-0 left-0 w-full h-full rounded-md filter blur-3xl opacity-50 -z-20`} />
+    <LinearGradient colors={['#FCB61A', '#0171CE']} style={styles.container}>
       <MotiView
-        from={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
+        from={{ opacity: 0, translateY: -100 }}
+        animate={{ opacity: 1, translateY: 0 }}
         transition={{ type: 'timing', duration: 500 }}
-        style={tailwind`w-full p-10 mt-16 bg-white rounded-lg shadow-lg lg:w-1/3 md:w-1/2`}
+        style={styles.formContainer}
       >
-        <View style={tailwind`flex justify-center mb-6 items-center`}>
-          <Image source={require("../assets/azul.png")} style={tailwind`w-32 h-32`} />
+        <View style={styles.imageContainer}>
+        <Image source={require("../assets/azul.png")} style={styles.logo} />
         </View>
-        <Text style={tailwind`text-2xl font-extrabold leading-6 text-gray-800 text-center mb-4`}>
-          Faça login na sua conta
-        </Text>
+        <Text style={styles.title}>Faça login na sua conta</Text>
         <TouchableOpacity onPress={() => navigation.navigate("SignupScreen")}>
-          <Text style={tailwind`mt-4 text-sm font-medium leading-none text-gray-500 text-center`}>
+          <Text style={styles.signupLink}>
             Não tem uma conta?{" "}
-            <Text style={tailwind`text-sm font-medium leading-none text-indigo-700 underline`}>
-              Assine aqui
-            </Text>
+            <Text style={styles.signupText}>Cadastre-se aqui</Text>
           </Text>
         </TouchableOpacity>
-        <View style={tailwind`mt-8`}>
-          <Text style={tailwind`block text-sm font-medium text-gray-700`}>Nome do Usuário</Text>
+        <View style={styles.inputContainer}>
           <TextInput
-            placeholder="Nome do Usuário"
+            placeholder="Nome do usuário"
             value={username}
-            onChangeText={(text) => setUsername(text)}
-            style={tailwind`w-full py-3 px-4 mt-2 text-sm font-medium leading-none text-gray-800 bg-gray-200 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500`}
+            onChangeText={setUsername}
+            style={styles.input}
           />
         </View>
-        <View style={tailwind`mt-6`}>
-          <Text style={tailwind`block text-sm font-medium text-gray-700`}>Digite a Sua Senha</Text>
-          <View style={tailwind`relative mt-2`}>
-            <TextInput
-              value={password}
-              placeholder="Digite a Sua Senha"
-              onChangeText={(text) => setPassword(text)}
-              secureTextEntry={!showPassword}
-              style={tailwind`w-full py-3 px-4 text-sm font-medium leading-none text-gray-800 bg-gray-200 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500`}
-            />
-            <TouchableOpacity
-              onPress={togglePasswordVisibility}
-              style={tailwind`absolute inset-y-0 right-0 flex items-center justify-center h-full px-3`}
-            >
-              {showPassword ? <EyeOff width={20} height={20} /> : <Eye width={20} height={20} />}
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={tailwind`mt-4 text-right`}>
-          <Text
-            style={tailwind`text-sm text-indigo-700 hover:underline`}
-            onPress={() => setShowForgotPasswordModal(true)}
-          >
-            Esqueceu a senha?
-          </Text>
-        </View>
-        <View style={tailwind`mt-8`}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            value={password}
+            placeholder="Digite sua senha"
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            style={styles.input}
+          />
           <TouchableOpacity
-            onPress={handleSubmit}
-            style={tailwind`w-full py-4 text-sm font-semibold leading-none text-white bg-indigo-700 border rounded focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700 focus:outline-none ${loading && 'opacity-50'}`}
-            disabled={loading}
+            onPress={togglePasswordVisibility}
+            style={styles.eyeIcon}
           >
-            <Text>Entrar na Minha Conta</Text>
+            {showPassword ? <EyeOff width={20} height={20} /> : <Eye width={20} height={20} />}
           </TouchableOpacity>
         </View>
+        <TouchableOpacity onPress={toggleForgotPasswordModal}>
+        <Text style={styles.forgotPasswordLink}>Esqueceu a senha?</Text>
+      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleSubmit}
+          style={styles.loginButton}
+          disabled={loading}
+        >
+          <Text style={styles.loginButtonText}>Entrar</Text>
+        </TouchableOpacity>
       </MotiView>
-
       {loading && (
-        <View style={tailwind`absolute top-0 left-0 z-50 flex items-center justify-center w-full h-full bg-black bg-opacity-50`}>
-          <ActivityIndicator size="large" color="#0000ff" />
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
         </View>
       )}
-
-      <ForgotPasswordModal show={showForgotPasswordModal} onClose={() => setShowForgotPasswordModal(false)} />
+       <ForgotPasswordModal show={showForgotPasswordModal} onClose={toggleForgotPasswordModal} />
     </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  formContainer: {
+    width: '100%',
+    maxWidth: 400,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: { height: 0, width: 0 }
+  },
+  imageContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20
+  },
+  logo: {
+    width: 100,
+    height: 100
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20
+  },
+  signupLink: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#555',
+    marginBottom: 20
+  },
+  signupText: {
+    color: '#0077cc',
+    textDecorationLine: 'underline'
+  },
+  inputContainer: {
+    marginBottom: 10
+  },
+  input: {
+    fontSize: 16,
+    padding: 12,
+    backgroundColor: '#f0f0f0',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    width: '100%'
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: 12,
+    padding: 10
+  },
+  forgotPasswordLink: {
+    textAlign: 'right',
+    color: '#0077cc',
+    textDecorationLine: 'underline',
+    marginBottom: 20
+  },
+  loginButton: {
+    backgroundColor: '#0077cc',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 50
+  },
+  loginButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
+});
 
 export default LoginScreenUser;

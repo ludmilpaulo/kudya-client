@@ -1,44 +1,83 @@
-import React from "react";
-import { View, Image, Text } from "react-native";
-import { useNavigation, StackNavigationProp } from "@react-navigation/native";
-import tailwind from "tailwind-react-native-classnames";
-import AppButton from "../components/AppButton";
-import Screen from "../components/Screen";
+import React, { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator, Platform } from 'react-native';
+import * as Location from 'expo-location';
+import tailwind from 'tailwind-react-native-classnames';
+import Banner from '../components/Banner';
+import { fetchAboutUsData } from '../services/information';
+import { baseAPI, Restaurant } from '../services/types';
 
-// Define the type for the navigation prop
-type JoinScreenProps = {
-  navigation: StackNavigationProp<{}>;
-};
+const JoinScreen = () => {
+  const [headerData, setHeaderData] = useState<any | null>(null);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [userLocation, setUserLocation] = useState({ latitude: -25.747868, longitude: 28.229271 }); // Default to a fallback location
+  const [loading, setLoading] = useState(true);
 
-function JoinScreen() {
-  const navigation = useNavigation<any>();
+  useEffect(() => {
+    const fetchLocationAndData = async () => {
+      try {
+        // Request permission to access location
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.error('Permission to access location was denied');
+          return;
+        }
+
+        // Get the current location
+        let location = await Location.getCurrentPositionAsync({});
+        setUserLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude
+        });
+
+        // Fetch additional data
+        const header = await fetchAboutUsData();
+        const restaurantResponse = await fetch(`${baseAPI}/customer/customer/restaurants/`)
+          .then(response => response.json());
+
+        const approvedRestaurants = restaurantResponse.restaurants.map((restaurant: any) => ({
+          ...restaurant,
+          location: parseLocation(restaurant.location)
+        }));
+
+        setHeaderData(header);
+        setRestaurants(approvedRestaurants);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLocationAndData();
+  }, []);
 
   return (
-    <Screen style={tailwind`flex-1 bg-gray-100`}>
-      <View style={tailwind`flex-1 justify-center items-center p-5`}>
-        <Image
-          source={require("../assets/azul.png")}
-          style={tailwind`h-64 w-64 mb-6`}
+    <View style={tailwind`flex-1 bg-gray-100`}>
+      {loading ? (
+        <View style={tailwind`flex-1 justify-center items-center`}>
+          <ActivityIndicator size="large" color="#4f46e5" />
+        </View>
+      ) : headerData && (
+        <Banner
+          title={headerData.title}
+          backgroundImage={headerData.backgroundImage}
+          backgroundApp={headerData.backgroundApp}
+          bottomImage={headerData.bottomImage}
+          aboutText={headerData.about}
+          restaurants={restaurants}
+          userLocation={userLocation}
         />
-        <Text style={tailwind`text-3xl font-bold text-center mb-4`}>
-          Bem-vindo ao SD Kudya!
-        </Text>
-        <Text style={tailwind`text-base text-gray-700 text-center mb-6`}>
-          Experimente o melhor serviço de entrega de comida na sua porta. Milhares de restaurantes locais e nacionais ao seu alcance!
-        </Text>
-        <Text style={tailwind`text-base text-gray-700 text-center mb-6`}>
-          Está com fome? Não espere! Peça agora e desfrute de refeições deliciosas entregues rápido e frescas.
-        </Text>
-        <AppButton
-          title="Let's go"
-          onPress={() => navigation.navigate("UserLogin")}
-          color="primary"
-          disabled={false}
-         
-        />
-      </View>
-    </Screen>
+      )}
+    </View>
   );
+};
+
+function parseLocation(locationString: string): { latitude: number; longitude: number } {
+  if (!locationString) {
+    return { latitude: 0, longitude: 0 };
+  }
+  const [latitude, longitude] = locationString.split(',').map(Number);
+  return { latitude, longitude };
 }
 
 export default JoinScreen;

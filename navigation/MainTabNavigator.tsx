@@ -1,14 +1,10 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons, AntDesign } from "@expo/vector-icons";
 import colors from "../configs/colors";
 import HomeScreen from "../screens/HomeScreen";
 import TabCartButton from "../components/TabCartButton";
-import { Ionicons } from "@expo/vector-icons";
-import { AntDesign } from "@expo/vector-icons";
-///import BrowseScreen from "../screens/BrowseScreen";
 import CartPage from "../screens/CartPage";
-//import GroceryScreen from "../screens/GroceryScreen";
 import AccountScreen from "../screens/AccountScreen";
 import Delivery from "../screens/Delivery";
 import OrderHistory from "../screens/OrderHistory";

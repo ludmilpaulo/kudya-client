@@ -1,9 +1,34 @@
 // src/services/types.ts
-export const baseAPI: string = process.env.NEXT_PUBLIC_BASE_API || 'https://ludmil.pythonanywhere.com';
+export const baseAPI: string = "https://www.kudya.shop";
+
+export type Category = {
+  id: number;
+  name: string;
+  image: string | null;
+};
 
 
+export type RootStackParamList = {
+  HomeScreen: undefined;
+  SignupScreen: undefined;
+  RestaurantDashboard: undefined;
+  LoginScreenUser: undefined;
+  FoodDetailsPage: { meal: Meal };
+  CartPage: undefined;
+};
 
-//export const baseAPI = "https://ludmil.pythonanywhere.com";
+export type Meal = {
+  id: number;
+  image_url: string;
+  name: string;
+  short_description: string;
+  price: number;
+  quantity: number;
+  category: string;
+  restaurant: number;
+};
+
+//export type Category = string; // Define Category as a string
 
 import { ReactNode } from "react";
 
@@ -70,23 +95,33 @@ export type OpeningHour = {
     is_closed: boolean;
   };
   
-  export type Category = {
+
+// types.ts
+export interface Restaurant {
+  id: number;
+  name: string;
+  phone: string;
+  address: string;
+  logo: string;
+  category: {
     id: number;
     name: string;
     image: string | null;
   };
-  
-  export type Restaurant = {
-    id: number;
-    name: string;
-    phone: string;
-    address: string;
-    logo: string;
-    category?: Category;
-    barnner: boolean;
-    is_approved: boolean;
-    opening_hours: OpeningHour[];
+  barnner: boolean;
+  is_approved: boolean;
+  location: {
+    latitude: number;
+    longitude: number;
   };
+  opening_hours: {
+    day: string;
+    from_hour: string;
+    to_hour: string;
+    is_closed: boolean;
+  }[];
+}
+
 
   export type Categoria = {
     id: number;
@@ -126,7 +161,6 @@ export type OpeningHour = {
     opening_hours: OpeningHourType[];
   };
 
-
   export interface AboutUsData {
     id: number;
     title: string;
@@ -134,6 +168,7 @@ export type OpeningHour = {
     back: string;
     backgroundApp: string;
     backgroundImage: string;
+    bottomImage: string;
     about: string;
     born_date: string;
     address: string;

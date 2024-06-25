@@ -4,7 +4,7 @@ import { RootState } from '../store'; // Adjust the import path according to you
 type Meal = {
   id: number;
   name: string;
-  price: number;
+  price: string; // Change price to string
   quantity: number;
   restaurant: number; // Add restaurant property to the Meal type
 };
