@@ -3,21 +3,23 @@ import {
   View,
   Text,
   Image,
-  TextInput,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  ScrollView
+  ScrollView,
+  StyleSheet,
+  TextInput,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import tailwind from 'tailwind-react-native-classnames';
 import { selectUser, logoutUser } from '../redux/slices/authSlice';
 import { selectCartItems, clearCart } from '../redux/slices/basketSlice';
 import { fetchRestaurantDetails, fetchUserDetails, completeOrderRequest } from '../services/checkoutService';
 import ProfileModal from '../components/ProfileModal';
 import AddressInput from '../components/AddressInput';
 import PaymentDetails from '../components/PaymentDetails';
+import { LinearGradient } from 'expo-linear-gradient';
+import tailwind from 'tailwind-react-native-classnames';
 
 const CheckoutPage: React.FC = () => {
   const [items, setItems] = useState<any[]>([]);
@@ -85,7 +87,6 @@ const CheckoutPage: React.FC = () => {
   };
 
   const completeOrder = async () => {
-    console.log("order");
     setLoading(true);
     setError(null);
     const formattedCartItems = allCartItems.map((item) => ({
@@ -103,7 +104,6 @@ const CheckoutPage: React.FC = () => {
       order_details: orderDetails,
       payment_method: paymentMethod,
     };
-    console.log("order data=>", orderData);
 
     try {
       const startTime = performance.now();
@@ -129,51 +129,112 @@ const CheckoutPage: React.FC = () => {
   const totalPrice = items.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
-    <ScrollView contentContainerStyle={tailwind`p-6 bg-white rounded-lg shadow-md`}>
-      {restaurant && (
-        <>
-          <Text style={tailwind`text-3xl font-semibold mb-6 text-gray-800`}>Checkout - {restaurant.name}</Text>
-          <View style={tailwind`flex justify-center mb-6`}>
-            <Image source={{ uri: restaurant.logo }} style={tailwind`w-48 h-48 rounded-lg`} />
-          </View>
-        </>
-      )}
-
-      <AddressInput
-        useCurrentLocation={useCurrentLocation}
-        setUseCurrentLocation={setUseCurrentLocation}
-        userAddress={userAddress}
-        setUserAddress={setUserAddress}
-      />
-      <PaymentDetails paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} />
-
-      <View style={tailwind`flex justify-between items-center my-4`}>
-        <Text style={tailwind`text-lg font-semibold text-gray-800`}>Total: {totalPrice} Kz</Text>
-      </View>
-
-      {loading && (
-        <View style={tailwind`absolute top-0 left-0 z-50 flex items-center justify-center w-full h-full bg-black bg-opacity-50`}>
-          <ActivityIndicator size="large" color="#0000ff" />
+    <LinearGradient colors={['#FCD34D', '#3B82F6']} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+        {restaurant && (
+          <>
+            <Text style={styles.headerText}>Checkout - {restaurant.name}</Text>
+            <View style={styles.restaurantLogoContainer}>
+              <Image source={{ uri: restaurant.logo }} style={styles.restaurantLogo} />
+            </View>
+          </>
+        )}
+        <AddressInput
+          useCurrentLocation={useCurrentLocation}
+          setUseCurrentLocation={setUseCurrentLocation}
+          userAddress={userAddress}
+          setUserAddress={setUserAddress}
+        />
+        <PaymentDetails paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} />
+        <View style={styles.totalContainer}>
+          <Text style={styles.totalText}>Total: {totalPrice} Kz</Text>
         </View>
-      )}
-
-      {error && <Text style={tailwind`text-red-500 text-center mb-4`}>{error}</Text>}
-
-      <TouchableOpacity
-        style={tailwind`flex items-center justify-center w-full h-10 my-4 bg-blue-600 text-white font-semibold rounded-full ${loading ? 'opacity-50' : 'hover:bg-blue-700'}`}
-        onPress={completeOrder}
-        disabled={loading}
-      >
-        <Text>FAÇA SEU PEDIDO</Text>
-      </TouchableOpacity>
-      <ProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        userDetails={userDetails}
-        onUpdate={(updatedDetails: any) => setUserDetails(updatedDetails)}
-      />
-    </ScrollView>
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#fff" />
+          </View>
+        )}
+        {error && <Text style={styles.errorText}>{error}</Text>}
+        <TouchableOpacity
+          style={[styles.orderButton, loading && styles.disabledButton]}
+          onPress={completeOrder}
+          disabled={loading}
+        >
+          <Text style={styles.orderButtonText}>FAÇA SEU PEDIDO</Text>
+        </TouchableOpacity>
+        <ProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          userDetails={userDetails}
+          onUpdate={(updatedDetails: any) => setUserDetails(updatedDetails)}
+        />
+      </ScrollView>
+    </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollViewContainer: {
+    padding: 16,
+    backgroundColor: 'transparent',
+  },
+  headerText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  restaurantLogoContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  restaurantLogo: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+  },
+  totalContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  totalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#FF0000',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  orderButton: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 16,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  orderButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+});
 
 export default CheckoutPage;

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, Alert, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, Alert, Image, StyleSheet } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { logoutUser, selectUser } from '../redux/slices/authSlice';
 import { baseAPI } from '../services/types';
+import * as ImagePicker from 'expo-image-picker';
 
 type ProfileModalProps = {
   isOpen: boolean;
@@ -16,7 +17,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
 
-  const [imageInfo, setImageInfo] = useState<File | null>(null);
+  const [imageInfo, setImageInfo] = useState<string | null>(null);
   const [address, setAddress] = useState<string>(userDetails?.address || '');
   const [firstName, setFirstName] = useState<string>(userDetails?.first_name || '');
   const [lastName, setLastName] = useState<string>(userDetails?.last_name || '');
@@ -34,7 +35,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-          console.log(latitude, longitude);
 
           try {
             const response = await fetch(
@@ -56,20 +56,44 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
     userLocation();
   }, []);
 
-  const handleTakePhotoOrSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setImageInfo(event.target.files[0]);
+  const handleImagePicker = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      setImageInfo(result.uri);
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      setImageInfo(result.uri);
     }
   };
 
   const userUpdate = async () => {
-    if (!imageInfo) {
-      Alert.alert("Please select an image first");
-      return;
+    const formData = new FormData();
+
+    if (imageInfo) {
+      const uriParts = imageInfo.split('.');
+      const fileType = uriParts[uriParts.length - 1];
+      formData.append('avatar', {
+        uri: imageInfo,
+        name: `photo.${fileType}`,
+        type: `image/${fileType}`,
+      } as any);
     }
 
-    const formData = new FormData();
-    formData.append('avatar', imageInfo);
     formData.append('access_token', userToken);
     formData.append('address', address);
     formData.append('first_name', firstName);
@@ -81,6 +105,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
         method: "POST",
         headers: {
           'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
         body: formData
       });
@@ -95,7 +120,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
           first_name: firstName,
           last_name: lastName,
           phone,
-          avatar: URL.createObjectURL(imageInfo)
+          avatar: imageInfo
         });
         onClose();
       } else {
@@ -116,44 +141,52 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-        <View style={{ width: '90%', backgroundColor: 'white', borderRadius: 10, padding: 20 }}>
-          <TouchableOpacity onPress={onClose} style={{ position: 'absolute', top: 10, right: 10 }}>
-            <Text style={{ fontSize: 18, color: 'gray' }}>X</Text>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>X</Text>
           </TouchableOpacity>
-          <View style={{ alignItems: 'center' }}>
+          <View style={styles.modalContent}>
             {imageInfo && (
               <Image
-                source={{ uri: URL.createObjectURL(imageInfo) }}
-                style={{ width: 192, height: 192, borderRadius: 96, marginBottom: 20 }}
+                source={{ uri: imageInfo }}
+                style={styles.avatar}
               />
             )}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.imageButton} onPress={handleImagePicker}>
+                <Text style={styles.buttonText}>Escolher da Galeria</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.imageButton} onPress={handleTakePhoto}>
+                <Text style={styles.buttonText}>Tirar Foto</Text>
+              </TouchableOpacity>
+            </View>
             <TextInput
-              style={{ width: '100%', borderColor: 'gray', borderWidth: 1, borderRadius: 5, padding: 10, marginBottom: 10 }}
+              style={styles.input}
               placeholder="Primeiro Nome"
               value={firstName}
               onChangeText={setFirstName}
             />
             <TextInput
-              style={{ width: '100%', borderColor: 'gray', borderWidth: 1, borderRadius: 5, padding: 10, marginBottom: 10 }}
+              style={styles.input}
               placeholder="Ultimo Nome"
               value={lastName}
               onChangeText={setLastName}
             />
             <TextInput
-              style={{ width: '100%', borderColor: 'gray', borderWidth: 1, borderRadius: 5, padding: 10, marginBottom: 10 }}
+              style={styles.input}
               placeholder="Número de Telefone"
               value={phone}
               onChangeText={setPhone}
             />
             <TextInput
-              style={{ width: '100%', borderColor: 'gray', borderWidth: 1, borderRadius: 5, padding: 10, marginBottom: 10 }}
+              style={styles.input}
               placeholder="Endereço"
               value={address}
               onChangeText={setAddress}
             />
-            <TouchableOpacity onPress={userUpdate} style={{ backgroundColor: 'blue', padding: 15, borderRadius: 5, marginTop: 10 }}>
-              <Text style={{ color: 'white', fontWeight: 'bold' }}>Atualize seu Perfil</Text>
+            <TouchableOpacity onPress={userUpdate} style={styles.updateButton}>
+              <Text style={styles.updateButtonText}>Atualize seu Perfil</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -161,5 +194,70 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContainer: {
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    color: 'gray',
+  },
+  modalContent: {
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 192,
+    height: 192,
+    borderRadius: 96,
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  imageButton: {
+    backgroundColor: '#3B82F6',
+    padding: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  input: {
+    width: '100%',
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  updateButton: {
+    backgroundColor: 'blue',
+    padding: 15,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  updateButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+});
 
 export default ProfileModal;

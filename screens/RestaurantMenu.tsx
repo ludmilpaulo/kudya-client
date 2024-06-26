@@ -105,11 +105,7 @@ const RestaurantMenu: React.FC = () => {
                     <Image source={{ uri: meal.image_url }} style={styles.mealImage} />
                     <View style={styles.mealInfoContainer}>
                       <Text style={styles.mealName}>{meal.name}</Text>
-                      <Text style={styles.mealDescription}>
-                        {meal.short_description.length > 50
-                          ? `${meal.short_description.substring(0, 50)}...`
-                          : meal.short_description}
-                      </Text>
+                    
                       <Text style={styles.mealPrice}>Preço: {meal.price} Kz</Text>
                       <View style={styles.mealActions}>
                         <TouchableOpacity
