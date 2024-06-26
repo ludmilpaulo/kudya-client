@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation, RouteProp, useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import tailwind from 'tailwind-react-native-classnames';
 import { useAppSelector } from '../redux/store';
 import { addItem, removeItem } from '../redux/slices/basketSlice';
-import { baseAPI } from '../services/types';
-import { RootStackParamList, Meal, Category } from '../services/types'; // Import your navigation types
+import { baseAPI, RootStackParamList, Meal, Category } from '../services/types'; // Import your navigation types
+
+type RestaurantMenuRouteProp = RouteProp<RootStackParamList, 'RestaurantMenu'>;
 
 const RestaurantMenu: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation();
+  const route = useRoute<RestaurantMenuRouteProp>();
+  const { restaurant_id, restaurant_logo } = route.params;
   const [meals, setMeals] = useState<Meal[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const restaurant_id = '1'; // Replace with actual restaurant_id from params or props
   const dispatch = useDispatch();
   const cartItems = useAppSelector((state) => state.basket.items);
 
@@ -65,8 +67,9 @@ const RestaurantMenu: React.FC = () => {
         </View>
       ) : (
         <ScrollView contentContainerStyle={tailwind`p-6`}>
+          <Image source={{ uri: restaurant_logo }} style={tailwind`w-full h-48 mb-4`} resizeMode="cover" />
           <View style={tailwind`flex-row justify-between mb-6`}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tailwind`space-x-2`}>
               {categories.map((category, index) => (
                 <TouchableOpacity
                   key={index}
@@ -91,8 +94,8 @@ const RestaurantMenu: React.FC = () => {
                   <Image source={{ uri: meal.image_url }} style={tailwind`w-full h-48`} />
                   <View style={tailwind`p-4`}>
                     <Text style={tailwind`text-2xl font-semibold text-gray-800`}>{meal.name}</Text>
-                    <Text style={tailwind`text-gray-600`}>{meal.short_description.length > 100 ? `${meal.short_description.substring(0, 100)}...` : meal.short_description}</Text>
-                    <Text style={tailwind`text-gray-800 font-bold`}>Preço: {meal.price} Kz</Text>
+                    <Text style={tailwind`text-gray-600 mt-1`}>{meal.short_description.length > 100 ? `${meal.short_description.substring(0, 100)}...` : meal.short_description}</Text>
+                    <Text style={tailwind`text-gray-800 font-bold mt-2`}>Preço: {meal.price} Kz</Text>
                     <View style={tailwind`flex-row items-center mt-4`}>
                       <TouchableOpacity
                         style={tailwind`px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700`}

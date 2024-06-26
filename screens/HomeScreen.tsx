@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator, TextInput, Image, TouchableOpacity, Alert } from "react-native";
+import Constants from "expo-constants";
+import { SafeAreaView, View, Text, ScrollView, ActivityIndicator, TextInput, Image, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import { Ionicons } from '@expo/vector-icons'; // Import icons from expo
 import tailwind from "tailwind-react-native-classnames";
 import * as Location from 'expo-location';
 import RestaurantCard from "../components/RestaurantCard";
 import { baseAPI, Restaurant } from "../services/types";
 
-type Restaurants = Restaurant[];
+type Category = {
+  name: string;
+  image: string | null;
+};
 
 const HomeScreen: React.FC = () => {
-  const [restaurants, setRestaurants] = useState<Restaurants>([]);
-  const [filteredDataSource, setFilteredDataSource] = useState<Restaurants>([]);
-  const [masterDataSource, setMasterDataSource] = useState<Restaurants>([]);
-  const [categories, setCategories] = useState<{ name: string; image: string | null }[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [filteredDataSource, setFilteredDataSource] = useState<Restaurant[]>([]);
+  const [masterDataSource, setMasterDataSource] = useState<Restaurant[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [address, setAddress] = useState("");
@@ -46,7 +51,7 @@ const HomeScreen: React.FC = () => {
         setFilteredDataSource(approvedRestaurants);
         const uniqueCategories = [...new Set(approvedRestaurants.map((restaurant) => restaurant.category.name))];
         const categoriesWithImages = uniqueCategories.map(name => ({
-          name,
+          name: name as string,
           image: approvedRestaurants.find(rest => rest.category.name === name)?.category.image || null
         }));
         setCategories(categoriesWithImages);
@@ -86,77 +91,83 @@ const HomeScreen: React.FC = () => {
     return R * 2 * Math.asin(Math.sqrt(a));
   };
 
-  const calculateTime = (distance: number) => {
-    const speed = 40; // average speed in km/h
-    const time = distance / speed;
-    return `${Math.round(time * 60)} mins`;
-  };
-
-  const nearbyRestaurants = (restaurants: Restaurants, location: { latitude: number; longitude: number }) => {
-    if (!location) return [];
-    return restaurants.filter((restaurant) => {
-      const distance = getDistance(location.latitude, location.longitude, restaurant.latitude, restaurant.longitude);
-      return distance <= 10; // filter restaurants within 10km radius
-    });
-  };
-
-  const dailyOffers = masterDataSource.filter(restaurant => restaurant.barnner);
-  const otherRestaurants = masterDataSource.filter(restaurant => !restaurant.barnner);
-
   return (
-    <View style={tailwind`flex-1 bg-gray-100`}>
-      <View style={tailwind`px-4 py-6`}>
-        {loading ? (
-          <View style={tailwind`flex-1 justify-center items-center`}>
-            <ActivityIndicator size="large" color="#0000ff" />
+    <SafeAreaView style={[styles.container]}>
+      {loading ? (
+        <View style={tailwind`flex-1 justify-center items-center`}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={tailwind`p-4`}>
+          <View style={tailwind`flex-row justify-between items-center mb-4`}>
+            <Text style={tailwind`text-lg font-semibold`}>{address}</Text>
+            <View style={tailwind`flex-row`}>
+              <Ionicons name="notifications-outline" size={24} color="black" style={tailwind`mx-2`} />
+              <Ionicons name="cart-outline" size={24} color="black" style={tailwind`mx-2`} />
+            </View>
           </View>
-        ) : (
-          <>
-            <Text style={tailwind`text-lg font-semibold mb-2`}>Sua localização: {address}</Text>
-            <TextInput
-              style={tailwind`p-4 mb-4 bg-white border rounded-full shadow-sm`}
-              placeholder="Pesquisar Restaurantes"
-              onChangeText={(text) => searchFilterFunction(text)}
-            />
-            <Text style={tailwind`text-xl font-semibold mb-4`}>Categorias</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tailwind`pb-4`}>
-              {categories.map((category, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={tailwind`m-2 items-center`}
-                  onPress={() => filterByCategory(category.name)}
-                >
-                  <Image
-                    source={{ uri: category.image || "https://ludmil.pythonanywhere.com/media/logo/azul.png" }}
-                    style={tailwind`w-20 h-20 rounded-full`}
-                  />
-                  <Text style={tailwind`mt-2 text-center text-sm`}>{category.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <Text style={tailwind`text-xl font-semibold mb-4`}>Ofertas de Hoje</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tailwind`pb-4`}>
-              {dailyOffers.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
-              ))}
-            </ScrollView>
-            <Text style={tailwind`text-xl font-semibold mb-4 mt-4`}>Restaurantes Próximos</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tailwind`pb-4`}>
-              {nearbyRestaurants(filteredDataSource, location).map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
-              ))}
-            </ScrollView>
-            <Text style={tailwind`text-xl font-semibold mb-4 mt-4`}>Todos os Restaurantes</Text>
-            <ScrollView contentContainerStyle={tailwind`pb-4`}>
-              {filteredDataSource.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
-              ))}
-            </ScrollView>
-          </>
-        )}
-      </View>
-    </View>
+          <View style={tailwind`mb-4`}>
+            <View style={tailwind`flex-row items-center bg-gray-200 p-3 rounded-full`}>
+              <Ionicons name="search" size={20} color="gray" style={tailwind`mr-2`} />
+              <TextInput
+                style={tailwind`flex-1`}
+                placeholder="Pesquisar Restaurantes"
+                onChangeText={(text) => searchFilterFunction(text)}
+              />
+            </View>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tailwind`pb-4`}>
+            {categories.map((category, index) => (
+              <TouchableOpacity
+                key={index}
+                style={tailwind`items-center mx-2`}
+                onPress={() => filterByCategory(category.name)}
+              >
+                <Image
+                  source={{ uri: category.image || "https://ludmil.pythonanywhere.com/media/logo/azul.png" }}
+                  style={tailwind`w-16 h-16 rounded-full`}
+                />
+                <Text style={tailwind`mt-2 text-center text-sm`}>{category.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <Text style={tailwind`text-xl font-semibold mb-4`}>Ofertas de Hoje</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tailwind`pb-4`}>
+            {filteredDataSource.filter(restaurant => restaurant.barnner).map((restaurant) => (
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
+            ))}
+          </ScrollView>
+          <Text style={tailwind`text-xl font-semibold mb-4`}>Restaurantes Próximos</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tailwind`pb-4`}>
+            {filteredDataSource.filter(restaurant => {
+              if (!location) return false;
+              const [restaurantLat, restaurantLon] = restaurant.location.split(',').map(Number);
+              const distance = getDistance(location.latitude, location.longitude, restaurantLat, restaurantLon);
+              return distance <= 10; // filter restaurants within 10km radius
+            }).map((restaurant) => (
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
+            ))}
+          </ScrollView>
+          <Text style={tailwind`text-xl font-semibold mb-4`}>Todos os Restaurantes</Text>
+          <View>
+            {filteredDataSource.map((restaurant) => (
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
+            ))}
+          </View>
+        </ScrollView>
+      )}
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    paddingTop: Constants.statusBarHeight,
+    flex: 1,
+  },
+  view: {
+    // flex: 1
+  },
+});
 
 export default HomeScreen;

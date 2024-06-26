@@ -27,8 +27,7 @@ type RestaurantProps = {
     barnner: boolean;
     is_approved: boolean;
     opening_hours: OpeningHour[];
-    latitude: number;
-    longitude: number;
+    location: string; // Change type to string to match the API response
   };
   location: {
     latitude: number;
@@ -79,11 +78,14 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
     if (!isOpen()) {
       Alert.alert(`O restaurante ${restaurant.name} está fechado de momento, tente mais tarde`);
     } else {
-      navigation.navigate('RestaurantMenu', { restaurant_id: restaurant.id });
+      navigation.navigate('RestaurantMenu', {
+        restaurant_id: restaurant.id,
+        restaurant_logo: restaurant.logo,
+      });
     }
   };
 
-  const getDistance = (lat1, lon1, lat2, lon2) => {
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; // Radius of the Earth in km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -99,7 +101,8 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
     return `${Math.round(time * 60)} mins`;
   };
 
-  const distance = location ? getDistance(location.latitude, location.longitude, restaurant.latitude, restaurant.longitude) : null;
+  const [restaurantLat, restaurantLon] = restaurant.location.split(',').map(Number);
+  const distance = location ? getDistance(location.latitude, location.longitude, restaurantLat, restaurantLon) : null;
   const travelTime = distance ? calculateTime(distance) : null;
 
   return (
@@ -126,11 +129,6 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
           <Text style={tailwind`bg-blue-100 text-blue-800 text-xs px-2 py-1 mt-2 rounded-full`}>
             {restaurant.category.name}
           </Text>
-        )}
-        {restaurant.barnner && (
-          <View style={tailwind`mt-4 bg-gradient-to-r from-yellow-400 to-blue-600 p-2 rounded text-white text-center`}>
-            <Text>Ofertas de Hoje</Text>
-          </View>
         )}
         <View style={tailwind`mt-2`}>
           <Text style={tailwind`inline-block px-2 py-1 rounded-full text-xs font-semibold ${isOpen() ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>

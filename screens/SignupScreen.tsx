@@ -136,48 +136,7 @@ const SignupScreen: React.FC = () => {
             {showPassword ? <EyeOff width={20} height={20} /> : <Eye width={20} height={20} />}
           </TouchableOpacity>
         </View>
-        <View style={styles.roleSelection}>
-          <TouchableOpacity onPress={() => setRole('client')} style={styles.roleButton(role === 'client')}>
-            <Text style={styles.roleButtonText}>Cliente</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setRole('restaurant')} style={styles.roleButton(role === 'restaurant')}>
-            <Text style={styles.roleButtonText}>Restaurante</Text>
-          </TouchableOpacity>
-        </View>
-        {role === 'restaurant' && (
-          <>
-            <View style={styles.inputContainer}>
-              <TextInput
-                placeholder="Nome do Negócio"
-                value={signupData.name}
-                onChangeText={text => handleInputChange('name', text)}
-                style={styles.input}
-              />
-            </View>
-            <View style={styles.inputContainer}>
-              <TextInput
-                placeholder="Telefone"
-                value={signupData.phone}
-                onChangeText={text => handleInputChange('phone', text)}
-                style={styles.input}
-              />
-            </View>
-            <View style={styles.inputContainer}>
-              <TextInput
-                placeholder="Endereço"
-                value={signupData.address}
-                onChangeText={text => handleInputChange('address', text)}
-                style={styles.input}
-              />
-            </View>
-            <TouchableOpacity onPress={() => handleFileChange('logo')} style={styles.fileButton}>
-              <Text>{signupData.logo ? "Logo Selecionado" : "Carregar Logo"}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleFileChange('restaurant_license')} style={styles.fileButton}>
-              <Text>{signupData.restaurant_license ? "Licença Selecionada" : "Carregar Licença"}</Text>
-            </TouchableOpacity>
-          </>
-        )}
+      
         <TouchableOpacity onPress={handleSubmit} style={styles.signupButton} disabled={loading}>
           <Text style={styles.signupButtonText}>Inscreva-se</Text>
         </TouchableOpacity>
