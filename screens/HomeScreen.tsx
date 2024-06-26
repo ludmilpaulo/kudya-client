@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Constants from "expo-constants";
 import { SafeAreaView, View, Text, ScrollView, ActivityIndicator, TextInput, Image, TouchableOpacity, Alert, StyleSheet } from "react-native";
-import { Ionicons } from '@expo/vector-icons'; // Import icons from expo
-import tailwind from "tailwind-react-native-classnames";
+import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import RestaurantCard from "../components/RestaurantCard";
 import { baseAPI, Restaurant } from "../services/types";
+import { LinearGradient } from 'expo-linear-gradient';
 
 type Category = {
   name: string;
@@ -49,10 +49,10 @@ const HomeScreen: React.FC = () => {
         );
         setMasterDataSource(approvedRestaurants);
         setFilteredDataSource(approvedRestaurants);
-        const uniqueCategories = [...new Set(approvedRestaurants.map((restaurant) => restaurant.category.name))];
+        const uniqueCategories = Array.from(new Set(approvedRestaurants.map((restaurant) => restaurant.category?.name))).filter(Boolean);
         const categoriesWithImages = uniqueCategories.map(name => ({
           name: name as string,
-          image: approvedRestaurants.find(rest => rest.category.name === name)?.category.image || null
+          image: approvedRestaurants.find(rest => rest.category?.name === name)?.category?.image || null
         }));
         setCategories(categoriesWithImages);
         setLoading(false);
@@ -77,12 +77,12 @@ const HomeScreen: React.FC = () => {
   };
 
   const filterByCategory = (categoryName: string) => {
-    const newData = masterDataSource.filter((item) => item.category.name === categoryName);
+    const newData = masterDataSource.filter((item) => item.category?.name === categoryName);
     setFilteredDataSource(newData);
   };
 
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Radius of the Earth in km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
@@ -92,81 +92,156 @@ const HomeScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container]}>
-      {loading ? (
-        <View style={tailwind`flex-1 justify-center items-center`}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      ) : (
-        <ScrollView contentContainerStyle={tailwind`p-4`}>
-          <View style={tailwind`flex-row justify-between items-center mb-4`}>
-            <Text style={tailwind`text-lg font-semibold`}>{address}</Text>
-            <View style={tailwind`flex-row`}>
-              <Ionicons name="notifications-outline" size={24} color="black" style={tailwind`mx-2`} />
-              <Ionicons name="cart-outline" size={24} color="black" style={tailwind`mx-2`} />
-            </View>
+    <LinearGradient
+      colors={['#FCD34D', '#3B82F6']}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#fff" />
           </View>
-          <View style={tailwind`mb-4`}>
-            <View style={tailwind`flex-row items-center bg-gray-200 p-3 rounded-full`}>
-              <Ionicons name="search" size={20} color="gray" style={tailwind`mr-2`} />
-              <TextInput
-                style={tailwind`flex-1`}
-                placeholder="Pesquisar Restaurantes"
-                onChangeText={(text) => searchFilterFunction(text)}
-              />
+        ) : (
+          <ScrollView contentContainerStyle={styles.scrollView}>
+            <View style={styles.headerContainer}>
+              <Text style={styles.addressText}>{address}</Text>
+              <View style={styles.iconContainer}>
+                <Ionicons name="notifications-outline" size={24} color="white" style={styles.icon} />
+                <Ionicons name="cart-outline" size={24} color="white" style={styles.icon} />
+              </View>
             </View>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tailwind`pb-4`}>
-            {categories.map((category, index) => (
-              <TouchableOpacity
-                key={index}
-                style={tailwind`items-center mx-2`}
-                onPress={() => filterByCategory(category.name)}
-              >
-                <Image
-                  source={{ uri: category.image || "https://ludmil.pythonanywhere.com/media/logo/azul.png" }}
-                  style={tailwind`w-16 h-16 rounded-full`}
+            <View style={styles.searchContainer}>
+              <View style={styles.searchBox}>
+                <Ionicons name="search" size={20} color="gray" style={styles.searchIcon} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Pesquisar Restaurantes"
+                  placeholderTextColor="gray"
+                  onChangeText={(text) => searchFilterFunction(text)}
                 />
-                <Text style={tailwind`mt-2 text-center text-sm`}>{category.name}</Text>
-              </TouchableOpacity>
-            ))}
+              </View>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
+              {categories.map((category, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.categoryButton}
+                  onPress={() => filterByCategory(category.name)}
+                >
+                  <Image
+                    source={{ uri: category.image || "https://ludmil.pythonanywhere.com/media/logo/azul.png" }}
+                    style={styles.categoryImage}
+                  />
+                  <Text style={styles.categoryText}>{category.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <Text style={styles.sectionTitle}>Ofertas de Hoje</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.restaurantScrollView}>
+              {filteredDataSource.filter(restaurant => restaurant.barnner).map((restaurant) => (
+                location && <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
+              ))}
+            </ScrollView>
+            <Text style={styles.sectionTitle}>Restaurantes Próximos</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.restaurantScrollView}>
+              {filteredDataSource.filter(restaurant => {
+                if (!location) return false;
+                const [restaurantLat, restaurantLon] = restaurant.location.split(',').map(Number);
+                const distance = getDistance(location.latitude, location.longitude, restaurantLat, restaurantLon);
+                return distance <= 10;
+              }).map((restaurant) => (
+                location && <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
+              ))}
+            </ScrollView>
+            <Text style={styles.sectionTitle}>Todos os Restaurantes</Text>
+            <View>
+              {filteredDataSource.map((restaurant) => (
+                location && <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
+              ))}
+            </View>
           </ScrollView>
-          <Text style={tailwind`text-xl font-semibold mb-4`}>Ofertas de Hoje</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tailwind`pb-4`}>
-            {filteredDataSource.filter(restaurant => restaurant.barnner).map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
-            ))}
-          </ScrollView>
-          <Text style={tailwind`text-xl font-semibold mb-4`}>Restaurantes Próximos</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tailwind`pb-4`}>
-            {filteredDataSource.filter(restaurant => {
-              if (!location) return false;
-              const [restaurantLat, restaurantLon] = restaurant.location.split(',').map(Number);
-              const distance = getDistance(location.latitude, location.longitude, restaurantLat, restaurantLon);
-              return distance <= 10; // filter restaurants within 10km radius
-            }).map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
-            ))}
-          </ScrollView>
-          <Text style={tailwind`text-xl font-semibold mb-4`}>Todos os Restaurantes</Text>
-          <View>
-            {filteredDataSource.map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
-            ))}
-          </View>
-        </ScrollView>
-      )}
-    </SafeAreaView>
+        )}
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: Constants.statusBarHeight,
     flex: 1,
   },
-  view: {
-    // flex: 1
+  safeArea: {
+    flex: 1,
+    paddingTop: Constants.statusBarHeight,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollView: {
+    padding: 16,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  addressText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+  iconContainer: {
+    flexDirection: 'row',
+  },
+  icon: {
+    marginHorizontal: 8,
+  },
+  searchContainer: {
+    marginBottom: 16,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E5E7EB',
+    padding: 12,
+    borderRadius: 9999,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    color: '#000',
+  },
+  categoryScrollView: {
+    paddingBottom: 16,
+  },
+  categoryButton: {
+    alignItems: 'center',
+    marginHorizontal: 8,
+  },
+  categoryImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  categoryText: {
+    marginTop: 8,
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#FFF',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#FFF',
+  },
+  restaurantScrollView: {
+    paddingBottom: 16,
   },
 });
 

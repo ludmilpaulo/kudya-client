@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { SafeAreaView, View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useNavigation, RouteProp, useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
-import tailwind from 'tailwind-react-native-classnames';
 import { useAppSelector } from '../redux/store';
 import { addItem, removeItem } from '../redux/slices/basketSlice';
-import { baseAPI, RootStackParamList, Meal, Category } from '../services/types'; // Import your navigation types
+import { baseAPI, RootStackParamList, Meal, Category } from '../services/types';
+import { LinearGradient } from 'expo-linear-gradient';
 
 type RestaurantMenuRouteProp = RouteProp<RootStackParamList, 'RestaurantMenu'>;
 
@@ -60,85 +60,228 @@ const RestaurantMenu: React.FC = () => {
   };
 
   return (
-    <View style={tailwind`flex-1 bg-white`}>
-      {loading ? (
-        <View style={tailwind`flex-1 justify-center items-center`}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      ) : (
-        <ScrollView contentContainerStyle={tailwind`p-6`}>
-          <Image source={{ uri: restaurant_logo }} style={tailwind`w-full h-48 mb-4`} resizeMode="cover" />
-          <View style={tailwind`flex-row justify-between mb-6`}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tailwind`space-x-2`}>
-              {categories.map((category, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={tailwind`px-4 py-2 rounded-full text-sm font-semibold ${selectedCategory === category ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}
-                  onPress={() => setSelectedCategory(category)}
-                >
-                  <Text>{category ?? "Sem Categoria"}</Text>
-                </TouchableOpacity>
-              ))}
-              <TouchableOpacity
-                style={tailwind`px-4 py-2 rounded-full text-sm font-semibold ${selectedCategory === null ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}
-                onPress={() => setSelectedCategory(null)}
-              >
-                <Text>All</Text>
-              </TouchableOpacity>
-            </ScrollView>
+    <LinearGradient colors={['#FCD34D', '#3B82F6']} style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#fff" />
           </View>
-          <View style={tailwind`flex-row flex-wrap justify-between`}>
-            {filteredMeals.map((meal) => (
-              <View key={meal.id} style={tailwind`w-full sm:w-1/2 lg:w-1/3 p-2`}>
-                <View style={tailwind`bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300`}>
-                  <Image source={{ uri: meal.image_url }} style={tailwind`w-full h-48`} />
-                  <View style={tailwind`p-4`}>
-                    <Text style={tailwind`text-2xl font-semibold text-gray-800`}>{meal.name}</Text>
-                    <Text style={tailwind`text-gray-600 mt-1`}>{meal.short_description.length > 100 ? `${meal.short_description.substring(0, 100)}...` : meal.short_description}</Text>
-                    <Text style={tailwind`text-gray-800 font-bold mt-2`}>Preço: {meal.price} Kz</Text>
-                    <View style={tailwind`flex-row items-center mt-4`}>
-                      <TouchableOpacity
-                        style={tailwind`px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700`}
-                        onPress={() => handleAddToCart(meal)}
-                      >
-                        <Text>+</Text>
-                      </TouchableOpacity>
-                      <Text style={tailwind`mx-4 text-gray-800 font-semibold`}>
-                        {cartItems.find((item) => item.id === meal.id)?.quantity || 0}
+        ) : (
+          <ScrollView contentContainerStyle={styles.scrollView}>
+            <Image source={{ uri: restaurant_logo }} style={styles.restaurantLogo} resizeMode="cover" />
+            <View style={styles.categoriesContainer}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesScroll}>
+                {categories.map((category, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.categoryButton,
+                      selectedCategory === category && styles.selectedCategoryButton,
+                    ]}
+                    onPress={() => setSelectedCategory(category)}
+                  >
+                    <Text style={[styles.categoryText, selectedCategory === category && styles.selectedCategoryText]}>
+                      {category ?? 'Sem Categoria'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity
+                  style={[
+                    styles.categoryButton,
+                    selectedCategory === null && styles.selectedCategoryButton,
+                  ]}
+                  onPress={() => setSelectedCategory(null)}
+                >
+                  <Text style={[styles.categoryText, selectedCategory === null && styles.selectedCategoryText]}>
+                    todas categorias
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+            <View style={styles.mealsContainer}>
+              {filteredMeals.map((meal) => (
+                <View key={meal.id} style={styles.mealCardContainer}>
+                  <View style={styles.mealCard}>
+                    <Image source={{ uri: meal.image_url }} style={styles.mealImage} />
+                    <View style={styles.mealInfoContainer}>
+                      <Text style={styles.mealName}>{meal.name}</Text>
+                      <Text style={styles.mealDescription}>
+                        {meal.short_description.length > 50
+                          ? `${meal.short_description.substring(0, 50)}...`
+                          : meal.short_description}
                       </Text>
-                      <TouchableOpacity
-                        style={tailwind`px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700`}
-                        onPress={() => handleRemoveFromCart(meal.id)}
-                      >
-                        <Text>-</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <View style={tailwind`mt-4`}>
-                      {isInCart(meal.id) ? (
+                      <Text style={styles.mealPrice}>Preço: {meal.price} Kz</Text>
+                      <View style={styles.mealActions}>
                         <TouchableOpacity
-                          style={tailwind`px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700`}
-                          onPress={() => navigation.navigate('CartPage')}
+                          style={styles.addToCartButton}
+                          onPress={() => handleAddToCart(meal)}
                         >
-                          <Text>Ir para o carrinho</Text>
+                          <Text style={styles.buttonText}>+</Text>
                         </TouchableOpacity>
-                      ) : (
+                        <Text style={styles.quantityText}>
+                          {cartItems.find((item) => item.id === meal.id)?.quantity || 0}
+                        </Text>
                         <TouchableOpacity
-                          style={tailwind`px-4 py-2 bg-gray-600 text-white rounded-full hover:bg-gray-700`}
-                          onPress={() => handleViewDetails(meal)}
+                          style={styles.removeFromCartButton}
+                          onPress={() => handleRemoveFromCart(meal.id)}
                         >
-                          <Text>Ver a refeição</Text>
+                          <Text style={styles.buttonText}>-</Text>
                         </TouchableOpacity>
-                      )}
+                      </View>
+                      <View style={styles.detailsButtonContainer}>
+                        {isInCart(meal.id) ? (
+                          <TouchableOpacity
+                            style={styles.goToCartButton}
+                            onPress={() => navigation.navigate('CartPage')}
+                          >
+                            <Text style={styles.buttonText}>Ir para o carrinho</Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity
+                            style={styles.viewDetailsButton}
+                            onPress={() => handleViewDetails(meal)}
+                          >
+                            <Text style={styles.buttonText}>Ver a refeição</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
                     </View>
                   </View>
                 </View>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-      )}
-    </View>
+              ))}
+            </View>
+          </ScrollView>
+        )}
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollView: {
+    padding: 16,
+  },
+  restaurantLogo: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+  categoriesContainer: {
+    marginBottom: 16,
+  },
+  categoriesScroll: {
+    paddingBottom: 8,
+  },
+  categoryButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 9999,
+    backgroundColor: '#e5e7eb',
+    marginRight: 8,
+  },
+  selectedCategoryButton: {
+    backgroundColor: '#3b82f6',
+  },
+  categoryText: {
+    color: '#1f2937',
+  },
+  selectedCategoryText: {
+    color: '#ffffff',
+  },
+  mealsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  mealCardContainer: {
+    width: '48%',
+    marginBottom: 16,
+  },
+  mealCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  mealImage: {
+    width: '100%',
+    height: 150,
+  },
+  mealInfoContainer: {
+    padding: 16,
+  },
+  mealName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  mealDescription: {
+    color: '#4b5563',
+    marginTop: 8,
+  },
+  mealPrice: {
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginTop: 8,
+  },
+  mealActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  addToCartButton: {
+    backgroundColor: '#3b82f6',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 9999,
+    marginRight: 8,
+  },
+  removeFromCartButton: {
+    backgroundColor: '#ef4444',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 9999,
+  },
+  buttonText: {
+    color: '#ffffff',
+  },
+  quantityText: {
+    color: '#1f2937',
+    fontWeight: 'bold',
+    marginHorizontal: 8,
+  },
+  detailsButtonContainer: {
+    marginTop: 16,
+  },
+  goToCartButton: {
+    backgroundColor: '#10b981',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 9999,
+    marginTop: 8,
+  },
+  viewDetailsButton: {
+    backgroundColor: '#6b7280',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 9999,
+    marginTop: 8,
+  },
+});
 
 export default RestaurantMenu;

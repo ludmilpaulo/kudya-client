@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import tailwind from 'tailwind-react-native-classnames';
+import { View, Text, Image, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 
 type OpeningHour = {
   day: string;
@@ -16,30 +15,34 @@ type Category = {
   image: string | null;
 };
 
+type Restaurant = {
+  id: number;
+  name: string;
+  phone: string;
+  address: string;
+  logo: string;
+  category?: Category;
+  barnner: boolean;
+  is_approved: boolean;
+  opening_hours: OpeningHour[];
+  location: string;
+};
+
+type Location = {
+  latitude: number;
+  longitude: number;
+};
+
 type RestaurantProps = {
-  restaurant: {
-    id: number;
-    name: string;
-    phone: string;
-    address: string;
-    logo: string;
-    category?: Category; // Mark category as optional
-    barnner: boolean;
-    is_approved: boolean;
-    opening_hours: OpeningHour[];
-    location: string; // Change type to string to match the API response
-  };
-  location: {
-    latitude: number;
-    longitude: number;
-  };
+  restaurant: Restaurant;
+  location: Location;
 };
 
 const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<any>>();
 
   if (!restaurant) {
-    return null; // Render nothing if the restaurant is undefined
+    return null;
   }
 
   const isOpen = () => {
@@ -69,7 +72,7 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
     };
 
     const openingTime = parseTime(openingHour.from_hour);
-    const closingTime = parseTime(openingHour.to_hour) - 20; // 20 minutes before closing
+    const closingTime = parseTime(openingHour.to_hour) - 20;
 
     return currentTime >= openingTime && currentTime <= closingTime;
   };
@@ -78,15 +81,15 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
     if (!isOpen()) {
       Alert.alert(`O restaurante ${restaurant.name} está fechado de momento, tente mais tarde`);
     } else {
-      navigation.navigate('RestaurantMenu', {
+      navigation.navigate('RestaurantMenu' as never, {
         restaurant_id: restaurant.id,
         restaurant_logo: restaurant.logo,
-      });
+      } as never);
     }
   };
 
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Radius of the Earth in km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
@@ -95,8 +98,8 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
     return R * 2 * Math.asin(Math.sqrt(a));
   };
 
-  const calculateTime = (distance) => {
-    const speed = 40; // average speed in km/h
+  const calculateTime = (distance: number) => {
+    const speed = 40;
     const time = distance / speed;
     return `${Math.round(time * 60)} mins`;
   };
@@ -108,30 +111,30 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
   return (
     <TouchableOpacity
       style={[
-        tailwind`bg-white rounded-lg shadow-lg overflow-hidden m-2`,
-        !isOpen() && tailwind`opacity-50`
+        styles.card,
+        !isOpen() && styles.closedCard
       ]}
       onPress={handleClick}
     >
       {restaurant.logo && (
         <Image
           source={{ uri: restaurant.logo }}
-          style={tailwind`w-full h-48`}
+          style={styles.image}
           resizeMode="cover"
         />
       )}
-      <View style={tailwind`p-4`}>
-        <Text style={tailwind`text-2xl font-semibold text-gray-800`}>{restaurant.name}</Text>
+      <View style={styles.infoContainer}>
+        <Text style={styles.nameText}>{restaurant.name}</Text>
         {travelTime && (
-          <Text style={tailwind`text-gray-600`}>Aprox. {travelTime} de distância</Text>
+          <Text style={styles.distanceText}>Aprox. {travelTime} de distância</Text>
         )}
         {restaurant.category && (
-          <Text style={tailwind`bg-blue-100 text-blue-800 text-xs px-2 py-1 mt-2 rounded-full`}>
+          <Text style={styles.categoryText}>
             {restaurant.category.name}
           </Text>
         )}
-        <View style={tailwind`mt-2`}>
-          <Text style={tailwind`inline-block px-2 py-1 rounded-full text-xs font-semibold ${isOpen() ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+        <View style={styles.statusContainer}>
+          <Text style={[styles.statusText, isOpen() ? styles.openStatus : styles.closedStatus]}>
             {isOpen() ? 'Aberto' : 'Fechado'}
           </Text>
         </View>
@@ -139,5 +142,62 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    overflow: 'hidden',
+    margin: 8,
+  },
+  closedCard: {
+    opacity: 0.5,
+  },
+  image: {
+    width: '100%',
+    height: 192,
+  },
+  infoContainer: {
+    padding: 16,
+  },
+  nameText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  distanceText: {
+    color: '#4B5563',
+  },
+  categoryText: {
+    backgroundColor: '#BFDBFE',
+    color: '#1D4ED8',
+    fontSize: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginTop: 8,
+    borderRadius: 9999,
+  },
+  statusContainer: {
+    marginTop: 8,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 9999,
+  },
+  openStatus: {
+    backgroundColor: '#D1FAE5',
+    color: '#065F46',
+  },
+  closedStatus: {
+    backgroundColor: '#FEE2E2',
+    color: '#991B1B',
+  },
+});
 
 export default RestaurantCard;
