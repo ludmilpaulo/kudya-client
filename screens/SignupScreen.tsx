@@ -1,248 +1,306 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  Image,
-  ScrollView
-} from "react-native";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
-import tailwind from "tailwind-react-native-classnames";
 import { Eye, EyeOff } from "react-native-feather";
-import { signup } from "../services/authService";
-import { loginUser } from "../redux/slices/authSlice";
+import { signup } from "../services/authService"; // Ensure this import points to your signup service
 import { LinearGradient } from "expo-linear-gradient";
-import { MotiView } from "moti";
-import { RootStackParamList } from "../services/types"; // Import your navigation types
+import { MotiView } from 'moti';
+import { loginUser } from "../redux/slices/authSlice"; // Ensure correct path
+import tailwind from "tailwind-react-native-classnames";
+import ImagePicker from 'react-native-image-picker';
+
+interface SignupData {
+  username: string;
+  email: string;
+  password: string;
+  name?: string;
+  phone?: string;
+  address?: string;
+  logo?: {
+    uri: string;
+    type: string;
+    name: string;
+  };
+  restaurant_license?: {
+    uri: string;
+    type: string;
+    name: string;
+  };
+}
 
 const SignupScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  const [signupData, setSignupData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    name: "",
-    phone: "",
-    address: "",
-    logo: null as File | null,
-    restaurant_license: null as File | null,
+  const [signupData, setSignupData] = useState<SignupData>({
+    username: '',
+    email: '',
+    password: '',
   });
-
   const [loading, setLoading] = useState(false);
-  const [logoLoading, setLogoLoading] = useState(false);
-  const [licencaLoading, setLicencaLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<"client" | "restaurant">("client");
-
-  const handleRoleChange = (value: "client" | "restaurant") => {
-    setRole(value);
-  };
+  const [role, setRole] = useState<'client' | 'restaurant'>('client');
 
   const handleInputChange = (name: string, value: string) => {
-    setSignupData((prevState) => ({ ...prevState, [name]: value }));
+    setSignupData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (name: string, file: File | null) => {
-    if (name === "logo") {
-      setLogoLoading(true);
-      setTimeout(() => {
-        setSignupData((prevState) => ({ ...prevState, [name]: file }));
-        setLogoLoading(false);
-      }, 2000);
-    } else if (name === "restaurant_license") {
-      setLicencaLoading(true);
-      setTimeout(() => {
-        setSignupData((prevState) => ({ ...prevState, [name]: file }));
-        setLicencaLoading(false);
-      }, 2000);
-    }
+  const handleFileChange = (name: 'logo' | 'restaurant_license') => {
+    ImagePicker.showImagePicker({}, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else {
+        const file = {
+          uri: response.uri,
+          type: response.type,
+          name: response.fileName,
+        };
+        setSignupData(prev => ({ ...prev, [name]: file }));
+      }
+    });
   };
 
   const handleSubmit = async () => {
+    if (loading) return;
+    
     setLoading(true);
     try {
       const { status, data } = await signup(role, signupData);
+      console.log("Received", data);
 
-      if (status === 201 || data.status === "201") {
+      if (status === 200 || status === 201) {
         dispatch(loginUser(data));
-        Alert.alert("Success", "Você se conectou com sucesso. Agora você pode saborear sua refeição.");
-        if (role === "restaurant") {
-          navigation.navigate("RestaurantDashboard");
-        } else {
-          navigation.navigate("HomeScreen");
-        }
+        Alert.alert("Sucesso", "Você se cadastrou com sucesso.");
+        navigation.navigate(role === 'restaurant' ? 'RestaurantDashboard' : 'HomeScreen');
       } else {
-        handleErrorResponse(status, data);
+        Alert.alert("Falha no Cadastro", data.message || "Por favor, tente novamente.");
       }
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Erro", "Ocorreu um erro inesperado. Por favor, tente novamente.");
+    } catch (error) {
+      console.error("Signup error:", error);
+      Alert.alert("Erro de Rede", "Não foi possível conectar. Por favor, tente novamente.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleErrorResponse = (status: number, data: any) => {
-    switch (status) {
-      case 400:
-        Alert.alert("Erro", data.message || "Requisição inválida.");
-        break;
-      case 401:
-        Alert.alert("Erro", data.message || "Não autorizado.");
-        break;
-      case 404:
-        Alert.alert("Erro", data.message || "Recurso não encontrado.");
-        break;
-      case 200:
-        Alert.alert("Sucesso", data.message || "Você se conectou com sucesso. Agora você pode saborear sua refeição.");
-        break;
-      default:
-        Alert.alert("Erro", data.message || "Ocorreu um erro.");
-    }
-  };
-
   const togglePasswordVisibility = () => {
-    setShowPassword((prevState) => !prevState);
+    setShowPassword(prevState => !prevState);
   };
 
   return (
-    <LinearGradient colors={['#FCB61A', '#0171CE']} style={tailwind`flex-1 justify-center items-center`}>
-      <ScrollView contentContainerStyle={tailwind`flex-1 justify-center items-center px-4 py-16`}>
-        <MotiView
-          from={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'timing', duration: 500 }}
-          style={tailwind`w-full p-10 mt-16 bg-white rounded-lg shadow-lg lg:w-1/3 md:w-1/2`}
-        >
-          <View style={tailwind`flex justify-center mb-6 items-center`}>
-            <Image source={require("../assets/azul.png")} style={tailwind`w-32 h-32`} />
-          </View>
-          <Text style={tailwind`text-2xl font-extrabold leading-6 text-gray-800 text-center mb-4`}>
-            Inscreva-se Para ter uma Conta
+    <LinearGradient colors={['#FCB61A', '#0171CE']} style={styles.container}>
+      <MotiView
+        from={{ opacity: 0, translateY: -100 }}
+        animate={{ opacity: 1, translateY: 0 }}
+        transition={{ type: 'timing', duration: 500 }}
+        style={styles.formContainer}
+      >
+        <View style={styles.imageContainer}>
+          <Image source={require("../assets/azul.png")} style={styles.logo} />
+        </View>
+        <Text style={styles.title}>Crie sua conta</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("LoginScreenUser")}>
+          <Text style={styles.signupLink}>
+            Já tem uma conta?{" "}
+            <Text style={styles.signupText}>Faça login aqui</Text>
           </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("LoginScreenUser")}>
-            <Text style={tailwind`mt-4 text-sm font-medium leading-none text-gray-500 text-center`}>
-              Se você tem uma conta?{" "}
-              <Text style={tailwind`text-sm font-medium leading-none text-indigo-700 underline`}>
-                Entre aqui
-              </Text>
-            </Text>
+        </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <TextInput
+            placeholder="Nome de usuário"
+            value={signupData.username}
+            onChangeText={text => handleInputChange('username', text)}
+            style={styles.input}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            placeholder="Email"
+            value={signupData.email}
+            onChangeText={text => handleInputChange('email', text)}
+            style={styles.input}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            placeholder="Senha"
+            value={signupData.password}
+            onChangeText={text => handleInputChange('password', text)}
+            secureTextEntry={!showPassword}
+            style={styles.input}
+          />
+          <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
+            {showPassword ? <EyeOff width={20} height={20} /> : <Eye width={20} height={20} />}
           </TouchableOpacity>
-          <View style={tailwind`my-6 flex-row justify-center`}>
-            <TouchableOpacity onPress={() => handleRoleChange("client")} style={tailwind`mr-4`}>
-              <Text style={tailwind`text-lg ${role === "client" ? "text-indigo-700 underline" : "text-gray-500"}`}>
-                Cliente
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleRoleChange("restaurant")}>
-              <Text style={tailwind`text-lg ${role === "restaurant" ? "text-indigo-700 underline" : "text-gray-500"}`}>
-                Fornecedor de Negócio
-              </Text>
-            </TouchableOpacity>
-          </View>
-          {loading ? (
-            <View style={tailwind`flex items-center justify-center`}>
-              <ActivityIndicator size="large" color="#0000ff" />
-            </View>
-          ) : (
-            <View style={tailwind`flex flex-col space-y-4`}>
+        </View>
+        <View style={styles.roleSelection}>
+          <TouchableOpacity onPress={() => setRole('client')} style={styles.roleButton(role === 'client')}>
+            <Text style={styles.roleButtonText}>Cliente</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setRole('restaurant')} style={styles.roleButton(role === 'restaurant')}>
+            <Text style={styles.roleButtonText}>Restaurante</Text>
+          </TouchableOpacity>
+        </View>
+        {role === 'restaurant' && (
+          <>
+            <View style={styles.inputContainer}>
               <TextInput
-                placeholder="Usuário"
-                onChangeText={(text) => handleInputChange("username", text)}
-                style={tailwind`p-2 border rounded`}
+                placeholder="Nome do Negócio"
+                value={signupData.name}
+                onChangeText={text => handleInputChange('name', text)}
+                style={styles.input}
               />
-              <TextInput
-                placeholder="Email"
-                keyboardType="email-address"
-                onChangeText={(text) => handleInputChange("email", text)}
-                style={tailwind`p-2 border rounded`}
-              />
-              <View style={tailwind`relative`}>
-                <TextInput
-                  placeholder="Senha"
-                  secureTextEntry={!showPassword}
-                  onChangeText={(text) => handleInputChange("password", text)}
-                  style={tailwind`w-full p-2 border rounded`}
-                />
-                <TouchableOpacity
-                  onPress={togglePasswordVisibility}
-                  style={tailwind`absolute inset-y-0 right-0 flex items-center justify-center h-full px-3`}
-                >
-                  {showPassword ? <EyeOff width={20} height={20} /> : <Eye width={20} height={20} />}
-                </TouchableOpacity>
-              </View>
-              {role === "restaurant" && (
-                <>
-                  <TextInput
-                    placeholder="Nome do Fornecedor ou do Negócio"
-                    onChangeText={(text) => handleInputChange("name", text)}
-                    style={tailwind`p-2 border rounded`}
-                  />
-                  <TextInput
-                    placeholder="Telefone"
-                    keyboardType="phone-pad"
-                    onChangeText={(text) => handleInputChange("phone", text)}
-                    style={tailwind`p-2 border rounded`}
-                  />
-                  <TextInput
-                    placeholder="Endereço"
-                    onChangeText={(text) => handleInputChange("address", text)}
-                    style={tailwind`p-2 border rounded`}
-                  />
-                  <View style={tailwind`relative`}>
-                    <TextInput
-                      placeholder="Carregar o Logo"
-                      editable={false}
-                      style={tailwind`p-2 border rounded bg-gray-200 text-gray-400`}
-                    />
-                    <TouchableOpacity
-                      onPress={() => handleFileChange("logo", signupData.logo)}
-                      style={tailwind`absolute inset-y-0 right-0 flex items-center justify-center h-full px-3`}
-                    >
-                      {logoLoading ? (
-                        <ActivityIndicator size="small" color="#0000ff" />
-                      ) : (
-                        <Text style={tailwind`text-indigo-700`}>Carregar</Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                  <View style={tailwind`relative`}>
-                    <TextInput
-                      placeholder="Carregar a Licença"
-                      editable={false}
-                      style={tailwind`p-2 border rounded bg-gray-200 text-gray-400`}
-                    />
-                    <TouchableOpacity
-                      onPress={() => handleFileChange("restaurant_license", signupData.restaurant_license)}
-                      style={tailwind`absolute inset-y-0 right-0 flex items-center justify-center h-full px-3`}
-                    >
-                      {licencaLoading ? (
-                        <ActivityIndicator size="small" color="#0000ff" />
-                      ) : (
-                        <Text style={tailwind`text-indigo-700`}>Carregar</Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
-              <TouchableOpacity
-                onPress={handleSubmit}
-                style={tailwind`w-full py-4 text-sm font-semibold leading-none text-white bg-indigo-700 rounded hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-700`}
-              >
-                <Text>Inscreva-se Agora</Text>
-              </TouchableOpacity>
             </View>
-          )}
-        </MotiView>
-      </ScrollView>
+            <View style={styles.inputContainer}>
+              <TextInput
+                placeholder="Telefone"
+                value={signupData.phone}
+                onChangeText={text => handleInputChange('phone', text)}
+                style={styles.input}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                placeholder="Endereço"
+                value={signupData.address}
+                onChangeText={text => handleInputChange('address', text)}
+                style={styles.input}
+              />
+            </View>
+            <TouchableOpacity onPress={() => handleFileChange('logo')} style={styles.fileButton}>
+              <Text>{signupData.logo ? "Logo Selecionado" : "Carregar Logo"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleFileChange('restaurant_license')} style={styles.fileButton}>
+              <Text>{signupData.restaurant_license ? "Licença Selecionada" : "Carregar Licença"}</Text>
+            </TouchableOpacity>
+          </>
+        )}
+        <TouchableOpacity onPress={handleSubmit} style={styles.signupButton} disabled={loading}>
+          <Text style={styles.signupButtonText}>Inscreva-se</Text>
+        </TouchableOpacity>
+      </MotiView>
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+        </View>
+      )}
     </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  formContainer: {
+    width: '100%',
+    maxWidth: 400,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: { height: 0, width: 0 }
+  },
+  imageContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20
+  },
+  logo: {
+    width: 100,
+    height: 100
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20
+  },
+  signupLink: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#555',
+    marginBottom: 20
+  },
+  signupText: {
+    color: '#0077cc',
+    textDecorationLine: 'underline'
+  },
+  inputContainer: {
+    marginBottom: 10
+  },
+  input: {
+    fontSize: 16,
+    padding: 12,
+    backgroundColor: '#f0f0f0',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    width: '100%'
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: 12,
+    padding: 10
+  },
+  roleSelection: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  roleButton: (selected: boolean) => ({
+    flex: 1,
+    padding: 15,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: selected ? '#0077cc' : '#ccc',
+    backgroundColor: selected ? '#0077cc' : '#fff',
+    borderRadius: 5,
+    alignItems: 'center',
+  }),
+  roleButtonText: {
+    color: '#000',
+  },
+  fileButton: {
+    width: '100%',
+    padding: 15,
+    marginVertical: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  signupButton: {
+    backgroundColor: '#0077cc',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 50,
+  },
+  signupButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
+});
 
 export default SignupScreen;
