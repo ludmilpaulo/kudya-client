@@ -1718,7 +1718,7 @@
     semver "7.5.3"
     xml2js "0.6.0"
 
-"@expo/prebuild-config@7.0.6":
+"@expo/prebuild-config@7.0.6", "@expo/prebuild-config@~7.0.0":
   version "7.0.6"
   resolved "https://registry.yarnpkg.com/@expo/prebuild-config/-/prebuild-config-7.0.6.tgz#b9c2c36ee564244da8073ce7bea22ebe57743615"
   integrity sha512-Hts+iGBaG6OQ+N8IEMMgwQElzJeSTb7iUJ26xADEHkaexsucAK+V52dM8M4ceicvbZR9q8M+ebJEGj0MCNA3dQ==
@@ -2806,13 +2806,6 @@
   integrity sha512-cCOHvk/KB0e+d8p8qaw27/Fuz3+NiIqDYhIkF0tFGO/OEOt700LXg1AX9jRlmtlY95hozJ+WjDJ0xw0a4O6z/Q==
   dependencies:
     "@types/react" "*"
-
-"@types/react-native@^0.73.0":
-  version "0.73.0"
-  resolved "https://registry.yarnpkg.com/@types/react-native/-/react-native-0.73.0.tgz#b316be230745779814caa533360262140b0f5984"
-  integrity sha512-6ZRPQrYM72qYKGWidEttRe6M5DZBEV5F+MHMHqd4TTYx0tfkcdrUFGdef6CCxY0jXU7wldvd/zA/b0A/kTeJmA==
-  dependencies:
-    react-native "*"
 
 "@types/react@*":
   version "18.2.36"
@@ -4624,11 +4617,6 @@ expo-modules-core@1.12.15:
   integrity sha512-VjDPIgUyhCZzf692NF4p2iFTsKAQMcU3jc0pg33eNvN/kdrJqkeucqCDuuwoNxg0vIBKtoqAJDuPnWiemldsTg==
   dependencies:
     invariant "^2.2.4"
-
-expo-permissions@~14.2.1:
-  version "14.2.1"
-  resolved "https://registry.yarnpkg.com/expo-permissions/-/expo-permissions-14.2.1.tgz#da4a7ef45e13da99032960528267cc9ca8e964b8"
-  integrity sha512-jXGnOODtDMFvK7cwo7wIRPcnA7m1bie80gJ5BdL6Vs5kgCU7+RCLOCp3sBw7TKRPIlVMmQDhZA62bGzoBV0hkA==
 
 expo-status-bar@~1.12.1:
   version "1.12.1"

@@ -15,41 +15,27 @@
       "**/*"
     ],
     "ios": {
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s"
-        }
-      },
       "supportsTablet": true
     },
     "android": {
       "permissions": [
         "LOCATION"
       ],
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s"
-        }
-      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 11
+      "versionCode": 12
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "config": {
-      "googleMaps": {
-        "apiKey": "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s"
-      }
-    },
     "extra": {
       "eas": {
         "projectId": "99701b72-553c-46bc-9d6a-e9538edac243"
-      }
+      },
+      "googleMapsApiKey": "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s"
     },
     "owner": "ludmil"
   }
