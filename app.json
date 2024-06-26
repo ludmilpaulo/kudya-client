@@ -23,13 +23,15 @@
       "supportsTablet": true
     },
     "android": {
-      "permissions": ["LOCATION"],
+      "permissions": [
+        "LOCATION"
+      ],
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s"
         }
       },
-      "adaptiveIcon":  {
+      "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
@@ -48,6 +50,7 @@
       "eas": {
         "projectId": "99701b72-553c-46bc-9d6a-e9538edac243"
       }
-    }
+    },
+    "owner": "ludmil"
   }
 }
