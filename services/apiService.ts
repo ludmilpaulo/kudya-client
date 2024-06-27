@@ -1,6 +1,6 @@
 
 import axios from "axios";
-import { baseAPI, Categoria, FornecedorType, OpeningHourType, OrderTypes, Product, RestaurantType } from "./types";
+import { baseAPI,  Category, FornecedorType, OpeningHourType, OrderTypes, Product, RestaurantType } from "./types";
 
 export const fetchFornecedorData = async (userId: number): Promise<FornecedorType | null> => {
     try {
@@ -23,7 +23,7 @@ export const fetchFornecedorData = async (userId: number): Promise<FornecedorTyp
 
 
 
-export const fetchCategorias = async (): Promise<Categoria[]> => {
+export const fetchCategorias = async (): Promise<Category[]> => {
   const response = await fetch(`${baseAPI}/restaurant/meal-categories/`);
   if (!response.ok) {
     throw new Error("Failed to fetch categories");
@@ -31,7 +31,7 @@ export const fetchCategorias = async (): Promise<Categoria[]> => {
   return response.json();
 };
 
-export const fetchRestaurantCategory = async (): Promise<Categoria[]> => {
+export const fetchRestaurantCategory = async (): Promise<Category[]> => {
     const response = await fetch(`${baseAPI}/restaurant/restaurant-categories/`);
     if (!response.ok) {
       throw new Error("Failed to fetch categories");

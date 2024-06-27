@@ -1,9 +1,9 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "types": ["react-native", "react-native-vector-icons"],
+    "types": ["react-native", "react-native-vector-icons", "node"],
     "strict": true,
-    "target": "es2017", // or a later version
+    "target": "es2017",
     "lib": ["ES2017", "dom"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
