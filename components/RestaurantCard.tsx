@@ -1,32 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-
-type OpeningHour = {
-  day: string;
-  from_hour: string;
-  to_hour: string;
-  is_closed: boolean;
-};
-
-type Category = {
-  id: number;
-  name: string;
-  image: string | null;
-};
-
-type Restaurant = {
-  id: number;
-  name: string;
-  phone: string;
-  address: string;
-  logo: string;
-  category?: Category;
-  barnner: boolean;
-  is_approved: boolean;
-  opening_hours: OpeningHour[];
-  location: string;
-};
+import { useNavigation } from '@react-navigation/native';
+import { Restaurant } from '../services/types';
 
 type Location = {
   latitude: number;
@@ -39,7 +14,7 @@ type RestaurantProps = {
 };
 
 const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => {
-  const navigation = useNavigation<NavigationProp<any>>();
+  const navigation = useNavigation<any>();
 
   if (!restaurant) {
     return null;
@@ -89,22 +64,26 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
   };
 
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const R = 6371; // Radius of the Earth in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
-      0.5 - Math.cos(dLat) / 2 +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * (1 - Math.cos(dLon)) / 2;
+      0.5 -
+      Math.cos(dLat) / 2 +
+      (Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        (1 - Math.cos(dLon))) /
+        2;
     return R * 2 * Math.asin(Math.sqrt(a));
   };
 
   const calculateTime = (distance: number) => {
-    const speed = 40;
+    const speed = 40; // Assuming speed in km/h
     const time = distance / speed;
     return `${Math.round(time * 60)} mins`;
   };
 
-  const [restaurantLat, restaurantLon] = restaurant.location.split(',').map(Number);
+  const { latitude: restaurantLat, longitude: restaurantLon } = restaurant.location;
   const distance = location ? getDistance(location.latitude, location.longitude, restaurantLat, restaurantLon) : null;
   const travelTime = distance ? calculateTime(distance) : null;
 

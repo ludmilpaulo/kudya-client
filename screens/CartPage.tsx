@@ -25,7 +25,7 @@ type Meal = {
 const CartPage: React.FC = () => {
   const cartItems = useAppSelector((state) => state.basket.items as Meal[]);
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
 

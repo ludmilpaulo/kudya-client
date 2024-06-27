@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet, ImageStyle, ViewStyle } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { Eye, EyeOff } from "react-native-feather";
@@ -7,8 +7,7 @@ import { signup } from "../services/authService"; // Ensure this import points t
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from 'moti';
 import { loginUser } from "../redux/slices/authSlice"; // Ensure correct path
-import tailwind from "tailwind-react-native-classnames";
-import ImagePicker from 'react-native-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 
 interface SignupData {
   username: string;
@@ -30,7 +29,7 @@ interface SignupData {
 }
 
 const SignupScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const dispatch = useDispatch();
 
   const [signupData, setSignupData] = useState<SignupData>({
@@ -46,21 +45,22 @@ const SignupScreen: React.FC = () => {
     setSignupData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (name: 'logo' | 'restaurant_license') => {
-    ImagePicker.showImagePicker({}, (response) => {
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
-      } else {
-        const file = {
-          uri: response.uri,
-          type: response.type,
-          name: response.fileName,
-        };
-        setSignupData(prev => ({ ...prev, [name]: file }));
-      }
+  const handleFileChange = async (name: 'logo' | 'restaurant_license') => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
     });
+
+    if (!result.canceled && result.assets.length > 0) {
+      const file = {
+        uri: result.assets[0].uri,
+        type: result.assets[0].type || 'image/jpeg',
+        name: result.assets[0].fileName || 'image.jpg',
+      };
+      setSignupData(prev => ({ ...prev, [name]: file }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -89,6 +89,17 @@ const SignupScreen: React.FC = () => {
   const togglePasswordVisibility = () => {
     setShowPassword(prevState => !prevState);
   };
+
+  const getRoleButtonStyle = (selected: boolean): ViewStyle => ({
+    flex: 1,
+    padding: 15,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: selected ? '#0077cc' : '#ccc',
+    backgroundColor: selected ? '#0077cc' : '#fff',
+    borderRadius: 5,
+    alignItems: 'center',
+  });
 
   return (
     <LinearGradient colors={['#FCB61A', '#0171CE']} style={styles.container}>
@@ -136,7 +147,22 @@ const SignupScreen: React.FC = () => {
             {showPassword ? <EyeOff width={20} height={20} /> : <Eye width={20} height={20} />}
           </TouchableOpacity>
         </View>
-      
+        {role === 'restaurant' && (
+          <>
+            <TouchableOpacity
+              style={styles.fileButton}
+              onPress={() => handleFileChange('logo')}
+            >
+              <Text style={styles.fileButtonText}>Selecionar Logo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.fileButton}
+              onPress={() => handleFileChange('restaurant_license')}
+            >
+              <Text style={styles.fileButtonText}>Selecionar Licença do Restaurante</Text>
+            </TouchableOpacity>
+          </>
+        )}
         <TouchableOpacity onPress={handleSubmit} style={styles.signupButton} disabled={loading}>
           <Text style={styles.signupButtonText}>Inscreva-se</Text>
         </TouchableOpacity>
@@ -176,7 +202,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 100,
     height: 100
-  },
+  } as ImageStyle,
   title: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -215,16 +241,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 20,
   },
-  roleButton: (selected: boolean) => ({
-    flex: 1,
-    padding: 15,
-    marginHorizontal: 5,
-    borderWidth: 1,
-    borderColor: selected ? '#0077cc' : '#ccc',
-    backgroundColor: selected ? '#0077cc' : '#fff',
-    borderRadius: 5,
-    alignItems: 'center',
-  }),
   roleButtonText: {
     color: '#000',
   },
@@ -236,6 +252,10 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 5,
     alignItems: 'center',
+    backgroundColor: '#f0f0f0'
+  },
+  fileButtonText: {
+    color: '#0077cc',
   },
   signupButton: {
     backgroundColor: '#0077cc',

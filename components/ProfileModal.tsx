@@ -17,13 +17,13 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
 
-  const [imageInfo, setImageInfo] = useState<string | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [address, setAddress] = useState<string>(userDetails?.address || '');
   const [firstName, setFirstName] = useState<string>(userDetails?.first_name || '');
   const [lastName, setLastName] = useState<string>(userDetails?.last_name || '');
   const [phone, setPhone] = useState<string>(userDetails?.phone || '');
   const userToken = user.token;
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     const userLocation = async () => {
@@ -64,8 +64,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
       quality: 1,
     });
 
-    if (!result.cancelled) {
-      setImageInfo(result.uri);
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setImageUri(result.assets[0].uri);
     }
   };
 
@@ -76,19 +76,19 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
       quality: 1,
     });
 
-    if (!result.cancelled) {
-      setImageInfo(result.uri);
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setImageUri(result.assets[0].uri);
     }
   };
 
   const userUpdate = async () => {
     const formData = new FormData();
 
-    if (imageInfo) {
-      const uriParts = imageInfo.split('.');
+    if (imageUri) {
+      const uriParts = imageUri.split('.');
       const fileType = uriParts[uriParts.length - 1];
       formData.append('avatar', {
-        uri: imageInfo,
+        uri: imageUri,
         name: `photo.${fileType}`,
         type: `image/${fileType}`,
       } as any);
@@ -120,7 +120,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
           first_name: firstName,
           last_name: lastName,
           phone,
-          avatar: imageInfo
+          avatar: imageUri
         });
         onClose();
       } else {
@@ -147,9 +147,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
             <Text style={styles.closeButtonText}>X</Text>
           </TouchableOpacity>
           <View style={styles.modalContent}>
-            {imageInfo && (
+            {imageUri && (
               <Image
-                source={{ uri: imageInfo }}
+                source={{ uri: imageUri }}
                 style={styles.avatar}
               />
             )}

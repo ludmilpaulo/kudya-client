@@ -11,7 +11,7 @@ const TabCartButton: React.FC<TabCartButtonProps> = ({ onPress }) => {
   return (
     <TouchableOpacity onPress={onPress}>
       <View style={styles.container}>
-        <Ionicons name="md-cart" color={colors.primary} size={27} />
+        <Ionicons name="cart" color={colors.primary} size={27} />
       </View>
     </TouchableOpacity>
   );

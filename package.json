@@ -9,20 +9,19 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@expo/config-plugins": "~8.0.0",
-    "@expo/prebuild-config": "~7.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-community/geolocation": "^3.2.1",
     "@react-native-picker/picker": "2.7.5",
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/drawer": "^6.6.6",
-    "@react-navigation/native": "^6.1.9",
+    "@react-navigation/native": "^6.1.17",
     "@react-navigation/stack": "^6.3.20",
     "@reduxjs/toolkit": "^1.9.7",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.6",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@tailwindcss/typography": "^0.5.10",
+    "@types/": "react-navigation/native",
     "@types/react-native-snap-carousel": "^3.8.11",
     "autoprefixer": "^10.4.16",
     "axios": "^1.6.5",
@@ -31,7 +30,7 @@
     "es6-promise": "^4.2.8",
     "expo": "^51.0.14",
     "expo-device": "~6.0.2",
-    "expo-image-picker": "~15.0.5",
+    "expo-image-picker": "^15.0.5",
     "expo-linear-gradient": "^13.0.2",
     "expo-location": "~17.0.1",
     "expo-status-bar": "~1.12.1",
@@ -76,5 +75,9 @@
     "@types/react-native-vector-icons": "^6.4.17",
     "typescript": "~5.3.3"
   },
-  "private": true
+  "private": true,
+  "resolutions": {
+    "@expo/config-plugins": "8.0.0",
+    "@expo/prebuild-config": "7.0.0"
+  }
 }

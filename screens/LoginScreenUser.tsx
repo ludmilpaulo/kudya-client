@@ -12,7 +12,7 @@ import { MotiView } from 'moti';
 import { loginUser } from "../redux/slices/authSlice";
 
 const LoginScreenUser = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const dispatch = useDispatch();
 
   const [username, setUsername] = useState("");

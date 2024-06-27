@@ -1,16 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-} from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert, ScrollView, StyleSheet } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, logoutUser } from '../redux/slices/authSlice';
 import { selectCartItems, clearCart } from '../redux/slices/basketSlice';
@@ -19,7 +9,9 @@ import ProfileModal from '../components/ProfileModal';
 import AddressInput from '../components/AddressInput';
 import PaymentDetails from '../components/PaymentDetails';
 import { LinearGradient } from 'expo-linear-gradient';
-import tailwind from 'tailwind-react-native-classnames';
+import { RootStackParamList } from '../services/types'; // Ensure the correct path
+
+type CheckoutPageRouteProp = RouteProp<RootStackParamList, 'CheckoutPage'>;
 
 const CheckoutPage: React.FC = () => {
   const [items, setItems] = useState<any[]>([]);
@@ -32,9 +24,9 @@ const CheckoutPage: React.FC = () => {
   const [useCurrentLocation, setUseCurrentLocation] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const navigation = useNavigation();
-  const route = useRoute();
-  const { restaurant_id: restaurantId } = route.params;
+  const navigation = useNavigation<any>();
+  const route = useRoute<CheckoutPageRouteProp>(); // Use the typed useRoute hook
+  const { restaurantId } = route.params;
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const allCartItems = useSelector(selectCartItems);

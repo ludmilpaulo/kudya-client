@@ -19,7 +19,7 @@ export const fetchUserDetails = async (userId: number, token: string) => {
 };
 
   
-  export const fetchRestaurantDetails = async (restaurantId: string) => {
+  export const fetchRestaurantDetails = async (restaurantId: number) => {
     const response = await fetch(`${baseAPI}/order/restaurant/restaurants/${restaurantId}/`);
     if (response.ok) {
         const resJson = await response.json();

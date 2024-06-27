@@ -1,13 +1,15 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from '../store'; // Adjust the import path according to your project structure
 
+
 type Meal = {
   id: number;
   name: string;
-  price: string; // Change price to string
+  price: number; // Ensure price is a number everywhere
   quantity: number;
   restaurant: number; // Add restaurant property to the Meal type
 };
+
 
 type BasketState = {
   items: Meal[];

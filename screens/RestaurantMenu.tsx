@@ -10,7 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 type RestaurantMenuRouteProp = RouteProp<RootStackParamList, 'RestaurantMenu'>;
 
 const RestaurantMenu: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute<RestaurantMenuRouteProp>();
   const { restaurant_id, restaurant_logo } = route.params;
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -76,12 +76,12 @@ const RestaurantMenu: React.FC = () => {
                     key={index}
                     style={[
                       styles.categoryButton,
-                      selectedCategory === category && styles.selectedCategoryButton,
+                      selectedCategory === category.name && styles.selectedCategoryButton,
                     ]}
-                    onPress={() => setSelectedCategory(category)}
+                    onPress={() => setSelectedCategory(category.name)}
                   >
-                    <Text style={[styles.categoryText, selectedCategory === category && styles.selectedCategoryText]}>
-                      {category ?? 'Sem Categoria'}
+                    <Text style={[styles.categoryText, selectedCategory === category.name && styles.selectedCategoryText]}>
+                      {category.name ?? 'Sem Categoria'}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -105,7 +105,6 @@ const RestaurantMenu: React.FC = () => {
                     <Image source={{ uri: meal.image_url }} style={styles.mealImage} />
                     <View style={styles.mealInfoContainer}>
                       <Text style={styles.mealName}>{meal.name}</Text>
-                    
                       <Text style={styles.mealPrice}>Preço: {meal.price} Kz</Text>
                       <View style={styles.mealActions}>
                         <TouchableOpacity
@@ -225,10 +224,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1f2937',
-  },
-  mealDescription: {
-    color: '#4b5563',
-    marginTop: 8,
   },
   mealPrice: {
     fontWeight: 'bold',

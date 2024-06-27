@@ -1,11 +1,7 @@
 // src/services/types.ts
 export const baseAPI: string = "https://www.kudya.shop";
 
-export type Category = {
-  id: number;
-  name: string;
-  image: string | null;
-};
+
 
 
 export type RootStackParamList = {
@@ -15,7 +11,10 @@ export type RootStackParamList = {
   LoginScreenUser: undefined;
   FoodDetailsPage: { meal: Meal };
   CartPage: undefined;
+  RestaurantMenu: { restaurant_id: number; restaurant_logo: string };
+  CheckoutPage: { restaurantId: number };
 };
+
 
 export type Meal = {
   id: number;
@@ -87,16 +86,13 @@ export type UserDetails = {
   };
   
  // @/services/types.ts
+ export type OpeningHour = {
+  day: string;
+  from_hour: string;
+  to_hour: string;
+  is_closed: boolean;
+};
 
-export type OpeningHour = {
-    day: string;
-    from_hour: string;
-    to_hour: string;
-    is_closed: boolean;
-  };
-  
-
-// types.ts
 export interface Restaurant {
   id: number;
   name: string;
@@ -123,12 +119,11 @@ export interface Restaurant {
 }
 
 
-
-  export type Categoria = {
-    id: number;
-    name: string;
-    slug: string;
-  };
+export type Category = {
+  id: number;
+  name: string;
+  image: string | null;
+};
 
 
   export interface OpeningHourType {

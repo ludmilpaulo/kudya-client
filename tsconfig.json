@@ -1,13 +1,19 @@
 {
-  "extends": "expo/tsconfig.base",
-  "compilerOptions": {
-    "types": ["react-native", "react-native-vector-icons", "node"],
-    "jsx": "react",
-    "strict": true,
-    "target": "es2017",
-    "lib": ["ES2017", "dom"],
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
-  },
-  "exclude": ["node_modules"]
+  "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+      "target": "ESNext",
+      "module": "ESNext",
+      "lib": ["ESNext", "DOM"],
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "moduleResolution": "node",
+      "skipLibCheck": true,
+      "baseUrl": "./",
+      "paths": {
+        "*": ["node_modules/*"]
+      },
+      "jsx": "react-native"  // Ensure this is set if you use JSX in other files
+    },
+    "exclude": ["node_modules", "dist"]
+
 }

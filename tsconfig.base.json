@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+      "target": "es2017",
+      "lib": ["ES2017", "dom"],
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "strict": true
+    }
+  }
+  

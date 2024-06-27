@@ -4,13 +4,8 @@ import { SafeAreaView, View, Text, ScrollView, ActivityIndicator, TextInput, Ima
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import RestaurantCard from "../components/RestaurantCard";
-import { baseAPI, Restaurant } from "../services/types";
 import { LinearGradient } from 'expo-linear-gradient';
-
-type Category = {
-  name: string;
-  image: string | null;
-};
+import { Restaurant, Category, baseAPI } from "../services/types";
 
 const HomeScreen: React.FC = () => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -44,21 +39,38 @@ const HomeScreen: React.FC = () => {
     fetch(`${baseAPI}/customer/customer/restaurants/`)
       .then((response) => response.json())
       .then((data) => {
-        const approvedRestaurants = data.restaurants.filter(
-          (restaurant: Restaurant) => restaurant.is_approved
-        );
+        const approvedRestaurants = data.restaurants.map((restaurant: any) => {
+          const [latitude, longitude] = restaurant.location.split(',').map(Number);
+          return {
+            ...restaurant,
+            location: {
+              latitude,
+              longitude
+            }
+          };
+        }).filter((restaurant: Restaurant) => restaurant.is_approved);
+        
         setMasterDataSource(approvedRestaurants);
         setFilteredDataSource(approvedRestaurants);
-        const uniqueCategories = Array.from(new Set(approvedRestaurants.map((restaurant) => restaurant.category?.name))).filter(Boolean);
-        const categoriesWithImages = uniqueCategories.map(name => ({
-          name: name as string,
-          image: approvedRestaurants.find(rest => rest.category?.name === name)?.category?.image || null
-        }));
+
+        const uniqueCategories = Array.from(
+          new Set(approvedRestaurants.map((restaurant: Restaurant) => restaurant.category?.name))
+        ).filter(Boolean);
+        
+        const categoriesWithImages = uniqueCategories.map((name) => {
+          const foundRestaurant = approvedRestaurants.find((rest: Restaurant) => rest.category?.name === name);
+          return {
+            id: foundRestaurant?.category.id || 0,
+            name: name as string,
+            image: foundRestaurant?.category.image || null,
+          };
+        });
+
         setCategories(categoriesWithImages);
         setLoading(false);
       })
       .catch((error) => {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
         setLoading(false);
       });
   }, []);
@@ -82,20 +94,27 @@ const HomeScreen: React.FC = () => {
   };
 
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const R = 6371; // Radius of the Earth in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
-      0.5 - Math.cos(dLat) / 2 +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * (1 - Math.cos(dLon)) / 2;
+      0.5 -
+      Math.cos(dLat) / 2 +
+      (Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        (1 - Math.cos(dLon))) /
+        2;
     return R * 2 * Math.asin(Math.sqrt(a));
   };
 
+  const calculateTime = (distance: number) => {
+    const speed = 40; // Assuming speed in km/h
+    const time = distance / speed;
+    return `${Math.round(time * 60)} mins`;
+  };
+
   return (
-    <LinearGradient
-      colors={['#FCD34D', '#3B82F6']}
-      style={styles.container}
-    >
+    <LinearGradient colors={['#FCD34D', '#3B82F6']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         {loading ? (
           <View style={styles.loadingContainer}>
@@ -122,9 +141,9 @@ const HomeScreen: React.FC = () => {
               </View>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
-              {categories.map((category, index) => (
+              {categories.map((category) => (
                 <TouchableOpacity
-                  key={index}
+                  key={category.id}
                   style={styles.categoryButton}
                   onPress={() => filterByCategory(category.name)}
                 >
@@ -146,17 +165,17 @@ const HomeScreen: React.FC = () => {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.restaurantScrollView}>
               {filteredDataSource.filter(restaurant => {
                 if (!location) return false;
-                const [restaurantLat, restaurantLon] = restaurant.location.split(',').map(Number);
+                const { latitude: restaurantLat, longitude: restaurantLon } = restaurant.location;
                 const distance = getDistance(location.latitude, location.longitude, restaurantLat, restaurantLon);
                 return distance <= 10;
               }).map((restaurant) => (
-                location && <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
+                <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location!} />
               ))}
             </ScrollView>
             <Text style={styles.sectionTitle}>Todos os Restaurantes</Text>
             <View>
               {filteredDataSource.map((restaurant) => (
-                location && <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
+                <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location!} />
               ))}
             </View>
           </ScrollView>
