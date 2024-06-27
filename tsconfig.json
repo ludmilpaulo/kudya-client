@@ -1,19 +1,18 @@
 {
-  "extends": "./tsconfig.base.json",
-    "compilerOptions": {
-      "target": "ESNext",
-      "module": "ESNext",
-      "lib": ["ESNext", "DOM"],
-      "allowSyntheticDefaultImports": true,
-      "esModuleInterop": true,
-      "moduleResolution": "node",
-      "skipLibCheck": true,
-      "baseUrl": "./",
-      "paths": {
-        "*": ["node_modules/*"]
-      },
-      "jsx": "react-native"  // Ensure this is set if you use JSX in other files
-    },
-    "exclude": ["node_modules", "dist"]
-
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "types": ["react-native", "react-native-vector-icons"],
+    "strict": true,
+    "target": "es2017", // or a later version
+    "lib": ["ES2017", "dom"],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "*": ["node_modules/*"]
+    }
+  },
+  "exclude": ["node_modules"]
 }
