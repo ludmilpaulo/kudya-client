@@ -29,8 +29,22 @@ const RestaurantMenu: React.FC = () => {
             ...meal,
             price: parseFloat(meal.price),
           }));
+          console.log("meals==>", meals);
           setMeals(meals);
-          const uniqueCategories: Category[] = Array.from(new Set(meals.map((meal: Meal) => meal.category)));
+  
+          // Ensure unique categories are extracted as objects with id, name, and image properties
+          const uniqueCategories: Category[] = Array.from(
+            new Set(meals.map((meal: Meal) => meal.category))
+          ).map((name) => {
+            const foundMeal = meals.find((meal: Meal) => meal.category === name);
+            return {
+              id: foundMeal?.category.id || 0, // Assuming id is 0 if not found
+              name: name as string, // Explicitly cast name to string
+              image: foundMeal?.category.image || "default-image-url", // Provide a default image URL if not found
+            };
+          });
+  
+          console.log("unique category", uniqueCategories);
           setCategories(uniqueCategories);
           setLoading(false);
         })
@@ -40,25 +54,27 @@ const RestaurantMenu: React.FC = () => {
         });
     }
   }, [restaurant_id]);
-
+  
+  
+  
   const filteredMeals = selectedCategory
     ? meals.filter((meal) => meal.category === selectedCategory)
     : meals;
-
+  
   const handleAddToCart = (meal: Meal) => {
     dispatch(addItem(meal));
   };
-
+  
   const handleRemoveFromCart = (mealId: number) => {
     dispatch(removeItem(mealId));
   };
-
+  
   const isInCart = (mealId: number) => cartItems.some((item) => item.id === mealId);
-
+  
   const handleViewDetails = (meal: Meal) => {
     navigation.navigate('FoodDetailsPage', { meal });
   };
-
+  
   return (
     <LinearGradient colors={['#FCD34D', '#3B82F6']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -150,129 +166,130 @@ const RestaurantMenu: React.FC = () => {
       </SafeAreaView>
     </LinearGradient>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scrollView: {
-    padding: 16,
-  },
-  restaurantLogo: {
-    width: '100%',
-    height: 200,
-    borderRadius: 16,
-    marginBottom: 16,
-  },
-  categoriesContainer: {
-    marginBottom: 16,
-  },
-  categoriesScroll: {
-    paddingBottom: 8,
-  },
-  categoryButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 9999,
-    backgroundColor: '#e5e7eb',
-    marginRight: 8,
-  },
-  selectedCategoryButton: {
-    backgroundColor: '#3b82f6',
-  },
-  categoryText: {
-    color: '#1f2937',
-  },
-  selectedCategoryText: {
-    color: '#ffffff',
-  },
-  mealsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  mealCardContainer: {
-    width: '48%',
-    marginBottom: 16,
-  },
-  mealCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  mealImage: {
-    width: '100%',
-    height: 150,
-  },
-  mealInfoContainer: {
-    padding: 16,
-  },
-  mealName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1f2937',
-  },
-  mealPrice: {
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginTop: 8,
-  },
-  mealActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  addToCartButton: {
-    backgroundColor: '#3b82f6',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 9999,
-    marginRight: 8,
-  },
-  removeFromCartButton: {
-    backgroundColor: '#ef4444',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 9999,
-  },
-  buttonText: {
-    color: '#ffffff',
-  },
-  quantityText: {
-    color: '#1f2937',
-    fontWeight: 'bold',
-    marginHorizontal: 8,
-  },
-  detailsButtonContainer: {
-    marginTop: 16,
-  },
-  goToCartButton: {
-    backgroundColor: '#10b981',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 9999,
-    marginTop: 8,
-  },
-  viewDetailsButton: {
-    backgroundColor: '#6b7280',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 9999,
-    marginTop: 8,
-  },
-});
-
-export default RestaurantMenu;
+  };
+  
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    safeArea: {
+      flex: 1,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    scrollView: {
+      padding: 16,
+    },
+    restaurantLogo: {
+      width: '100%',
+      height: 200,
+      borderRadius: 16,
+      marginBottom: 16,
+    },
+    categoriesContainer: {
+      marginBottom: 16,
+    },
+    categoriesScroll: {
+      paddingBottom: 8,
+    },
+    categoryButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 9999,
+      backgroundColor: '#e5e7eb',
+      marginRight: 8,
+    },
+    selectedCategoryButton: {
+      backgroundColor: '#3b82f6',
+    },
+    categoryText: {
+      color: '#1f2937',
+    },
+    selectedCategoryText: {
+      color: '#ffffff',
+    },
+    mealsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+    },
+    mealCardContainer: {
+      width: '48%',
+      marginBottom: 16,
+    },
+    mealCard: {
+      backgroundColor: '#ffffff',
+      borderRadius: 16,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 5,
+    },
+    mealImage: {
+      width: '100%',
+      height: 150,
+    },
+    mealInfoContainer: {
+      padding: 16,
+    },
+    mealName: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#1f2937',
+    },
+    mealPrice: {
+      fontWeight: 'bold',
+      color: '#1f2937',
+      marginTop: 8,
+    },
+    mealActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 16,
+    },
+    addToCartButton: {
+      backgroundColor: '#3b82f6',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 9999,
+      marginRight: 8,
+    },
+    removeFromCartButton: {
+      backgroundColor: '#ef4444',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 9999,
+    },
+    buttonText: {
+      color: '#ffffff',
+    },
+    quantityText: {
+      color: '#1f2937',
+      fontWeight: 'bold',
+      marginHorizontal: 8,
+    },
+    detailsButtonContainer: {
+      marginTop: 16,
+    },
+    goToCartButton: {
+      backgroundColor: '#10b981',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 9999,
+      marginTop: 8,
+    },
+    viewDetailsButton: {
+      backgroundColor: '#6b7280',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 9999,
+      marginTop: 8,
+    },
+  });
+  
+  export default RestaurantMenu;
+  
