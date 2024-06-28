@@ -31,7 +31,6 @@ const RestaurantMenu: React.FC = () => {
           }));
           console.log("meals==>", meals);
           setMeals(meals);
-  
           // Ensure unique categories are extracted as objects with id, name, and image properties
           const uniqueCategories: Category[] = Array.from(
             new Set(meals.map((meal: Meal) => meal.category))
