@@ -37,6 +37,18 @@
       },
       "googleMapsApiKey": "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s"
     },
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "maindo-digital-agency",
+            "project": "react-native",
+            "authToken": "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"
+          }
+        }
+      ]
+    },
     "owner": "ludmil"
   }
 }
