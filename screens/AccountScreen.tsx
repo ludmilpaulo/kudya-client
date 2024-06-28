@@ -1,58 +1,41 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
-import { View, Image, Text, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Image, Text, TouchableOpacity, ScrollView } from "react-native";
 import Screen from "../components/Screen";
 import tailwind from "tailwind-react-native-classnames";
 import AppHead from "../components/AppHead";
-
-import { AntDesign } from "@expo/vector-icons";
-import { Ionicons } from "@expo/vector-icons";
-
+import { LinearGradient } from "expo-linear-gradient";
+import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { logoutUser, selectUser } from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
-
 import { useNavigation } from "@react-navigation/native";
-import * as Updates from "expo-updates";
+import { baseAPI } from "../services/types";
+import { fetchUserDetails } from "../services/checkoutService";
 
 const AccountScreen = () => {
   const user = useSelector(selectUser);
-
   const dispatch = useDispatch();
-
-  const url = "https://www.kudya.shop";
-
-  const [username, setUsername] = useState();
-  const [userPhoto, setUserPhoto] = useState("");
-  const [userPhone, setUserPhone] = useState("");
-  const [userAddress, setUserAddress] = useState("");
+  const url = baseAPI;
+  const [username, setUsername] = useState<string | undefined>();
+  const [userPhoto, setUserPhoto] = useState<string>("");
+  const [userPhone, setUserPhone] = useState<string>("");
+  const [userAddress, setUserAddress] = useState<string>("");
   const [userId, setUserId] = useState<any>();
   const navigation = useNavigation<any>();
-
   const customer_avatar = `${userPhoto}`;
   const customer_image = `${url}${customer_avatar}`;
 
   const pickUser = async () => {
-    let response = await fetch(
-      "https://www.kudya.shop/api/customer/profile/",
-      {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: userId,
-        }),
+    if (user?.user_id && user?.token) {
+      try {
+        const details = await fetchUserDetails(user.user_id, user.token);
+        setUserPhone(details.phone);
+        setUserAddress(details.address);
+        setUserPhoto(details.avatar);
+      } catch (error) {
+        console.error('Erro ao buscar detalhes do usuário:', error);
+        dispatch(logoutUser());
       }
-    )
-      .then((response) => response.json())
-      .then((responseJson) => {
-        setUserPhone(responseJson.customer_detais.phone);
-        setUserAddress(responseJson.customer_detais.address);
-        setUserPhoto(responseJson.customer_detais.avatar);
-      })
-      .catch((error) => {
-        // console.error(error);
-      });
+    }
   };
 
   useEffect(() => {
@@ -71,7 +54,7 @@ const AccountScreen = () => {
 
   const orderProfile = async () => {
     try {
-      navigation.navigate("Order_History");
+      navigation.navigate("OrderHistory");
     } catch (e) {
       console.log(e);
     }
@@ -86,68 +69,64 @@ const AccountScreen = () => {
   };
 
   return (
-    <Screen style={tailwind`flex-1`}>
-      <AppHead title={`Conta`} icon="settings-outline" />
-      <View style={tailwind`justify-center items-center`}>
-        <View style={tailwind`rounded-full overflow-hidden w-48 h-48 mt-4`}>
-          <Image source={{ uri: customer_image }} style={tailwind`w-48 h-48`} />
-        </View>
-        <Text style={tailwind`mt-4 text-3xl font-bold`}>{username}</Text>
-        <Text style={tailwind`text-lg text-indigo-900`}></Text>
-      </View>
-      <View style={tailwind`mx-4 border-t border-t-2 mt-5 border-gray-100`}>
-        <Text style={tailwind`text-gray-800 mt-2 text-lg mb-2`}>
-          Suas informações
-        </Text>
-        <SavedPlaces
-          title="address"
-          text={userAddress}
-          Icon={() => <AntDesign name="home" size={24} color="black" />}
-        />
-        <SavedPlaces
-          title="Telefone"
-          text={userPhone}
-          Icon={() => <AntDesign name="phone" size={24} color="black" />}
-        />
-      </View>
-      <View style={tailwind`mx-4 border-t border-t-2 mt-5 border-gray-100`}>
-        <Text style={tailwind`text-gray-800 mt-2 text-lg`}>Outras opções</Text>
-
-        {/*      <TouchableOpacity onPress={() => orderProfile()}>
-                    <Text style={tailwind`text-green-900 mt-2`}>Histórico de pedidos</Text>
-                </TouchableOpacity>*/}
-
-        <TouchableOpacity onPress={() => editProfile()}>
-          <Text style={tailwind`text-green-900 mt-2`}>Edit o Seu Perfil</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => onLogout()}>
-          <Text style={tailwind`text-green-900 mt-2`}>Sair</Text>
-        </TouchableOpacity>
-      </View>
-    </Screen>
+    <LinearGradient colors={['#FCD34D', '#3B82F6']} style={{ flex: 1 }}>
+      <Screen style={tailwind`flex-1`}>
+      <TouchableOpacity onPress={onLogout} style={tailwind`flex-row items-center my-3`}>
+              <AntDesign name="logout" size={24} color="red" />
+              <Text style={tailwind`text-white ml-5`}>Sair</Text>
+            </TouchableOpacity>
+        <ScrollView contentContainerStyle={tailwind`flex-1`}>
+          <View style={tailwind`justify-center items-center mt-6`}>
+            <View style={tailwind`rounded-full overflow-hidden w-48 h-48 mt-4`}>
+              <Image source={{ uri: customer_image }} style={tailwind`w-48 h-48`} />
+            </View>
+            <Text style={tailwind`mt-4 text-3xl font-bold text-white`}>{username}</Text>
+          </View>
+          <View style={tailwind`mx-4 border-t border-t-2 mt-5 border-gray-100`}>
+            <Text style={tailwind`text-white mt-2 text-lg mb-2`}>Suas informações</Text>
+            <SavedPlaces
+              title="Endereço"
+              text={userAddress}
+              Icon={() => <AntDesign name="home" size={24} color="white" />}
+            />
+            <SavedPlaces
+              title="Telefone"
+              text={userPhone}
+              Icon={() => <AntDesign name="phone" size={24} color="white" />}
+            />
+          </View>
+          <View style={tailwind`mx-4 border-t border-t-2 mt-5 border-gray-100`}>
+            <Text style={tailwind`text-white mt-2 text-lg`}>Outras opções</Text>
+            <TouchableOpacity onPress={orderProfile} style={tailwind`flex-row items-center my-3`}>
+              <MaterialIcons name="history" size={24} color="white" />
+              <Text style={tailwind`text-white ml-5`}>Histórico de pedidos</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={editProfile} style={tailwind`flex-row items-center my-3`}>
+              <Ionicons name="person-circle" size={24} color="white" />
+              <Text style={tailwind`text-white ml-5`}>Editar Perfil</Text>
+            </TouchableOpacity>
+            
+          </View>
+        </ScrollView>
+      </Screen>
+    </LinearGradient>
   );
 };
 
 export default AccountScreen;
 
-const SavedPlaces = ({
-  title,
-  text,
-  Icon,
-}: {
-  title: any;
-  text: any;
-  Icon: any;
-}) => (
-  <TouchableOpacity
-    style={tailwind`flex-row items-center my-3`}
-    //  onPress={() => editProfile()}
-  >
+type SavedPlacesProps = {
+  title: string;
+  text: string;
+  Icon: React.ComponentType;
+};
+
+const SavedPlaces: React.FC<SavedPlacesProps> = ({ title, text, Icon }) => (
+  <View style={tailwind`flex-row items-center my-3`}>
     <Icon />
     <View style={tailwind`ml-5`}>
-      <Text style={tailwind`text-gray-800`}>{title}</Text>
-      <Text style={tailwind`text-gray-600 text-xs mt-1`}>{text}</Text>
+      <Text style={tailwind`text-white`}>{title}</Text>
+      <Text style={tailwind`text-white text-xs mt-1`}>{text}</Text>
     </View>
-  </TouchableOpacity>
+  </View>
 );

@@ -10,11 +10,11 @@ import AddressInput from '../components/AddressInput';
 import PaymentDetails from '../components/PaymentDetails';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RootStackParamList } from '../services/types'; // Ensure the correct path
+import * as Location from 'expo-location';
 
 type CheckoutPageRouteProp = RouteProp<RootStackParamList, 'CheckoutPage'>;
 
 const CheckoutPage: React.FC = () => {
-  const [items, setItems] = useState<any[]>([]);
   const [restaurant, setRestaurant] = useState<any | null>(null);
   const [userAddress, setUserAddress] = useState<string>("");
   const [location, setLocation] = useState<{ latitude: number; longitude: number }>({ latitude: 0, longitude: 0 });
@@ -61,20 +61,20 @@ const CheckoutPage: React.FC = () => {
   }, [restaurantId, user?.user_id, user?.token, dispatch]);
 
   const getUserLocation = async () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        () => {
-          Alert.alert("Não foi possível obter sua localização");
-        },
-      );
-    } else {
-      Alert.alert("Geolocalização não é suportada pelo seu navegador.");
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert("Permissão para acessar localização foi negada");
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      setLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+    } catch (error) {
+      Alert.alert("Não foi possível obter sua localização");
     }
   };
 
@@ -108,7 +108,7 @@ const CheckoutPage: React.FC = () => {
         Alert.alert("Pedido Realizado com Sucesso!");
         navigation.navigate("SuccessScreen");
       } else {
-        Alert.alert(responseData.status);
+        Alert.alert("Erro", responseData.error || responseData.status);
       }
     } catch (error) {
       console.error('Error completing order:', error);
@@ -118,7 +118,7 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
-  const totalPrice = items.reduce((total, item) => total + item.price * item.quantity, 0);
+  const totalPrice = allCartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
     <LinearGradient colors={['#FCD34D', '#3B82F6']} style={styles.container}>

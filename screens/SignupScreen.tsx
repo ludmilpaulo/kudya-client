@@ -113,7 +113,7 @@ const SignupScreen: React.FC = () => {
           <Image source={require("../assets/azul.png")} style={styles.logo} />
         </View>
         <Text style={styles.title}>Crie sua conta</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("LoginScreenUser")}>
+        <TouchableOpacity onPress={() => navigation.navigate("UserLogin")}>
           <Text style={styles.signupLink}>
             Já tem uma conta?{" "}
             <Text style={styles.signupText}>Faça login aqui</Text>

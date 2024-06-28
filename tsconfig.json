@@ -5,10 +5,11 @@
     "strict": true,
     "target": "es2017",
     "lib": ["ES2017", "dom"],
+    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*"]

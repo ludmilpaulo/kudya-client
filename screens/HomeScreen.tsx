@@ -3,8 +3,11 @@ import Constants from "expo-constants";
 import { SafeAreaView, View, Text, ScrollView, ActivityIndicator, TextInput, Image, TouchableOpacity, Alert, StyleSheet } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
+import { useNavigation } from '@react-navigation/native';
 import RestaurantCard from "../components/RestaurantCard";
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAppSelector } from "../redux/store";
+import { selectCartItems } from "../redux/slices/basketSlice";
 import { Restaurant, Category, baseAPI } from "../services/types";
 
 const HomeScreen: React.FC = () => {
@@ -15,6 +18,8 @@ const HomeScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [address, setAddress] = useState("");
+  const cartItems = useAppSelector(selectCartItems);
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     (async () => {
@@ -96,7 +101,7 @@ const HomeScreen: React.FC = () => {
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; // Radius of the Earth in km
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const dLon = ((lon1 - lon2) * Math.PI) / 180;
     const a =
       0.5 -
       Math.cos(dLat) / 2 +
@@ -113,6 +118,8 @@ const HomeScreen: React.FC = () => {
     return `${Math.round(time * 60)} mins`;
   };
 
+  const totalItemsInCart = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <LinearGradient colors={['#FCD34D', '#3B82F6']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -126,7 +133,14 @@ const HomeScreen: React.FC = () => {
               <Text style={styles.addressText}>{address}</Text>
               <View style={styles.iconContainer}>
                 <Ionicons name="notifications-outline" size={24} color="white" style={styles.icon} />
-                <Ionicons name="cart-outline" size={24} color="white" style={styles.icon} />
+                <TouchableOpacity style={styles.cartIconContainer} onPress={() => navigation.navigate("CartPage")}>
+                  <Ionicons name="cart-outline" size={24} color="white" style={styles.icon} />
+                  {totalItemsInCart > 0 && (
+                    <View style={styles.cartBadge}>
+                      <Text style={styles.cartBadgeText}>{totalItemsInCart}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
             <View style={styles.searchContainer}>
@@ -217,6 +231,25 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginHorizontal: 8,
+  },
+  cartIconContainer: {
+    position: 'relative',
+  },
+  cartBadge: {
+    position: 'absolute',
+    right: -6,
+    top: -6,
+    backgroundColor: 'red',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cartBadgeText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   searchContainer: {
     marginBottom: 16,

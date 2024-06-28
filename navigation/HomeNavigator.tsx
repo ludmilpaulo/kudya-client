@@ -9,6 +9,7 @@ import UserProfile from "../screens/UserProfile";
 import OrderHistory from "../screens/OrderHistory";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../redux/slices/authSlice";
+import FoodDetailsPage from "../screens/FoodDetailsPage";
 
 const Stack = createStackNavigator();
 
@@ -29,6 +30,7 @@ export default function HomeNavigator() {
       <Stack.Screen name="CheckoutPage" component={CheckoutPage} />
       <Stack.Screen name="OrderHistory" component={OrderHistory} />
       <Stack.Screen name="CartPage" component={CartPage} />
+      <Stack.Screen name="FoodDetailsPage" component={FoodDetailsPage} />
     </Stack.Navigator>
   );
 }

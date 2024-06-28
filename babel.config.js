@@ -9,6 +9,15 @@ module.exports = function(api) {
           extensions: ['.ts', '.tsx', '.js', '.json'],
         },
       ],
+      [
+        'module:react-native-dotenv',
+        {
+          moduleName: '@env',
+          path: '.env',
+          safe: false,
+          allowUndefined: true,
+        },
+      ],
     ],
   };
 };
