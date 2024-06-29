@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ImageBackground, TouchableOpacity, ScrollView, Image } from 'react-native';
 import tailwind from 'tailwind-react-native-classnames';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useNavigation} from "@react-navigation/native";
 
 interface Restaurant {
@@ -48,6 +48,7 @@ const Banner: React.FC<BannerProps> = ({ title, backgroundImage, backgroundApp, 
       </ScrollView>
       <MapView
         style={tailwind`flex-1`}
+        provider={PROVIDER_GOOGLE}
         initialRegion={{
           latitude: userLocation.latitude,
           longitude: userLocation.longitude,
