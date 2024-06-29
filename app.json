@@ -15,9 +15,19 @@
       "**/*"
     ],
     "ios": {
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78"
+        }
+        },
       "supportsTablet": true
     },
     "android": {
+        "config": {
+          "googleMaps": {
+            "apiKey": "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78"
+          }
+          },
       "permissions": [
         "LOCATION"
       ],
@@ -25,11 +35,17 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 16
+      "versionCode": 17
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "config": {
+      "googleMaps": {
+        "apiKey": "99701b72-553c-46bc-9d6a-e9538edac243"
+      }
     },
     "extra": {
       "eas": {
