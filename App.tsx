@@ -6,6 +6,9 @@ import { store, persistor } from "./redux/store"; // Ensure correct import path
 import { PersistGate } from "redux-persist/integration/react";
 import AppNavigator from "./navigation/AppNavigator";
 import * as Sentry from "@sentry/react-native";
+import 'react-native-gesture-handler';
+import 'react-native-reanimated';
+
 import ErrorBoundary from "./components/ErrorBoundary"; // Ensure correct import path
 
 Sentry.init({
