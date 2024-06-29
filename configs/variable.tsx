@@ -14,7 +14,7 @@ import { ForgotPasswordRequest } from "./types";
 //const [loadingOrder, setLoadingOrder] = useState(false);
 
 
-export const googleAPi = "AIzaSyAALuGqF68jJ8v9_69tXtEcGkRdX5NgU1s";
+export const googleAPi = "AIzaSyBJxPi5xtT7F3oxZzlSmIuaXsIswasjkKw";
 
 export const apiUrl = "https://ludmil.pythonanywhere.com";
 
