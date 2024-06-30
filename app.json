@@ -4,7 +4,7 @@
     "slug": "kudya-client",
     "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/azul.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/azul.png",
@@ -28,14 +28,14 @@
         "LOCATION"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/azul.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
       "versionCode": 17
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/azul.png"
     },
     "extra": {
       "eas": {

@@ -144,7 +144,7 @@ const SignupScreen: React.FC = () => {
             style={styles.input}
           />
           <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
-            {showPassword ? <EyeOff width={20} height={20} /> : <Eye width={20} height={20} />}
+            {showPassword ? <EyeOff width={20} height={20} color="#040405"/> : <Eye width={20} height={20} color="#040405"/>}
           </TouchableOpacity>
         </View>
         {role === 'restaurant' && (
