@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Constants from "expo-constants";
 import { SafeAreaView, View, Text, ScrollView, ActivityIndicator, TextInput, Image, TouchableOpacity, Alert, StyleSheet } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +13,7 @@ import { Restaurant, Category, baseAPI } from "../services/types";
 const HomeScreen: React.FC = () => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [filteredDataSource, setFilteredDataSource] = useState<Restaurant[]>([]);
+  const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
   const [masterDataSource, setMasterDataSource] = useState<Restaurant[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +57,6 @@ const HomeScreen: React.FC = () => {
         }).filter((restaurant: Restaurant) => restaurant.is_approved);
         
         setMasterDataSource(approvedRestaurants);
-        setFilteredDataSource(approvedRestaurants);
 
         const uniqueCategories = Array.from(
           new Set(approvedRestaurants.map((restaurant: Restaurant) => restaurant.category?.name))
@@ -79,6 +79,22 @@ const HomeScreen: React.FC = () => {
         setLoading(false);
       });
   }, []);
+
+  const filterNearbyRestaurants = useCallback((restaurants: Restaurant[], userLat: number, userLng: number, radius: number) => {
+    return restaurants.filter((restaurant) => {
+      const distance = getDistance(userLat, userLng, restaurant.location.latitude, restaurant.location.longitude);
+      return distance <= radius;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (location) {
+      const nearby = filterNearbyRestaurants(masterDataSource, location.latitude, location.longitude, 5);
+      const withinArea = filterNearbyRestaurants(masterDataSource, location.latitude, location.longitude, 3.47);
+      setNearbyRestaurants(nearby);
+      setFilteredDataSource(withinArea);
+    }
+  }, [location, masterDataSource, filterNearbyRestaurants]);
 
   const searchFilterFunction = (text: string) => {
     if (text) {
@@ -110,12 +126,6 @@ const HomeScreen: React.FC = () => {
         (1 - Math.cos(dLon))) /
         2;
     return R * 2 * Math.asin(Math.sqrt(a));
-  };
-
-  const calculateTime = (distance: number) => {
-    const speed = 40; // Assuming speed in km/h
-    const time = distance / speed;
-    return `${Math.round(time * 60)} mins`;
   };
 
   const totalItemsInCart = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -177,12 +187,7 @@ const HomeScreen: React.FC = () => {
             </ScrollView>
             <Text style={styles.sectionTitle}>Restaurantes Próximos</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.restaurantScrollView}>
-              {filteredDataSource.filter(restaurant => {
-                if (!location) return false;
-                const { latitude: restaurantLat, longitude: restaurantLon } = restaurant.location;
-                const distance = getDistance(location.latitude, location.longitude, restaurantLat, restaurantLon);
-                return distance <= 10;
-              }).map((restaurant) => (
+              {nearbyRestaurants.map((restaurant) => (
                 <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location!} />
               ))}
             </ScrollView>

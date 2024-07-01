@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "kudya-client",
-    "slug": "kudya-client",
+    "name": "kudya",
+    "slug": "kudya",
     "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/azul.png",
