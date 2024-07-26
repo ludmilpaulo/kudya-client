@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { GiftedChat, IMessage } from 'react-native-gifted-chat';
 import axios from 'axios';
-import { apiUrl } from '../configs/variable';
 import tailwind from "tailwind-react-native-classnames"; 
+import { baseAPI } from '../services/types';
 interface ChatComponentProps {
   user: 'customer' | 'driver';
   accessToken: string;
   orderId: number;
   userData: any;
   onClose: () => void; // Define the onClose prop as a function
-  isChatModalVisible: boolean; 
+  isChatModalVisible: boolean;
 
  // Add isChatModalVisible as a prop
-  
+
 }
 
 // ... (other imports)
@@ -35,7 +35,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await axios.get(`${apiUrl}/api/get_order_chat/${orderId}/`);
+        const response = await axios.get(`${baseAPI}/info/get_order_chat/${orderId}/`);
         const chatMessages = response.data;
         const formattedMessages = chatMessages.map((chatMessage: any) => ({
           _id: chatMessage.id,
@@ -57,7 +57,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
   const onSend = (newMessages: IMessage[]) => {
     axios
-      .post(`${apiUrl}/api/send_chat_message/`, {
+      .post(`${baseAPI}/info/send_chat_message/`, {
         user_id: userData?.user_id,
         order_id: orderId,
         message: newMessages[0].text,

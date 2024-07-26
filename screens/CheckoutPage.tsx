@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, logoutUser } from '../redux/slices/authSlice';
@@ -11,6 +11,9 @@ import PaymentDetails from '../components/PaymentDetails';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RootStackParamList } from '../services/types'; // Ensure the correct path
 import * as Location from 'expo-location';
+import { getDistance } from 'geolib';
+import Toast from 'react-native-toast-message';
+import tw from 'twrnc';
 
 type CheckoutPageRouteProp = RouteProp<RootStackParamList, 'CheckoutPage'>;
 
@@ -22,6 +25,7 @@ const CheckoutPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<string>("Entrega");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [useCurrentLocation, setUseCurrentLocation] = useState<boolean>(true);
+  const [deliveryNotes, setDeliveryNotes] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation<any>();
@@ -78,6 +82,18 @@ const CheckoutPage: React.FC = () => {
     }
   };
 
+  const calculateDeliveryFee = () => {
+    if (!restaurant || !location.latitude || !location.longitude) return 100; // Return minimum fee if data is missing
+
+    const userLocation = { latitude: location.latitude, longitude: location.longitude }; // User location
+    const restaurantLocation = { latitude: parseFloat(restaurant.location.split(',')[0]), longitude: parseFloat(restaurant.location.split(',')[1]) }; // Restaurant location
+    const distance = getDistance(userLocation, restaurantLocation) / 1000; // Calculate distance in kilometers
+
+    const additionalFee = distance * 20; // 20 Kz per km
+    return additionalFee < 20 ? 100 : 100 + additionalFee; // Ensure minimum fee is 100 Kz
+  };
+
+
   const completeOrder = async () => {
     setLoading(true);
     setError(null);
@@ -95,6 +111,10 @@ const CheckoutPage: React.FC = () => {
       address: useCurrentLocation ? `${location.latitude},${location.longitude}` : userAddress,
       order_details: orderDetails,
       payment_method: paymentMethod,
+      delivery_notes: deliveryNotes,
+      delivery_fee: deliveryFee,
+      use_current_location: useCurrentLocation,
+      location: location
     };
 
     try {
@@ -120,39 +140,58 @@ const CheckoutPage: React.FC = () => {
 
   const totalPrice = allCartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
+ 
+  const deliveryFee = calculateDeliveryFee(); // Calculate delivery fee
+  const finalPrice = totalPrice + deliveryFee; // Calculate final price
+
   return (
-    <LinearGradient colors={['#FCD34D', '#3B82F6']} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+    <>
+    <LinearGradient
+      colors={['#FCD34D', '#3B82F6']}
+      style={{ flex: 1 }}
+    >
+      <ScrollView contentContainerStyle={tw`flex-grow p-6`}>
         {restaurant && (
           <>
-            <Text style={styles.headerText}>Checkout - {restaurant.name}</Text>
-            <View style={styles.restaurantLogoContainer}>
-              <Image source={{ uri: restaurant.logo }} style={styles.restaurantLogo} />
+            <Text style={tw`text-3xl font-semibold mb-6 text-gray-800`}>{restaurant.name}</Text>
+            <View style={tw`flex justify-center mb-6`}>
+              <Image source={{ uri: restaurant.logo }} style={tw`w-50 h-50 rounded-lg`} />
             </View>
           </>
         )}
-        <AddressInput
-          useCurrentLocation={useCurrentLocation}
-          setUseCurrentLocation={setUseCurrentLocation}
-          userAddress={userAddress}
-          setUserAddress={setUserAddress}
-        />
+
+        <AddressInput useCurrentLocation={useCurrentLocation} setUseCurrentLocation={setUseCurrentLocation} userAddress={userAddress} setUserAddress={setUserAddress} />
         <PaymentDetails paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} />
-        <View style={styles.totalContainer}>
-          <Text style={styles.totalText}>Total: {totalPrice} Kz</Text>
+
+        <TextInput
+          style={tw`w-full p-2 border border-gray-300 rounded mt-4`}
+          placeholder="Notas de entrega para o motorista"
+          value={deliveryNotes}
+          onChangeText={(text) => setDeliveryNotes(text)}
+        />
+
+   
+
+        <View style={tw`flex justify-between items-center my-4`}>
+          <Text style={tw`text-lg font-semibold text-gray-800`}>Total: {totalPrice.toFixed(2)} Kz</Text>
+          <Text style={tw`text-lg font-semibold text-gray-800`}>Taxa de Entrega: {deliveryFee.toFixed(2)} Kz</Text>
+          <Text style={tw`text-lg font-semibold text-gray-800`}>Preço Final: {finalPrice.toFixed(2)} Kz</Text>
         </View>
+
         {loading && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#fff" />
+          <View style={tw`absolute top-0 left-0 z-50 flex items-center justify-center w-full h-full bg-black bg-opacity-50`}>
+            <ActivityIndicator size="large" color="#3B82F6" />
           </View>
         )}
-        {error && <Text style={styles.errorText}>{error}</Text>}
+
+        {error && <Text style={tw`text-red-500 text-center mb-4`}>{error}</Text>}
+
         <TouchableOpacity
-          style={[styles.orderButton, loading && styles.disabledButton]}
+          style={tw`flex items-center justify-center w-full h-10 my-4 bg-blue-600 text-white font-semibold rounded-full ${loading ? 'opacity-50' : 'hover:bg-blue-700'}`}
           onPress={completeOrder}
           disabled={loading}
         >
-          <Text style={styles.orderButtonText}>FAÇA SEU PEDIDO</Text>
+          <Text style={tw`text-center text-white`}>FAÇA SEU PEDIDO</Text>
         </TouchableOpacity>
         <ProfileModal
           isOpen={isProfileModalOpen}
@@ -162,6 +201,8 @@ const CheckoutPage: React.FC = () => {
         />
       </ScrollView>
     </LinearGradient>
+    <Toast />
+  </>
   );
 };
 

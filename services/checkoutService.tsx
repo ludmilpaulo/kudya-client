@@ -1,4 +1,5 @@
 import { baseAPI } from "./types";
+import axios from 'axios';
 
 export const fetchUserDetails = async (userId: number, token: string) => {
   const response = await fetch(`${baseAPI}/customer/customer/profile/?user_id=${userId}`, {
@@ -45,4 +46,14 @@ export const fetchUserDetails = async (userId: number, token: string) => {
     console.log('Received response data:', responseData);
     return responseData;
   };
+
+  export const validateCouponRequest = async (couponCode: string) => {
+    const response = await axios.post(`${baseAPI}/order/coupons/validate/`, { coupon_code: couponCode });
+    return response.data;
+  };
   
+  // New function to check if the user has a coupon
+  export const checkUserCoupon = async (token: string) => {
+    const response = await axios.post(`${baseAPI}/order/coupons/check/`, { access_token: token });
+    return response.data;
+  };
