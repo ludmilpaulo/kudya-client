@@ -15,7 +15,13 @@
       "**/*"
     ],
     "ios": {
+      "buildNumber": "1",
       "supportsTablet": true,
+      "infoPlist": {
+        "CFBundleDisplayName": "kudya",
+        "NSLocationWhenInUseUsageDescription": "We use your location to autofill your delivery address.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
       "bundleIdentifier": "com.ludmil.kudyaclient"
     },
     "android": {
@@ -32,7 +38,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 18
+      "versionCode": 19
     },
     "web": {
       "favicon": "./assets/azul.png"
