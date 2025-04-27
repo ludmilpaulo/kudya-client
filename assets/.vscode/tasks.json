@@ -1,0 +1,16 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Start Android Emulator and Expo",
+        "type": "shell",
+        "command": "${workspaceFolder}/scripts/start-emulator-expo.bat",
+        "problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      }
+    ]
+  }
+  
