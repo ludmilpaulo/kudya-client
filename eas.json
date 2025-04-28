@@ -6,15 +6,15 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "autoIncrement": true
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "autoIncrement": true
     },
     "production": {
-      "ios": {
-        "image": "latest"  
-      }
+      "autoIncrement": true
     }
   },
   "submit": {
