@@ -28,7 +28,6 @@
     "autoprefixer": "^10.4.16",
     "axios": "^1.6.5",
     "babel-plugin-module-resolver": "^5.0.2",
-    "eas-cli": "^10.0.3",
     "es6-promise": "^4.2.8",
     "expo": "~51.0.39",
     "expo-constants": "~16.0.2",
