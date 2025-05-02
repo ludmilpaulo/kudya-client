@@ -1,4 +1,4 @@
-module.exports = function(api) {
+module.exports = function (api) {
   api.cache(true);
   return {
     presets: ['babel-preset-expo'],
@@ -6,7 +6,14 @@ module.exports = function(api) {
       [
         'module-resolver',
         {
-          extensions: ['.ts', '.tsx', '.js', '.json'],
+          root: ['./'], // Helps resolve paths from project root
+          alias: {
+            '@components': './components',
+            '@screens': './screens',
+            '@assets': './assets',
+            '@utils': './utils',
+          },
+          extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
         },
       ],
       [
@@ -18,7 +25,7 @@ module.exports = function(api) {
           allowUndefined: true,
         },
       ],
-      'react-native-reanimated/plugin',  // Add this line
+      'react-native-reanimated/plugin',
     ],
   };
 };

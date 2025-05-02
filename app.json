@@ -15,7 +15,7 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "1",
+      "buildNumber": "2",
       "supportsTablet": true,
       "infoPlist": {
         "CFBundleDisplayName": "kudya",
@@ -38,7 +38,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 20
+      "versionCode": 21
     },
     "web": {
       "favicon": "./assets/azul.png"
@@ -49,6 +49,7 @@
       },
       "googleMapsApiKey": "AIzaSyBJxPi5xtT7F3oxZzlSmIuaXsIswasjkKw"
     },
+    "jsEngine": "jsc",
     "owner": "ludmil"
   }
 }

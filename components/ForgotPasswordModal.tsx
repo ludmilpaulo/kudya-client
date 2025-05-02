@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { baseAPI } from '../services/types';
+import tw from 'twrnc';
 
 interface ForgotPasswordModalProps {
   show: boolean;
@@ -39,121 +48,54 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ show, onClose
 
   return (
     <Modal transparent={true} visible={show} animationType="slide">
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
+      <View style={tw`flex-1 justify-center items-center bg-black bg-opacity-40`}>
+        <View style={tw`bg-white rounded-2xl p-6 mx-5 w-11/12 shadow-lg`}>
           {emailSent ? (
-            <View>
-              <Text style={styles.modalTextHeader}>Email Enviado</Text>
-              <Text style={styles.modalText}>Por favor, verifique seu email para redefinir sua senha.</Text>
-              <TouchableOpacity onPress={onClose} style={styles.buttonClose}>
-                <Text style={styles.textStyle}>Fechar</Text>
+            <>
+              <Text style={tw`text-center text-lg font-bold mb-4`}>Email Enviado</Text>
+              <Text style={tw`text-center text-base mb-6`}>
+                Por favor, verifique seu email para redefinir sua senha.
+              </Text>
+              <TouchableOpacity onPress={onClose} style={tw`bg-blue-600 rounded-full px-5 py-3`}>
+                <Text style={tw`text-white font-bold text-center`}>Fechar</Text>
               </TouchableOpacity>
-            </View>
+            </>
           ) : (
-            <View>
-              <Text style={styles.modalTextHeader}>Redefinir Senha</Text>
-              <Text style={styles.label}>Email</Text>
+            <>
+              <Text style={tw`text-center text-lg font-bold mb-4`}>Redefinir Senha</Text>
+              <Text style={tw`text-base mb-1 self-start`}>Email</Text>
               <TextInput
                 keyboardType="email-address"
                 value={email}
                 onChangeText={setEmail}
-                style={styles.input}
                 placeholder="Digite seu email"
+                style={tw`w-full border border-gray-300 rounded px-4 py-2 mb-4`}
               />
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity onPress={onClose} style={styles.buttonCancel}>
-                  <Text style={styles.textStyle}>Cancelar</Text>
+              <View style={tw`flex-row justify-between`}>
+                <TouchableOpacity
+                  onPress={onClose}
+                  style={tw`bg-gray-500 rounded-full px-5 py-3 mr-2 flex-1`}
+                >
+                  <Text style={tw`text-white font-bold text-center`}>Cancelar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleResetPassword}
-                  style={styles.buttonSubmit}
+                  style={tw`bg-blue-600 rounded-full px-5 py-3 flex-1`}
                   disabled={loading}
                 >
                   {loading ? (
                     <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.textStyle}>Enviar</Text>
+                    <Text style={tw`text-white font-bold text-center`}>Enviar</Text>
                   )}
                 </TouchableOpacity>
               </View>
-            </View>
+            </>
           )}
         </View>
       </View>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Enhanced overlay background for better visibility
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  modalTextHeader: {
-    marginBottom: 15,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  label: {
-    alignSelf: 'flex-start',
-    marginBottom: 5,
-  },
-  input: {
-    width: '100%',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  buttonClose: {
-    backgroundColor: '#2196F3',
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-  },
-  buttonCancel: {
-    backgroundColor: '#888',
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-    marginRight: 10,
-  },
-  buttonSubmit: {
-    backgroundColor: '#2196F3',
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-  },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-});
 
 export default ForgotPasswordModal;

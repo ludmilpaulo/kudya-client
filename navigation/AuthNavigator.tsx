@@ -4,6 +4,7 @@ import JoinScreen from "../screens/JoinScreen";
 import SignupScreen from "../screens/SignupScreen";
 import LoginScreenUser from "../screens/LoginScreenUser";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
+import MainTabNavigator from "./MainTabNavigator";
 
 const Stack = createStackNavigator();
 

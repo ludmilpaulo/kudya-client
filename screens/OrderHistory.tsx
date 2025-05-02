@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Constants from 'expo-constants';
 import { View, Text, ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient  from 'expo-linear-gradient';
 import { useAppSelector } from '../redux/store';
 import { selectUser } from '../redux/slices/authSlice';
 import { baseAPI } from '../services/types';

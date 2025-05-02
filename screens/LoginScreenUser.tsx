@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
-import tailwind from "tailwind-react-native-classnames";
+
 import { Eye, EyeOff } from "react-native-feather";
 import { loginUserService } from "../services/authService";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import { clearAllCart } from "../redux/slices/basketSlice";
-import { LinearGradient } from "expo-linear-gradient";
+import LinearGradient from "expo-linear-gradient";
 import { MotiView } from 'moti';
 import { loginUser } from "../redux/slices/authSlice";
 

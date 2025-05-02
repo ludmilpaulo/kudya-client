@@ -1,22 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal } from 'react-native';
 import { GiftedChat, IMessage } from 'react-native-gifted-chat';
 import axios from 'axios';
-import tailwind from "tailwind-react-native-classnames"; 
 import { baseAPI } from '../services/types';
+import tw from 'twrnc';
+
 interface ChatComponentProps {
   user: 'customer' | 'driver';
   accessToken: string;
   orderId: number;
   userData: any;
-  onClose: () => void; // Define the onClose prop as a function
+  onClose: () => void;
   isChatModalVisible: boolean;
-
- // Add isChatModalVisible as a prop
-
 }
-
-// ... (other imports)
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
   user,
@@ -53,7 +49,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     };
 
     fetchMessages();
-  }, [orderId, messages]); // Include messages in the dependency array
+  }, [orderId]);
 
   const onSend = (newMessages: IMessage[]) => {
     axios
@@ -62,34 +58,29 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         order_id: orderId,
         message: newMessages[0].text,
       })
-      .then((response) => {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            ...newMessages[0],
-            _id: String(new Date().getTime()),
-          },
-        ]);
+      .then(() => {
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessages));
       })
       .catch((error) => console.error('Error sending message:', error));
   };
 
-  const chatHeight = messages.length * 60;
-
   return (
     <Modal visible={isChatModalVisible} animationType="slide" onRequestClose={handleClose}>
-      <View style={tailwind`flex-1 bg-white`}>
-        <TouchableOpacity onPress={onClose} style={tailwind`absolute top-5 left-5 z-10`}>
-          <Text style={tailwind`text-blue-500 font-bold`}>Fechar</Text>
+      <View style={tw`flex-1 bg-white`}>
+        <TouchableOpacity onPress={handleClose} style={tw`absolute top-5 left-5 z-10`}>
+          <Text style={tw`text-blue-500 font-bold`}>Fechar</Text>
         </TouchableOpacity>
-        <View style={[tailwind`bg-white flex-1`, { height: chatHeight }]}>
+
+        <View style={tw`flex-1 pt-16`}>
           <GiftedChat
-            placeholder={'Digite sua mensagem'}
+            placeholder="Digite sua mensagem"
             messages={messages}
             onSend={(newMessages) => onSend(newMessages)}
             user={{
               _id: userData?.user_id,
             }}
+            alwaysShowSend
+            renderAvatarOnTop
           />
         </View>
       </View>
