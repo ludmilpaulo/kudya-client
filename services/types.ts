@@ -74,17 +74,6 @@ export type UserDetails = {
   }
   
 
-  export type Product = {
-    user_id?: number;
-    id?: number;
-    name: string;
-    short_description: string;
-    image: string;
-    price: string;
-    category: string | number;
-    // Add other fields if necessary...
-  };
-  
  // @/services/types.ts
  export type OpeningHour = {
   day: string;
@@ -191,3 +180,36 @@ export interface JobApplication {
   email: string;
   resume: File | null;
 }
+
+export interface StoreType {
+  id: number;
+  name: string;
+  description?: string;
+  icon?: string;
+}
+
+export interface Store {
+  id: number;
+  store_type: number;
+  category: number;
+  name: string;
+  phone: string;
+  address: string;
+  logo: string;
+  location?: string;
+  banner?: boolean;
+  is_approved?: boolean;
+}
+
+
+export interface Product {
+  id: number
+  name: string
+  price: number
+  stock: number
+  store: number
+  category: number
+  image_urls: string[]
+  description: string
+}
+

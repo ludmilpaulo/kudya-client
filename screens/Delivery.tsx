@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import ChatComponent from "../components/ChatComponent";
 import { baseAPI } from "../services/types";
 import { getDistance } from "geolib";
 import * as Location from "expo-location";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { fetchLatestOrder, fetchDriverLocation } from "../services/driverService";
 
 interface LocationType {
@@ -49,6 +49,28 @@ const Delivery = () => {
   const [driverLocationFetchDone, setDriverLocationFetchDone] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [isChatModalVisible, setChatModalVisible] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) {
+        Alert.alert(
+          "Login Required",
+          "You need to log in to access your cart and complete your purchase.",
+          [
+            {
+              text: "Login",
+              onPress: () => navigation.navigate("UserLogin"),
+            },
+            {
+              text: "Cancel",
+              style: "cancel",
+              onPress: () => navigation.goBack(),
+            },
+          ],
+        );
+      }
+    }, [user, navigation]),
+  );
 
   const handlePhoneCall = () => {
     const phoneNumber = driverData?.phone;

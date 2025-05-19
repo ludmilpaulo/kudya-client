@@ -15,9 +15,7 @@ import FoodDetailsPage from "../screens/FoodDetailsPage";
 const Stack = createStackNavigator();
 
 export default function HomeNavigator() {
-  const user = useSelector(selectUser);
-  const dispatch = useDispatch();
-
+  
   return (
     <Stack.Navigator
       screenOptions={{

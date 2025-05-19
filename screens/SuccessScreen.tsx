@@ -3,7 +3,7 @@ import { View, Text, SafeAreaView, Image } from "react-native";
 import * as Animatable from "react-native-animatable";
 import * as Progress from "react-native-progress";
 import { useNavigation } from "@react-navigation/native";
-import LinearGradient from "expo-linear-gradient";
+import {LinearGradient} from "expo-linear-gradient";
 import tw from "twrnc"; // ✅ Using `twrnc` instead of tailwind-react-native-classnames
 
 const SuccessScreen = () => {

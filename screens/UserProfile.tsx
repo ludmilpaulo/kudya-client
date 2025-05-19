@@ -21,7 +21,7 @@ import Geocoder from "react-native-geocoding";
 import * as Device from "expo-device";
 import * as Location from "expo-location";
 import { baseAPI } from "../services/types";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import * as Icons from "@expo/vector-icons"; // ✅ Fixed import
 import tw from "twrnc";
 
 type ImageInfoType = {
@@ -179,11 +179,11 @@ const UserProfile = () => {
                 {imageInfo && <Image source={{ uri: imageInfo.uri }} style={tw`w-48 h-48`} />}
               </View>
               <TouchableOpacity onPress={handleTakePhoto} style={tw`flex-row items-center mt-5 p-3 bg-blue-800 rounded-xl`}>
-                <Ionicons name="camera" size={24} color="white" />
+                <Icons.Ionicons name="camera" size={24} color="white" />
                 <Text style={tw`text-white text-lg font-bold ml-2`}>Tire uma Foto</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleSelectPhoto} style={tw`flex-row items-center mt-4 p-3 bg-blue-800 rounded-xl`}>
-                <Ionicons name="image" size={24} color="white" />
+                <Icons.Ionicons name="image" size={24} color="white" />
                 <Text style={tw`text-white text-lg font-bold ml-2`}>Carregue sua Foto</Text>
               </TouchableOpacity>
             </View>
@@ -227,7 +227,7 @@ const UserProfile = () => {
                 style={tw`flex-row items-center mt-6 p-3 bg-blue-700 rounded-lg`}
                 onPress={() => navigation.navigate("Order_History")}
               >
-                <MaterialIcons name="history" size={24} color="white" />
+                <Icons.MaterialIcons name="history" size={24} color="white" />
                 <Text style={tw`text-white text-lg font-bold ml-2`}>Histórico de pedidos</Text>
               </TouchableOpacity>
             </View>

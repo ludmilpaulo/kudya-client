@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, logoutUser } from '../redux/slices/authSlice';
 import { selectCartItems, clearCart } from '../redux/slices/basketSlice';
@@ -34,6 +34,28 @@ const CheckoutPage: React.FC = () => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const allCartItems = useSelector(selectCartItems);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) {
+        Alert.alert(
+          "Login Required",
+          "You need to log in to access your cart and complete your purchase.",
+          [
+            {
+              text: "Login",
+              onPress: () => navigation.navigate("UserLogin"),
+            },
+            {
+              text: "Cancel",
+              style: "cancel",
+              onPress: () => navigation.goBack(),
+            },
+          ],
+        );
+      }
+    }, [user, navigation]),
+  );
 
   useEffect(() => {
     const fetchData = async () => {

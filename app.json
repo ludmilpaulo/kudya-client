@@ -4,7 +4,7 @@
     "slug": "kudya",
     "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/azul.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/azul.png",
@@ -34,7 +34,7 @@
         "LOCATION"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/azul.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",

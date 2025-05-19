@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Imag
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 
-import { Eye, EyeOff } from "react-native-feather";
+import { Feather } from '@expo/vector-icons'
 import { loginUserService } from "../services/authService";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import { clearAllCart } from "../redux/slices/basketSlice";
@@ -85,7 +85,7 @@ const LoginScreenUser = () => {
             onPress={togglePasswordVisibility}
             style={styles.eyeIcon}
           >
-            {showPassword ? <EyeOff width={20} height={20} color="#040405"/> : <Eye width={20} height={20} color="#040405" />}
+            {showPassword ? <Feather name="eye-off" width={20} height={20} color="#040405"/> : <Feather name="eye"width={20} height={20} color="#040405" />}
           </TouchableOpacity>
         </View>
         <TouchableOpacity onPress={toggleForgotPasswordModal}>

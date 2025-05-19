@@ -1,239 +1,132 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useMemo } from 'react'
 import {
   View,
   Text,
-  ScrollView,
-  ActivityIndicator,
   TextInput,
-  Image,
   TouchableOpacity,
-  Alert,
-  SafeAreaView,
-} from "react-native";
-import Constants from "expo-constants";
-import { Ionicons } from "@expo/vector-icons";
-import * as Location from "expo-location";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
-import RestaurantCard from "../components/RestaurantCard";
-import LinearGradient from "expo-linear-gradient"; // ✅ FIXED: default import
-import { useAppSelector } from "../redux/store";
-import { selectCartItems } from "../redux/slices/basketSlice";
-import { Restaurant, Category, baseAPI } from "../services/types";
-import tw from "twrnc"; // ✅ FIXED: default import
+  ScrollView,
+} from 'react-native'
+import { useSelector } from 'react-redux'
+import { RootState } from '../redux/store'
+import { useAutoRefreshStoreTypes } from '../redux/hooks/useAutoRefreshStoreTypes'
+import { Feather, MaterialIcons, FontAwesome5 } from '@expo/vector-icons'
+import { Image } from 'expo-image'
+import { LinearGradient } from 'expo-linear-gradient'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { BlurView } from 'expo-blur'
+import Animated, { FadeInRight } from 'react-native-reanimated'
+import tw from 'twrnc'
 
-type RootStackParamList = {
-  CartPage: undefined;
-};
+// ✅ new correct import
+import i18n from '../configs/i18n' 
 
-type Coords = {
-  latitude: number;
-  longitude: number;
-};
 
-const HomeScreen: React.FC = () => {
-  const [filteredDataSource, setFilteredDataSource] = useState<Restaurant[]>([]);
-  const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
-  const [masterDataSource, setMasterDataSource] = useState<Restaurant[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [location, setLocation] = useState<Coords | null>(null);
-  const [address, setAddress] = useState("");
-  const cartItems = useAppSelector(selectCartItems);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+import { useNavigation } from '@react-navigation/native'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { RootStackParamList } from '../navigation/navigation'
 
-  useEffect(() => {
-    (async () => {
-      let coords: Coords = { latitude: -25.747868, longitude: 28.229271 };
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === "granted") {
-          const loc = await Location.getCurrentPositionAsync({});
-          coords = loc.coords;
-          const reverseGeocode = await Location.reverseGeocodeAsync(loc.coords);
-          if (reverseGeocode.length > 0) {
-            const { city, region } = reverseGeocode[0];
-            setAddress(`${city}, ${region}`);
-          }
-        } else {
-          Alert.alert("Permissão negada", "Mostrando restaurantes em localização padrão.");
-        }
-      } catch (error) {
-        console.warn("Erro ao buscar localização, usando fallback.", error);
-      } finally {
-        setLocation(coords);
-      }
-    })();
-  }, []);
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>
 
-  useEffect(() => {
-    const fetchRestaurants = async () => {
-      try {
-        const response = await fetch(`${baseAPI}/customer/customer/restaurants/`);
-        const data = await response.json();
-        const approvedRestaurants: Restaurant[] = data.restaurants
-          .map((r: any): Restaurant => {
-            const [latitude, longitude] = r.location.split(",").map(Number);
-            return {
-              ...r,
-              location: { latitude, longitude },
-            };
-          })
-          .filter((r: Restaurant) => r.is_approved);
+const getFallbackIcon = (name: string) => {
+  const key = name.toLowerCase()
+  if (key.includes('restaurant')) return <MaterialIcons name="restaurant" size={24} color="white" />
+  if (key.includes('clothing')) return <FontAwesome5 name="tshirt" size={24} color="white" />
+  if (key.includes('tech')) return <Feather name="cpu" size={24} color="white" />
+  if (key.includes('pharmacy')) return <MaterialIcons name="local-pharmacy" size={24} color="white" />
+  if (key.includes('supermarket')) return <Feather name="shopping-cart" size={24} color="white" />
+  if (key.includes('gift')) return <Feather name="gift" size={24} color="white" />
+  if (key.includes('book')) return <FontAwesome5 name="book" size={24} color="white" />
+  if (key.includes('pet')) return <FontAwesome5 name="dog" size={24} color="white" />
+  return <Feather name="box" size={24} color="white" />
+}
 
-        setMasterDataSource(approvedRestaurants);
+export default function HomeScreen() {
+  const storeTypes = useSelector((state: RootState) => state.storeTypes.data)
+  const loading = useSelector((state: RootState) => state.storeTypes.loading)
+  const [searchTerm, setSearchTerm] = useState('')
+  const navigation = useNavigation<NavigationProp>()
 
-        const uniqueCategories = Array.from(
-          new Set(approvedRestaurants.map((r) => r.category?.name))
-        ).filter(Boolean);
+  useAutoRefreshStoreTypes()
 
-        const categoriesWithImages: Category[] = uniqueCategories.map((name) => {
-          const found = approvedRestaurants.find((r) => r.category?.name === name);
-          return {
-            id: found?.category.id || 0,
-            name: name as string,
-            image: found?.category.image || null,
-          };
-        });
-
-        setCategories(categoriesWithImages);
-        setLoading(false);
-      } catch (error) {
-        console.error("Erro ao buscar restaurantes:", error);
-        setLoading(false);
-      }
-    };
-
-    fetchRestaurants();
-  }, []);
-
-  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      0.5 -
-      Math.cos(dLat) / 2 +
-      (Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        (1 - Math.cos(dLon))) /
-        2;
-    return R * 2 * Math.asin(Math.sqrt(a));
-  };
-
-  const filterNearbyRestaurants = useCallback(
-    (restaurants: Restaurant[], lat: number, lng: number, radius: number) => {
-      return restaurants.filter((r) => {
-        const d = getDistance(lat, lng, r.location.latitude, r.location.longitude);
-        return d <= radius;
-      });
-    },
-    []
-  );
-
-  useEffect(() => {
-    if (location) {
-      const nearby = filterNearbyRestaurants(masterDataSource, location.latitude, location.longitude, 5);
-      const withinArea = filterNearbyRestaurants(masterDataSource, location.latitude, location.longitude, 3.47);
-      setNearbyRestaurants(nearby);
-      setFilteredDataSource(withinArea);
-    }
-  }, [location, masterDataSource, filterNearbyRestaurants]);
-
-  const searchFilterFunction = (text: string) => {
-    if (text) {
-      const newData = masterDataSource.filter((item) =>
-        item.name.toUpperCase().includes(text.toUpperCase())
-      );
-      setFilteredDataSource(newData);
-    } else {
-      setFilteredDataSource(masterDataSource);
-    }
-  };
-
-  const filterByCategory = (categoryName: string) => {
-    const newData = masterDataSource.filter((item) => item.category?.name === categoryName);
-    setFilteredDataSource(newData);
-  };
-
-  const totalItemsInCart = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const filteredTypes = useMemo(() => {
+    return storeTypes.filter(type =>
+      type.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [searchTerm, storeTypes])
 
   return (
-    <LinearGradient colors={["#FCD34D", "#3B82F6"]} style={tw`flex-1`}>
-      <SafeAreaView style={tw`flex-1 pt-[${Constants.statusBarHeight}]`}>
-        {loading ? (
-          <View style={tw`flex-1 justify-center items-center`}>
-            <ActivityIndicator size="large" color="#fff" />
+    <LinearGradient
+      colors={['#FCD34D', '#ffcc00', '#3B82F6']}
+      style={tw`flex-1`}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <SafeAreaView style={tw`flex-1`}>
+        <View style={tw`px-6 pt-4`}>
+          <Text style={tw`text-3xl font-extrabold text-white`}>
+            {i18n.t('selectStore')}
+          </Text>
+          <Text style={tw`text-sm text-white opacity-80 mt-1`}>
+            {i18n.t('browse')}
+          </Text>
+
+          <View style={tw`mt-4 flex-row items-center bg-white/90 rounded-full px-4 py-2`}>
+            <Feather name="search" size={18} color="#9CA3AF" />
+            <TextInput
+              placeholder={i18n.t('search')}
+              placeholderTextColor="#9CA3AF"
+              value={searchTerm}
+              onChangeText={setSearchTerm}
+              style={tw`ml-2 flex-1 text-sm text-gray-700`}
+            />
           </View>
-        ) : (
-          <ScrollView contentContainerStyle={tw`p-4`}>
-            <View style={tw`flex-row justify-between items-center mb-4`}>
-              <Text style={tw`text-white text-lg font-bold`}>{address}</Text>
-              <View style={tw`flex-row`}>
-                <Ionicons name="notifications-outline" size={24} color="white" style={tw`mx-2`} />
-                <TouchableOpacity onPress={() => navigation.navigate("CartPage")} style={tw`relative`}>
-                  <Ionicons name="cart-outline" size={24} color="white" />
-                  {totalItemsInCart > 0 && (
-                    <View style={tw`absolute -top-2 -right-2 bg-red-600 rounded-full w-6 h-6 justify-center items-center`}>
-                      <Text style={tw`text-white text-xs font-bold`}>{totalItemsInCart}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
+        </View>
 
-            <View style={tw`mb-4`}>
-              <View style={tw`flex-row items-center bg-gray-200 p-3 rounded-full`}>
-                <Ionicons name="search" size={20} color="gray" style={tw`mr-2`} />
-                <TextInput
-                  placeholder="Pesquisar Restaurantes"
-                  placeholderTextColor="gray"
-                  onChangeText={searchFilterFunction}
-                  style={tw`flex-1 text-black`}
-                />
-              </View>
-            </View>
+        <ScrollView
+          contentContainerStyle={tw`p-4 pb-32 flex-row flex-wrap justify-between`}
+          showsVerticalScrollIndicator={false}
+        >
+          {loading && (
+            <Text style={tw`text-white mt-10 text-center`}>
+              {i18n.t('loading')}
+            </Text>
+          )}
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`pb-4`}>
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  onPress={() => filterByCategory(category.name)}
-                  style={tw`items-center mx-2`}
-                >
-                  <Image
-                    source={{ uri: category.image || "https://ludmil.pythonanywhere.com/media/logo/azul.png" }}
-                    style={tw`w-16 h-16 rounded-full`}
-                  />
-                  <Text style={tw`mt-2 text-white text-sm`}>{category.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <Text style={tw`text-white text-xl font-bold mb-4`}>Ofertas de Hoje</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`pb-4`}>
-              {filteredDataSource.filter((r) => r.barnner).map((restaurant) => (
-                location && <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
-              ))}
-            </ScrollView>
-
-            <Text style={tw`text-white text-xl font-bold mb-4`}>Restaurantes Próximos</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`pb-4`}>
-              {nearbyRestaurants.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location!} />
-              ))}
-            </ScrollView>
-
-            <Text style={tw`text-white text-xl font-bold mb-4`}>Todos os Restaurantes</Text>
-            <View>
-              {filteredDataSource.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location!} />
-              ))}
-            </View>
-          </ScrollView>
-        )}
+          {!loading && filteredTypes.map((type, index) => (
+            <Animated.View
+              key={type.id}
+              entering={FadeInRight.delay(index * 50)}
+              style={tw`w-[48%] mb-4`}
+            >
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() =>
+                  navigation.navigate('Stores', { storeTypeId: type.id })
+                }
+              >
+                <BlurView intensity={50} tint="light" style={tw`rounded-2xl overflow-hidden`}>
+                  <View style={tw`p-4 items-center justify-center`}>
+                    {type.icon ? (
+                      <Image
+                        source={{ uri: type.icon }}
+                        style={tw`w-14 h-14 rounded-xl mb-2`}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <View style={tw`w-14 h-14 bg-blue-500 rounded-xl mb-2 items-center justify-center`}>
+                        {getFallbackIcon(type.name)}
+                      </View>
+                    )}
+                    <Text style={tw`text-base font-semibold text-center text-gray-800`}>
+                      {type.name}
+                    </Text>
+                  </View>
+                </BlurView>
+              </TouchableOpacity>
+            </Animated.View>
+          ))}
+        </ScrollView>
       </SafeAreaView>
     </LinearGradient>
-  );
-};
-
-export default HomeScreen;
+  )
+}

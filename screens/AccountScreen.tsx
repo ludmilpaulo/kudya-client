@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { View, Image, Text, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Image, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import Screen from "../components/Screen";
 import AppHead from "../components/AppHead";
-import LinearGradient from "expo-linear-gradient";
+import {LinearGradient} from "expo-linear-gradient";
 import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { logoutUser, selectUser } from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { baseAPI } from "../services/types";
 import { fetchUserDetails } from "../services/checkoutService";
 import tw from "twrnc";
@@ -22,6 +22,28 @@ const AccountScreen = () => {
   const [userId, setUserId] = useState<any>();
   const navigation = useNavigation<any>();
   const customer_image = `${url}${userPhoto}`;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) {
+        Alert.alert(
+          "Login Required",
+          "You need to log in to access your cart and complete your purchase.",
+          [
+            {
+              text: "Login",
+              onPress: () => navigation.navigate("UserLogin"),
+            },
+            {
+              text: "Cancel",
+              style: "cancel",
+              onPress: () => navigation.goBack(),
+            },
+          ],
+        );
+      }
+    }, [user, navigation]),
+  );
 
   const pickUser = async () => {
     if (user?.user_id && user?.token) {

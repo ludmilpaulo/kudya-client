@@ -1,5 +1,5 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": "expo/tsconfig.base.json",
   "compilerOptions": {
     "types": ["react-native", "react-native-vector-icons", "node"],
     "strict": true,

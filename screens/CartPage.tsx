@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import { useAppSelector } from '../redux/store';
 import { addItem, removeItem } from '../redux/slices/basketSlice';
 import { baseAPI } from '../services/types';
 import { LinearGradient } from 'expo-linear-gradient';
+import { selectUser } from '../redux/slices/authSlice';
 
 type Restaurant = {
   id: number;
@@ -28,6 +29,29 @@ const CartPage: React.FC = () => {
   const navigation = useNavigation<any>();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const user = useSelector(selectUser);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) {
+        Alert.alert(
+          "Login Required",
+          "You need to log in to access your cart and complete your purchase.",
+          [
+            {
+              text: "Login",
+              onPress: () => navigation.navigate("UserLogin"),
+            },
+            {
+              text: "Cancel",
+              style: "cancel",
+              onPress: () => navigation.goBack(),
+            },
+          ],
+        );
+      }
+    }, [user, navigation]),
+  );
 
   useEffect(() => {
     fetch(`${baseAPI}/customer/customer/restaurants/`)

@@ -1,21 +1,23 @@
 
 import axios from "axios";
+import { getDeviceLanguage } from './getDeviceLanguage'
 
-export const baseAPI = process.env.NEXT_PUBLIC_BASE_API;
+//export const baseAPI = "http://192.168.1.109:8000"
+export const baseAPI = "http://192.168.100.106:8000";
 
-const api = axios.create({
+const API = axios.create({
   baseURL: baseAPI,
+  timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-api.interceptors.request.use((config) => {
-  const language = localStorage.getItem("language") || "en"; // Default to English
-  config.headers["Accept-Language"] = language;
-  return config;
-});
+API.interceptors.request.use((config) => {
+  config.headers['Accept-Language'] = getDeviceLanguage()
+  return config
+})
 
-export default api;
+export default API;
 
 // Use this `api` instance to make all backend calls
