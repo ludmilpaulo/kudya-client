@@ -2,6 +2,7 @@
 import { I18n } from 'i18n-js';
 import * as Localization from 'expo-localization';
 
+// Translation dictionaries
 const translations = {
   en: {
     selectStore: 'Select a Store Type',
@@ -18,8 +19,13 @@ const translations = {
 };
 
 const i18n = new I18n(translations);
-
-i18n.locale = Localization.locale;
 i18n.enableFallback = true;
+
+// ✅ FIX: safely extract system language code
+const fallbackLocale = 'en';
+const locale = Localization.getLocales?.()[0]?.languageCode || fallbackLocale;
+
+// ✅ Guard against undefined on Hermes
+i18n.locale = typeof locale === 'string' ? locale : fallbackLocale;
 
 export default i18n;
