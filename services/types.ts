@@ -1,5 +1,5 @@
 //export const baseAPI: string = "http://192.168.1.108:8000";
-export const baseAPI: string = "https://kudya.pythonanywhere.com";
+export const baseAPI : string = "http://192.168.1.109:8000";
 
 
 
@@ -108,11 +108,6 @@ export interface Restaurant {
 }
 
 
-export type Category = {
-  id: number;
-  name: string;
-  image: string | null;
-};
 
 
   export interface OpeningHourType {
@@ -202,14 +197,61 @@ export interface Store {
 }
 
 
-export interface Product {
-  id: number
-  name: string
-  price: number
-  stock: number
-  store: number
-  category: number
-  image_urls: string[]
-  description: string
+export interface ProductImage {
+  id: number;
+  image: string;
 }
 
+export interface Product {
+  id: number;
+  store_id: number;
+  name: string;
+  category?: string;
+  description?: string;
+  price: number;
+  stock: number;
+  on_sale: boolean;
+  bulk_sale: boolean;
+  discount_percentage: number;
+  season?: string;
+  images?: ProductImage[];
+  gender?: string;
+  sizes?: string[];
+
+}
+
+
+// For items in the cart:
+export interface CartItem {
+  id: number;            // productId
+  name: string;
+  price: number;
+  image?: string;
+  size: string;
+  quantity: number;
+  store: number;  
+     // storeId
+}
+
+export interface WishlistItem {
+  id: number;
+  user: number;
+  product: Product;
+}
+
+export interface Review {
+  id: number;
+  user: string;
+  product: number;
+  rating: number;
+  comment: string;
+  created_at: string;
+  likes: number[];
+  dislikes: number[];
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  icon?: string;
+}

@@ -1,3 +1,4 @@
+// App.tsx
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
@@ -8,6 +9,7 @@ import { store, persistor } from "./redux/store";
 import { PersistGate } from "redux-persist/integration/react";
 import AppNavigator from "./navigation/AppNavigator";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { NavigationContainer } from "@react-navigation/native"; // <-- ADD THIS
 
 export default function App() {
   return (
@@ -15,7 +17,9 @@ export default function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <ErrorBoundary>
-            <AppNavigator />
+            <NavigationContainer>
+              <AppNavigator />
+            </NavigationContainer>
           </ErrorBoundary>
         </PersistGate>
       </Provider>

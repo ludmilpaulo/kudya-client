@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, SafeAreaView, KeyboardAvoidingView, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
-
 import { Feather } from '@expo/vector-icons'
 import { loginUserService } from "../services/authService";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import { clearAllCart } from "../redux/slices/basketSlice";
-import LinearGradient from "expo-linear-gradient";
-import { MotiView } from 'moti';
 import { loginUser } from "../redux/slices/authSlice";
+import { RootStackParamList } from "../navigation/navigation";
+import { StackNavigationProp } from "@react-navigation/stack";
+import tw from "twrnc";
+import { useTranslation } from "../hooks/useTranslation";
+
+type NavigationProp = StackNavigationProp<RootStackParamList, "UserLogin">;
 
 const LoginScreenUser = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NavigationProp>();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -21,9 +25,8 @@ const LoginScreenUser = () => {
   const [loading, setLoading] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
-  const toggleForgotPasswordModal = () => {
-    setShowForgotPasswordModal(prev => !prev);
-  };
+  const toggleForgotPasswordModal = () => setShowForgotPasswordModal(prev => !prev);
+
   useEffect(() => {
     dispatch(clearAllCart());
   }, []);
@@ -32,173 +35,92 @@ const LoginScreenUser = () => {
     setLoading(true);
     try {
       const response = await loginUserService(username, password);
-      dispatch(loginUser(response));  // Assume loginUser action updates the Redux state accordingly
-      Alert.alert("Sucesso", "Você se conectou com sucesso!");
-      navigation.navigate(response.is_customer ? "HomeScreen" : "RestaurantDashboard");
+      dispatch(loginUser(response));
+      Alert.alert(
+        t('success', 'Sucesso'),
+        t('loginSuccess', 'Você se conectou com sucesso!')
+      );
+      navigation.navigate(response.is_customer ? "Home" : "RestaurantDashboard");
     } catch (error) {
-      console.error(error);
-      Alert.alert("Erro", "Falha ao entrar. Por favor, tente novamente.");
+      Alert.alert(
+        t('error', 'Erro'),
+        t('loginFailed', 'Falha ao entrar. Por favor, tente novamente.')
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(prevState => !prevState);
-  };
-
   return (
-    <LinearGradient colors={['#FCB61A', '#0171CE']} style={styles.container}>
-      <MotiView
-        from={{ opacity: 0, translateY: -100 }}
-        animate={{ opacity: 1, translateY: 0 }}
-        transition={{ type: 'timing', duration: 500 }}
-        style={styles.formContainer}
+    <SafeAreaView style={tw`flex-1 bg-white`}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={tw`flex-1 justify-center items-center`}
       >
-        <View style={styles.imageContainer}>
-        <Image source={require("../assets/azul.png")} style={styles.logo} />
-        </View>
-        <Text style={styles.title}>Faça login na sua conta</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("SignupScreen")}>
-          <Text style={styles.signupLink}>
-            Não tem uma conta?{" "}
-            <Text style={styles.signupText}>Cadastre-se aqui</Text>
+        <View style={tw`w-11/12 max-w-xs bg-white rounded-2xl p-6 shadow-lg`}>
+          <View style={tw`items-center mb-6`}>
+            <Image source={require("../assets/azul.png")} style={tw`w-24 h-24`} resizeMode="contain" />
+          </View>
+          <Text style={tw`text-xl font-bold text-center mb-4`}>
+            {t('loginTitle', 'Faça login na sua conta')}
           </Text>
-        </TouchableOpacity>
-        <View style={styles.inputContainer}>
-          <TextInput
-            placeholder="Nome do usuário"
-            value={username}
-            onChangeText={setUsername}
-            style={styles.input}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            value={password}
-            placeholder="Digite sua senha"
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            style={styles.input}
-          />
+          <TouchableOpacity onPress={() => navigation.navigate("SignupScreen")}>
+            <Text style={tw`text-base text-center text-gray-500 mb-4`}>
+              {t('noAccount', 'Não tem uma conta?')}{' '}
+              <Text style={tw`text-blue-600 underline`}>{t('registerHere', 'Cadastre-se aqui')}</Text>
+            </Text>
+          </TouchableOpacity>
+          <View style={tw`mb-4`}>
+            <TextInput
+              placeholder={t('username', 'Nome do usuário')}
+              value={username}
+              onChangeText={setUsername}
+              style={tw`border border-gray-300 rounded px-4 py-3 mb-2 bg-gray-100`}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+          <View style={tw`mb-2 relative`}>
+            <TextInput
+              value={password}
+              placeholder={t('password', 'Digite sua senha')}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              style={tw`border border-gray-300 rounded px-4 py-3 bg-gray-100`}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(s => !s)}
+              style={tw`absolute right-2 top-3 p-2`}
+            >
+              {showPassword
+                ? <Feather name="eye-off" size={20} color="#040405" />
+                : <Feather name="eye" size={20} color="#040405" />}
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity onPress={toggleForgotPasswordModal}>
+            <Text style={tw`text-right text-blue-600 underline mb-6`}>
+              {t('forgotPassword', 'Esqueceu a senha?')}
+            </Text>
+          </TouchableOpacity>
           <TouchableOpacity
-            onPress={togglePasswordVisibility}
-            style={styles.eyeIcon}
+            onPress={handleSubmit}
+            style={tw`bg-blue-600 rounded-full py-3 items-center`}
+            disabled={loading}
           >
-            {showPassword ? <Feather name="eye-off" width={20} height={20} color="#040405"/> : <Feather name="eye"width={20} height={20} color="#040405" />}
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={tw`text-white font-bold text-lg`}>
+                {t('login', 'Entrar')}
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={toggleForgotPasswordModal}>
-        <Text style={styles.forgotPasswordLink}>Esqueceu a senha?</Text>
-      </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleSubmit}
-          style={styles.loginButton}
-          disabled={loading}
-        >
-          <Text style={styles.loginButtonText}>Entrar</Text>
-        </TouchableOpacity>
-      </MotiView>
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
-        </View>
-      )}
-       <ForgotPasswordModal show={showForgotPasswordModal} onClose={toggleForgotPasswordModal} />
-    </LinearGradient>
+        <ForgotPasswordModal show={showForgotPasswordModal} onClose={toggleForgotPasswordModal} />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  formContainer: {
-    width: '100%',
-    maxWidth: 400,
-    padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    shadowColor: '#000',
-    shadowOffset: { height: 0, width: 0 }
-  },
-  imageContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20
-  },
-  logo: {
-    width: 100,
-    height: 100
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20
-  },
-  signupLink: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#555',
-    marginBottom: 20
-  },
-  signupText: {
-    color: '#0077cc',
-    textDecorationLine: 'underline'
-  },
-  inputContainer: {
-    marginBottom: 10
-  },
-  input: {
-    fontSize: 16,
-    padding: 12,
-    backgroundColor: '#f0f0f0',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    width: '100%'
-  },
-  eyeIcon: {
-    position: 'absolute',
-    right: 10,
-    top: 12,
-    padding: 10
-  },
-  forgotPasswordLink: {
-    textAlign: 'right',
-    color: '#0077cc',
-    textDecorationLine: 'underline',
-    marginBottom: 20
-  },
-  loginButton: {
-    backgroundColor: '#0077cc',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 50
-  },
-  loginButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold'
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center'
-  }
-});
 
 export default LoginScreenUser;

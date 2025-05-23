@@ -27,4 +27,15 @@ declare module 'react-native-chat-ui' {
   
     export const Chat: React.FC<ChatProps>;
   }
-  
+
+  declare module 'expo-intl' {
+  // Add only what you use for now:
+  export function useTranslations(): (key: string) => string;
+  export interface TranslationsProviderProps {
+    translations: Record<string, Record<string, string>>;
+    fallback: string;
+    locale?: string | null;
+    children: React.ReactNode;
+  }
+  export const TranslationsProvider: React.FC<TranslationsProviderProps>;
+}

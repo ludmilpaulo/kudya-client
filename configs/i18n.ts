@@ -1,31 +1,19 @@
-// i18n.ts
-import { I18n } from 'i18n-js';
 import * as Localization from 'expo-localization';
+import translations, { SupportedLocale, TranslationKey, supportedLocales } from './translations';
 
-// Translation dictionaries
-const translations = {
-  en: {
-    selectStore: 'Select a Store Type',
-    browse: 'Search or browse categories',
-    search: 'Search...',
-    loading: 'Loading store types...',
-  },
-  pt: {
-    selectStore: 'Selecione um Tipo de Loja',
-    browse: 'Pesquise ou navegue por categorias',
-    search: 'Procurar...',
-    loading: 'Carregando tipos de lojas...',
-  },
-};
+// Detect language
+const locales = Localization.getLocales();
+let languageCode: SupportedLocale = 'en';
 
-const i18n = new I18n(translations);
-i18n.enableFallback = true;
+if (
+  Array.isArray(locales) &&
+  locales.length > 0 &&
+  typeof locales[0].languageCode === 'string' &&
+  supportedLocales.includes(locales[0].languageCode as SupportedLocale)
+) {
+  languageCode = locales[0].languageCode as SupportedLocale;
+}
 
-// ✅ FIX: safely extract system language code
-const fallbackLocale = 'en';
-const locale = Localization.getLocales?.()[0]?.languageCode || fallbackLocale;
-
-// ✅ Guard against undefined on Hermes
-i18n.locale = typeof locale === 'string' ? locale : fallbackLocale;
-
-export default i18n;
+export function t(key: TranslationKey): string {
+  return translations[languageCode][key] || translations['en'][key] || key;
+}
