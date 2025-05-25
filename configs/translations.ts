@@ -32,7 +32,6 @@ export const translationKeys = [
   'noReviews',
   'youMayAlsoLike',
   'lastOne',
-
   'Home',
   'Categories',
   'Stores',
@@ -40,19 +39,32 @@ export const translationKeys = [
   'Orders',
   'Wishlist',
   'Profile',
-
-  // 👉 Add these:
   'loginRequired',
   'sharingNotSupported',
   'shareFailed',
-
   'loginToAccessCart',
   'login',
   'cancel',
-
-  "increase",
-  "decrease",
-  
+  'increase',
+  'decrease',
+  // New authentication/forgot password keys:
+  'loginTitle',
+  'noAccount',
+  'registerHere',
+  'username',
+  'password',
+  'forgotPassword',
+  'email',
+  'enterEmail',
+  'send',
+  'close',
+  'success',
+  'emailSent',
+  'emailSentInstruction',
+  'resetPassword',
+  'loginSuccess',
+  'loginFailed',
+  'resetFailed',
 ] as const;
 export type TranslationKey = typeof translationKeys[number];
 
@@ -95,18 +107,32 @@ const translations: Record<SupportedLocale, Record<TranslationKey, string>> = {
     Orders: "Orders",
     Wishlist: "Wishlist",
     Profile: "Profile",
-
-    // ...existing...
     loginRequired: "Login Required",
     sharingNotSupported: "Sharing not supported on this device.",
     shareFailed: "Failed to share product.",
     increase: "Increase",
     decrease: "Decrease",
-
-  loginToAccessCart: "You need to log in to access your cart and complete your purchase.",
-  login: "Login",
-  cancel: "Cancel",
-    
+    loginToAccessCart: "You need to log in to access your cart and complete your purchase.",
+    login: "Login",
+    cancel: "Cancel",
+    // Authentication/Forgot Password:
+    loginTitle: "Sign in to your account",
+    noAccount: "Don't have an account?",
+    registerHere: "Register here",
+    username: "Username",
+    password: "Password",
+    forgotPassword: "Forgot password?",
+    email: "Email",
+    enterEmail: "Enter your email",
+    send: "Send",
+    close: "Close",
+    success: "Success",
+    emailSent: "Email Sent",
+    emailSentInstruction: "Please check your email to reset your password.",
+    resetPassword: "Reset Password",
+    loginSuccess: "You have successfully logged in!",
+    loginFailed: "Failed to login. Please try again.",
+    resetFailed: "Failed to send reset password email.",
   },
   pt: {
     selectStore: "Selecione o tipo de loja",
@@ -146,18 +172,32 @@ const translations: Record<SupportedLocale, Record<TranslationKey, string>> = {
     Orders: "Pedidos",
     Wishlist: "Favoritos",
     Profile: "Conta",
-
-    // ...existing...
     loginRequired: "É necessário estar autenticado",
     sharingNotSupported: "Compartilhamento não suportado neste dispositivo.",
     shareFailed: "Falha ao compartilhar o produto.",
-    // ...existing...
     increase: "Aumentar",
     decrease: "Diminuir",
-
     loginToAccessCart: "Você precisa fazer login para acessar seu carrinho e finalizar a compra.",
     login: "Entrar",
     cancel: "Cancelar",
+    // Authentication/Forgot Password:
+    loginTitle: "Faça login na sua conta",
+    noAccount: "Não tem uma conta?",
+    registerHere: "Cadastre-se aqui",
+    username: "Nome do usuário",
+    password: "Senha",
+    forgotPassword: "Esqueceu a senha?",
+    email: "Email",
+    enterEmail: "Digite seu email",
+    send: "Enviar",
+    close: "Fechar",
+    success: "Sucesso",
+    emailSent: "Email Enviado",
+    emailSentInstruction: "Por favor, verifique seu email para redefinir sua senha.",
+    resetPassword: "Redefinir Senha",
+    loginSuccess: "Você se conectou com sucesso!",
+    loginFailed: "Falha ao entrar. Por favor, tente novamente.",
+    resetFailed: "Erro ao enviar o email de redefinição de senha.",
   },
 };
 
