@@ -36,7 +36,7 @@ export const fetchProductsByCategory = createAsyncThunk(
     if (maxPrice) params.push(`max_price=${maxPrice}`);
     if (onSale) params.push(`on_sale=true`);
     const paramString = params.length ? `?${params.join("&")}` : "";
-    const res = await fetch(`${baseAPI}/restaurant/product/category/${categoryId}/products/${paramString}`);
+    const res = await fetch(`${baseAPI}/store/product/category/${categoryId}/products/${paramString}`);
     if (!res.ok) throw new Error("Failed to fetch products");
     return await res.json();
   }

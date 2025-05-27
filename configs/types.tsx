@@ -1,4 +1,4 @@
-export interface Restaurant {
+export interface store {
   id: number;
   name: string;
   phone: string;
@@ -40,7 +40,7 @@ export interface UserOrder {
     phone: string;
     address: string;
   };
-  restaurant: {
+  store: {
     id: number;
     name: string;
     phone: string;
@@ -88,7 +88,7 @@ export interface OrderDetail {
 export interface Order {
   id: number;
   customer: Customer;
-  restaurant: Restaurant;
+  store: store;
   driver: any; // You might want to define a proper type for the 'driver' field
   order_details: OrderDetail[];
   total: number;
@@ -104,7 +104,7 @@ export interface ForgotPasswordRequest {
 }
 
 
-export interface SimpleRestaurant {
+export interface Simplestore {
   id: number;
   name: string;
   phone: number;

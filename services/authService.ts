@@ -22,8 +22,8 @@ export const loginUserService = async (username: string, password: string) => {
   return data;
 };
 
-export const signup = async (role: "client" | "restaurant", signupData: Record<string, any>) => {
-  const url = role === "client" ? `${baseAPI}/customer/signup/` : `${baseAPI}/restaurant/fornecedor/`;
+export const signup = async (role: "client" | "store", signupData: Record<string, any>) => {
+  const url = role === "client" ? `${baseAPI}/customer/signup/` : `${baseAPI}/store/fornecedor/`;
 
   let body: FormData | string | null = null;
 
@@ -34,7 +34,7 @@ export const signup = async (role: "client" | "restaurant", signupData: Record<s
       password: signupData.password,
       password2: signupData.password,
     });
-  } else if (role === "restaurant") {
+  } else if (role === "store") {
     const formData = new FormData();
     Object.keys(signupData).forEach((key) => {
       const value = signupData[key];

@@ -7,12 +7,12 @@ export const baseAPI : string = "http://192.168.1.109:8000";
 export type RootStackParamList = {
   HomeScreen: undefined;
   SignupScreen: undefined;
-  RestaurantDashboard: undefined;
+  storeDashboard: undefined;
   LoginScreenUser: undefined;
   FoodDetailsPage: { meal: Meal };
   CartPage: undefined;
-  RestaurantMenu: { restaurant_id: number; restaurant_logo: string };
-  CheckoutPage: { restaurantId: number };
+  storeMenu: { store_id: number; store_logo: string };
+  CheckoutPage: { storeId: number };
 };
 
 
@@ -24,7 +24,7 @@ export type Meal = {
   price: number;
   quantity: number;
   category: string;
-  restaurant: number;
+  store: number;
 };
 
 //export type Category = string; // Define Category as a string
@@ -82,7 +82,7 @@ export type UserDetails = {
   is_closed: boolean;
 };
 
-export interface Restaurant {
+export interface store {
   id: number;
   name: string;
   phone: string;
@@ -112,7 +112,7 @@ export interface Restaurant {
 
   export interface OpeningHourType {
     id?: number;
-    restaurant: number;
+    store: number;
     day: number;
     from_hour: string;
     to_hour: string;
@@ -129,7 +129,7 @@ export interface Restaurant {
     image: string | null;
   };
   
-  export type RestaurantType = {
+  export type storeType = {
     id: number;
     name: string;
     phone: string;

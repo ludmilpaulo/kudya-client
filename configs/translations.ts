@@ -65,6 +65,19 @@ export const translationKeys = [
   'loginSuccess',
   'loginFailed',
   'resetFailed',
+
+  'checkout',
+  'paymentMethod',
+  'payoutAccount',
+  'orderSummary',
+  'cartEmpty',
+  'total',
+  'confirmOrder',
+  'orderConfirmed',
+  'thankYouPurchase',
+ 
+  'simulatePayment',
+
 ] as const;
 export type TranslationKey = typeof translationKeys[number];
 
@@ -133,6 +146,19 @@ const translations: Record<SupportedLocale, Record<TranslationKey, string>> = {
     loginSuccess: "You have successfully logged in!",
     loginFailed: "Failed to login. Please try again.",
     resetFailed: "Failed to send reset password email.",
+    //checkout
+    checkout: "Checkout",
+    paymentMethod: "Payment Method",
+    payoutAccount: "Payout Account",
+    orderSummary: "Order Summary",
+    cartEmpty: "Your cart is empty.",
+    total: "Total",
+    confirmOrder: "Confirm Order",
+    orderConfirmed: "Order Confirmed",
+    thankYouPurchase: "Thank you for your purchase!",
+   
+    simulatePayment: "Simulate Payment",
+
   },
   pt: {
     selectStore: "Selecione o tipo de loja",
@@ -198,6 +224,20 @@ const translations: Record<SupportedLocale, Record<TranslationKey, string>> = {
     loginSuccess: "Você se conectou com sucesso!",
     loginFailed: "Falha ao entrar. Por favor, tente novamente.",
     resetFailed: "Erro ao enviar o email de redefinição de senha.",
+
+    //checkout
+    checkout: "Finalizar Compra",
+    paymentMethod: "Método de Pagamento",
+    payoutAccount: "Conta de recebimento",
+    orderSummary: "Resumo do Pedido",
+    cartEmpty: "Seu carrinho está vazio.",
+    total: "Total",
+    confirmOrder: "Confirmar Pedido",
+    orderConfirmed: "Pedido Confirmado",
+    thankYouPurchase: "Obrigado pela sua compra!",
+   
+    simulatePayment: "Simular Pagamento",
+
   },
 };
 

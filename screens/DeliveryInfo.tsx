@@ -12,7 +12,7 @@ type CustomerData = {
   address: string;
 };
 
-type RestaurantData = {
+type storeData = {
   id: number;
   name: string;
   phone: string;
@@ -43,7 +43,7 @@ type DriverData = {
 type OrderHistoryItem = {
   id: number;
   customer: CustomerData;
-  restaurant: RestaurantData;
+  store: storeData;
   driver: DriverData;
   order_details: OrderDetailsData[];
   total: number;
@@ -99,8 +99,8 @@ const DeliveryInfo: React.FC<Props> = () => {
             </View>
           </View>
           <View style={tailwind`mb-2`}>
-            <Text style={tailwind`font-bold text-lg`}>{order.restaurant.name}</Text>
-            <Text style={tailwind`text-gray-500`}>{order.restaurant.address}</Text>
+            <Text style={tailwind`font-bold text-lg`}>{order.store.name}</Text>
+            <Text style={tailwind`text-gray-500`}>{order.store.address}</Text>
             <Text style={tailwind`font-bold text-green-500`}>{order.status}</Text>
           </View>
           <View style={tailwind`mb-2`}>

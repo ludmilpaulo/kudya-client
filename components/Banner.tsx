@@ -4,7 +4,7 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useNavigation } from "@react-navigation/native";
 import tw from 'twrnc';
 
-interface Restaurant {
+interface store {
   location: {
     latitude: number;
     longitude: number;
@@ -19,7 +19,7 @@ interface BannerProps {
   backgroundApp: string;
   bottomImage: string;
   aboutText: string;
-  restaurants: Restaurant[];
+  stores: store[];
   userLocation: {
     latitude: number;
     longitude: number;
@@ -32,7 +32,7 @@ const Banner: React.FC<BannerProps> = ({
   backgroundApp,
   bottomImage,
   aboutText,
-  restaurants,
+  stores,
   userLocation,
 }) => {
   const navigation = useNavigation<any>();
@@ -80,14 +80,14 @@ const Banner: React.FC<BannerProps> = ({
           longitudeDelta: 0.0421,
         }}
       >
-        {restaurants.map((restaurant, index) => (
+        {stores.map((store, index) => (
           <Marker
             key={index}
-            coordinate={restaurant.location}
-            title={restaurant.name}
+            coordinate={store.location}
+            title={store.name}
           >
             <Image
-              source={{ uri: restaurant.logo }}
+              source={{ uri: store.logo }}
               style={tw`w-10 h-10 rounded-full`}
               resizeMode="cover"
             />

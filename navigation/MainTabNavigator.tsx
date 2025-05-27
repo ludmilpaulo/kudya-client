@@ -5,7 +5,7 @@ import { View, Text, SafeAreaView, Animated, Easing } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useDispatch, useSelector } from "react-redux";
 
-import HomeScreen from "../screens/RestaurantHomeScreen";
+import HomeScreen from "../screens/storeHomeScreen";
 import AccountScreen from "../screens/AccountScreen";
 import CartPage from "../screens/CartPage";
 import Delivery from "../screens/Delivery";

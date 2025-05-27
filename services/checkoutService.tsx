@@ -20,13 +20,13 @@ export const fetchUserDetails = async (userId: number, token: string) => {
 };
 
   
-  export const fetchRestaurantDetails = async (restaurantId: number) => {
-    const response = await fetch(`${baseAPI}/order/restaurant/restaurants/${restaurantId}/`);
+  export const fetchstoreDetails = async (storeId: number) => {
+    const response = await fetch(`${baseAPI}/order/store/stores/${storeId}/`);
     if (response.ok) {
         const resJson = await response.json();
         return resJson;
     } else {
-        throw new Error("Failed to fetch restaurant details");
+        throw new Error("Failed to fetch store details");
     }
 };
 

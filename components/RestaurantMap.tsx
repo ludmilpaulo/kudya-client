@@ -3,7 +3,7 @@ import { View, StyleSheet, Image } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import tailwind from "tailwind-react-native-classnames";
 
-const RestaurantMap = ({
+const storeMap = ({
   coordinates,
   title,
 }: {
@@ -45,4 +45,4 @@ const RestaurantMap = ({
 
 const styles = StyleSheet.create({});
 
-export default RestaurantMap;
+export default storeMap;

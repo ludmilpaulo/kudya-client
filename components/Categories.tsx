@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, Image, Text, ActivityIndicator } from "react-native";
 import tailwind from "tailwind-react-native-classnames";
-import { Restaurant } from "../configs/types";
+import { store } from "../configs/types";
 
 // Define the category type
 interface Category {
@@ -27,30 +27,30 @@ const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("https://www.kudya.shop/api/customer/restaurants/");
+      const response = await fetch("https://www.kudya.shop/api/customer/stores/");
       const data = await response.json();
   
       // Initialize an object to track unique categories based on their names
       const uniqueCategories: { [key: string]: Category } = {};
   
-      // Iterate through the restaurants and add their primary category names to the uniqueCategories object
-      data?.restaurants.forEach((restaurant:any) => {
-        const restaurantCategory = restaurant?.category;
+      // Iterate through the stores and add their primary category names to the uniqueCategories object
+      data?.stores.forEach((store:any) => {
+        const storeCategory = store?.category;
   
         if (
-          restaurantCategory &&
-          typeof restaurantCategory === 'object' &&
-          'name' in restaurantCategory &&
-          typeof restaurantCategory.name === 'string' &&
-          typeof restaurantCategory.image === 'string'
+          storeCategory &&
+          typeof storeCategory === 'object' &&
+          'name' in storeCategory &&
+          typeof storeCategory.name === 'string' &&
+          typeof storeCategory.image === 'string'
         ) {
-          const categoryName = restaurantCategory.name;
+          const categoryName = storeCategory.name;
   
           // Add the category to the uniqueCategories object using its name as the key
           uniqueCategories[categoryName] = {
             id: Object.keys(uniqueCategories).length, // Use the current length as a unique identifier
             name: categoryName,
-            image: restaurantCategory.image || 'defaultImageUrl',
+            image: storeCategory.image || 'defaultImageUrl',
           };
         }
       });

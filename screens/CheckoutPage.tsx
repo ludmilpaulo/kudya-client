@@ -4,7 +4,7 @@ import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navig
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, logoutUser } from '../redux/slices/authSlice';
 import { selectCartItems, clearCart } from '../redux/slices/basketSlice';
-import { fetchRestaurantDetails, fetchUserDetails, completeOrderRequest } from '../services/checkoutService';
+import { fetchstoreDetails, fetchUserDetails, completeOrderRequest } from '../services/checkoutService';
 import ProfileModal from '../components/ProfileModal';
 import AddressInput from '../components/AddressInput';
 import PaymentDetails from '../components/PaymentDetails';
@@ -18,7 +18,7 @@ import tw from 'twrnc';
 type CheckoutPageRouteProp = RouteProp<RootStackParamList, 'CheckoutPage'>;
 
 const CheckoutPage: React.FC = () => {
-  const [restaurant, setRestaurant] = useState<any | null>(null);
+  const [store, setstore] = useState<any | null>(null);
   const [userAddress, setUserAddress] = useState<string>("");
   const [location, setLocation] = useState<{ latitude: number; longitude: number }>({ latitude: 0, longitude: 0 });
   const [userDetails, setUserDetails] = useState<any | null>(null);
@@ -30,7 +30,7 @@ const CheckoutPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigation = useNavigation<any>();
   const route = useRoute<CheckoutPageRouteProp>(); // Use the typed useRoute hook
-  const { restaurantId } = route.params;
+  const { storeId } = route.params;
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const allCartItems = useSelector(selectCartItems);
@@ -59,12 +59,12 @@ const CheckoutPage: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (restaurantId) {
+      if (storeId) {
         try {
-          const restaurantDetails = await fetchRestaurantDetails(restaurantId);
-          setRestaurant(restaurantDetails);
+          const storeDetails = await fetchstoreDetails(storeId);
+          setstore(storeDetails);
         } catch (error) {
-          console.error('Error fetching restaurant details:', error);
+          console.error('Error fetching store details:', error);
         }
       }
 
@@ -84,7 +84,7 @@ const CheckoutPage: React.FC = () => {
     };
 
     fetchData();
-  }, [restaurantId, user?.user_id, user?.token, dispatch]);
+  }, [storeId, user?.user_id, user?.token, dispatch]);
 
   const getUserLocation = async () => {
     try {
@@ -105,11 +105,11 @@ const CheckoutPage: React.FC = () => {
   };
 
   const calculateDeliveryFee = () => {
-    if (!restaurant || !location.latitude || !location.longitude) return 100; // Return minimum fee if data is missing
+    if (!store || !location.latitude || !location.longitude) return 100; // Return minimum fee if data is missing
 
     const userLocation = { latitude: location.latitude, longitude: location.longitude }; // User location
-    const restaurantLocation = { latitude: parseFloat(restaurant.location.split(',')[0]), longitude: parseFloat(restaurant.location.split(',')[1]) }; // Restaurant location
-    const distance = getDistance(userLocation, restaurantLocation) / 1000; // Calculate distance in kilometers
+    const storeLocation = { latitude: parseFloat(store.location.split(',')[0]), longitude: parseFloat(store.location.split(',')[1]) }; // store location
+    const distance = getDistance(userLocation, storeLocation) / 1000; // Calculate distance in kilometers
 
     const additionalFee = distance * 20; // 20 Kz per km
     return additionalFee < 20 ? 100 : 100 + additionalFee; // Ensure minimum fee is 100 Kz
@@ -123,13 +123,13 @@ const CheckoutPage: React.FC = () => {
       meal_id: item.id,
       quantity: item.quantity,
     }));
-    const resId = allCartItems.map(({ restaurant }) => restaurant);
-    const restaurantId = resId[0].toString();
+    const resId = allCartItems.map(({ store }) => store);
+    const storeId = resId[0].toString();
     const orderDetails = formattedCartItems;
 
     const orderData = {
       access_token: user.token,
-      restaurant_id: restaurantId,
+      store_id: storeId,
       address: useCurrentLocation ? `${location.latitude},${location.longitude}` : userAddress,
       order_details: orderDetails,
       payment_method: paymentMethod,
@@ -146,7 +146,7 @@ const CheckoutPage: React.FC = () => {
       console.log(`completeOrderRequest took ${(endTime - startTime) / 1000} seconds`);
 
       if (responseData.status === "success") {
-        dispatch(clearCart(parseInt(restaurantId)));
+        dispatch(clearCart(parseInt(storeId)));
         Alert.alert("Pedido Realizado com Sucesso!");
         navigation.navigate("SuccessScreen");
       } else {
@@ -173,11 +173,11 @@ const CheckoutPage: React.FC = () => {
       style={{ flex: 1 }}
     >
       <ScrollView contentContainerStyle={tw`flex-grow p-6`}>
-        {restaurant && (
+        {store && (
           <>
-            <Text style={tw`text-3xl font-semibold mb-6 text-gray-800`}>{restaurant.name}</Text>
+            <Text style={tw`text-3xl font-semibold mb-6 text-gray-800`}>{store.name}</Text>
             <View style={tw`flex justify-center mb-6`}>
-              <Image source={{ uri: restaurant.logo }} style={tw`w-50 h-50 rounded-lg`} />
+              <Image source={{ uri: store.logo }} style={tw`w-50 h-50 rounded-lg`} />
             </View>
           </>
         )}
@@ -243,12 +243,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
-  restaurantLogoContainer: {
+  storeLogoContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
-  restaurantLogo: {
+  storeLogo: {
     width: 150,
     height: 150,
     borderRadius: 75,

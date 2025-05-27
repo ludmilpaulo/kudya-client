@@ -21,7 +21,7 @@ interface SignupData {
     type: string;
     name: string;
   };
-  restaurant_license?: {
+  store_license?: {
     uri: string;
     type: string;
     name: string;
@@ -39,13 +39,13 @@ const SignupScreen: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<'client' | 'restaurant'>('client');
+  const [role, setRole] = useState<'client' | 'store'>('client');
 
   const handleInputChange = (name: string, value: string) => {
     setSignupData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = async (name: 'logo' | 'restaurant_license') => {
+  const handleFileChange = async (name: 'logo' | 'store_license') => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -74,7 +74,7 @@ const SignupScreen: React.FC = () => {
       if (status === 200 || status === 201) {
         dispatch(loginUser(data));
         Alert.alert("Sucesso", "Você se cadastrou com sucesso.");
-        navigation.navigate(role === 'restaurant' ? 'RestaurantDashboard' : 'HomeScreen');
+        navigation.navigate(role === 'store' ? 'storeDashboard' : 'HomeScreen');
       } else {
         Alert.alert("Falha no Cadastro", data.message || "Por favor, tente novamente.");
       }
@@ -147,7 +147,7 @@ const SignupScreen: React.FC = () => {
             {showPassword ? <Feather name="eye-off" width={20} height={20} color="#040405"/> : <Feather name="eye"width={20} height={20} color="#040405" />}
           </TouchableOpacity>
         </View>
-        {role === 'restaurant' && (
+        {role === 'store' && (
           <>
             <TouchableOpacity
               style={styles.fileButton}
@@ -157,9 +157,9 @@ const SignupScreen: React.FC = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.fileButton}
-              onPress={() => handleFileChange('restaurant_license')}
+              onPress={() => handleFileChange('store_license')}
             >
-              <Text style={styles.fileButtonText}>Selecionar Licença do Restaurante</Text>
+              <Text style={styles.fileButtonText}>Selecionar Licença do storee</Text>
             </TouchableOpacity>
           </>
         )}

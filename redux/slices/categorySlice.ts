@@ -23,7 +23,7 @@ const initialState: CategoryState = {
 export const fetchCategories = createAsyncThunk(
   "categories/fetchCategories",
   async () => {
-    const res = await fetch(`${baseAPI}/restaurant/product/categories/`);
+    const res = await fetch(`${baseAPI}/store/product/categories/`);
     if (!res.ok) throw new Error("Network error");
     return await res.json();
   }

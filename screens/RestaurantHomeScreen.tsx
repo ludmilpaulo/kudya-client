@@ -17,10 +17,10 @@ import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import tw from "twrnc";
 
-import RestaurantCard from "../components/RestaurantCard";
+import storeCard from "../components/storeCard";
 import { useAppSelector } from "../redux/store";
 import { selectCartItems } from "../redux/slices/basketSlice";
-import { Restaurant, Category, baseAPI } from "../services/types";
+import { store, Category, baseAPI } from "../services/types";
 
 type RootStackParamList = {
   CartPage: undefined;
@@ -32,9 +32,9 @@ type Coords = {
 };
 
 const HomeScreen: React.FC = () => {
-  const [filteredDataSource, setFilteredDataSource] = useState<Restaurant[]>([]);
-  const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
-  const [masterDataSource, setMasterDataSource] = useState<Restaurant[]>([]);
+  const [filteredDataSource, setFilteredDataSource] = useState<store[]>([]);
+  const [nearbystores, setNearbystores] = useState<store[]>([]);
+  const [masterDataSource, setMasterDataSource] = useState<store[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState<Coords | null>(null);
@@ -67,16 +67,16 @@ const HomeScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const fetchRestaurants = async () => {
+    const fetchstores = async () => {
       try {
-        const response = await fetch(`${baseAPI}/customer/customer/restaurants/`);
+        const response = await fetch(`${baseAPI}/customer/customer/stores/`);
         const json = await response.json();
 
-        const approved = (json.restaurants || []).filter(
+        const approved = (json.stores || []).filter(
           (r: any) => typeof r.location === "string" && r.location.includes(",") && r.is_approved
         );
 
-        const parsedRestaurants: Restaurant[] = approved.map((r: any) => {
+        const parsedstores: store[] = approved.map((r: any) => {
           const [latitude, longitude] = r.location.split(",").map(Number);
           return {
             ...r,
@@ -84,15 +84,15 @@ const HomeScreen: React.FC = () => {
           };
         });
 
-        setMasterDataSource(parsedRestaurants);
-        setFilteredDataSource(parsedRestaurants);
+        setMasterDataSource(parsedstores);
+        setFilteredDataSource(parsedstores);
 
         const uniqueCategories = Array.from(
-          new Set(parsedRestaurants.map((r) => r.category?.name).filter(Boolean))
+          new Set(parsedstores.map((r) => r.category?.name).filter(Boolean))
         );
 
         const catList: Category[] = uniqueCategories.map((name) => {
-          const match = parsedRestaurants.find((r) => r.category?.name === name);
+          const match = parsedstores.find((r) => r.category?.name === name);
           return {
             id: match?.category?.id || 0,
             name: name!,
@@ -103,12 +103,12 @@ const HomeScreen: React.FC = () => {
         setCategories(catList);
         setLoading(false);
       } catch (error) {
-        console.error("Erro ao buscar restaurantes:", error);
+        console.error("Erro ao buscar storees:", error);
         setLoading(false);
       }
     };
 
-    fetchRestaurants();
+    fetchstores();
   }, []);
 
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -125,18 +125,18 @@ const HomeScreen: React.FC = () => {
     return R * 2 * Math.asin(Math.sqrt(a));
   };
 
-  const filterNearbyRestaurants = useCallback(
-    (restaurants: Restaurant[], lat: number, lng: number, radius: number) =>
-      restaurants.filter((r) => getDistance(lat, lng, r.location.latitude, r.location.longitude) <= radius),
+  const filterNearbystores = useCallback(
+    (stores: store[], lat: number, lng: number, radius: number) =>
+      stores.filter((r) => getDistance(lat, lng, r.location.latitude, r.location.longitude) <= radius),
     []
   );
 
   useEffect(() => {
     if (location) {
-      const nearby = filterNearbyRestaurants(masterDataSource, location.latitude, location.longitude, 5);
-      setNearbyRestaurants(nearby);
+      const nearby = filterNearbystores(masterDataSource, location.latitude, location.longitude, 5);
+      setNearbystores(nearby);
     }
-  }, [location, masterDataSource, filterNearbyRestaurants]);
+  }, [location, masterDataSource, filterNearbystores]);
 
   const searchFilterFunction = (text: string) => {
     if (text) {
@@ -184,7 +184,7 @@ const HomeScreen: React.FC = () => {
               <View style={tw`flex-row items-center bg-gray-200 p-3 rounded-full`}>
                 <Ionicons name="search" size={20} color="gray" style={tw`mr-2`} />
                 <TextInput
-                  placeholder="Pesquisar Restaurantes"
+                  placeholder="Pesquisar storees"
                   placeholderTextColor="gray"
                   onChangeText={searchFilterFunction}
                   style={tw`flex-1 text-black`}
@@ -210,22 +210,22 @@ const HomeScreen: React.FC = () => {
 
             <Text style={tw`text-white text-xl font-bold mb-4`}>Ofertas de Hoje</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`pb-4`}>
-              {filteredDataSource.filter((r) => r.barnner).map((restaurant) => (
-                location && <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location} />
+              {filteredDataSource.filter((r) => r.barnner).map((store) => (
+                location && <storeCard key={store.id} store={store} location={location} />
               ))}
             </ScrollView>
 
-            <Text style={tw`text-white text-xl font-bold mb-4`}>Restaurantes Próximos</Text>
+            <Text style={tw`text-white text-xl font-bold mb-4`}>storees Próximos</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`pb-4`}>
-              {nearbyRestaurants.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location!} />
+              {nearbystores.map((store) => (
+                <storeCard key={store.id} store={store} location={location!} />
               ))}
             </ScrollView>
 
-            <Text style={tw`text-white text-xl font-bold mb-4`}>Todos os Restaurantes</Text>
+            <Text style={tw`text-white text-xl font-bold mb-4`}>Todos os storees</Text>
             <View>
-              {filteredDataSource.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} location={location!} />
+              {filteredDataSource.map((store) => (
+                <storeCard key={store.id} store={store} location={location!} />
               ))}
             </View>
           </ScrollView>

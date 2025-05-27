@@ -40,8 +40,8 @@ const SuccessScreen = () => {
           style={tw`my-10 text-lg font-bold text-center text-white`}
         >
           {orderSent
-            ? "Seu pedido foi enviado ao restaurante!"
-            : "Aguardando o Restaurante aceitar seu pedido!"}
+            ? "Seu pedido foi enviado ao storee!"
+            : "Aguardando o storee aceitar seu pedido!"}
         </Animatable.Text>
 
         <Progress.Circle size={60} indeterminate={true} color="#ffffff" />

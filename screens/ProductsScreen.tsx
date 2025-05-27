@@ -25,6 +25,7 @@ import { Product } from "../services/types";
 import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
 import { RootStackParamList } from "../navigation/navigation";
 import { addItem, removeItem, selectCartItems } from "../redux/slices/basketSlice";
+import { useTranslation } from "../hooks/useTranslation";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -34,6 +35,7 @@ export default function ProductsScreen() {
   const navigation = useNavigation<any>();
   const { storeId, storeName } = route.params;
   const dispatch = useDispatch<AppDispatch>();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (typeof storeId === "number") {
@@ -47,7 +49,6 @@ export default function ProductsScreen() {
 
   const cartItems = useSelector(selectCartItems);
 
-  // UI states for active "Add to Cart"
   const [activeCartProductId, setActiveCartProductId] = useState<number | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
@@ -158,10 +159,8 @@ export default function ProductsScreen() {
     if (change === 1) {
       if (cartItem && cartItem.quantity >= product.stock) {
         Alert.alert(
-          language === "pt" ? "Estoque insuficiente" : "Stock limit",
-          language === "pt"
-            ? `Apenas ${product.stock} disponíveis`
-            : `Only ${product.stock} items available`
+          t("stockLimitReached", "Stock Limit Reached"),
+          `${t("only", "Only")} ${product.stock} ${t("itemsAvailable", "items available")}.`
         );
         return;
       }
@@ -182,13 +181,22 @@ export default function ProductsScreen() {
     } else if (cartItem) {
       if (cartItem.quantity === 1) {
         dispatch(removeItem({ id: product.id, size: size || "" }));
-        // Reset UI to show "Add to Cart"
         setActiveCartProductId(null);
         setSelectedSize(null);
       } else {
         dispatch(removeItem({ id: product.id, size: size || "" }));
       }
     }
+  };
+
+  // Check if product (with any size) is already in cart
+  const isProductInCart = (product: Product) => {
+    // If product has sizes, check all
+    if (product.sizes && product.sizes.length > 0) {
+      return cartItems.some(item => item.id === product.id);
+    }
+    // No sizes: check id only
+    return cartItems.some(item => item.id === product.id && (!item.size || item.size === ""));
   };
 
   // UI render
@@ -242,14 +250,14 @@ export default function ProductsScreen() {
 
         {/* Header */}
         <Text style={tw`text-2xl font-bold mb-3 mx-4 text-white`}>
-          {storeName || (language === "pt" ? "Loja" : "Store")}
+          {storeName || t("Stores", "Loja")}
         </Text>
 
         {/* Search Bar */}
         <View style={tw`flex-row items-center bg-gray-100 rounded-full px-4 py-3 shadow-sm mx-4 mb-4`}>
           <FontAwesome5 name="search" size={16} color="#666" style={tw`mr-3`} />
           <TextInput
-            placeholder={language === "pt" ? "Pesquisar produtos..." : "Search for products..."}
+            placeholder={t("search", "Pesquisar produtos...")}
             placeholderTextColor="#888"
             style={tw`flex-1 text-base text-black`}
             value={search}
@@ -273,7 +281,7 @@ export default function ProductsScreen() {
             ]}
           >
             <Text style={tw`${selectedCategory === "all" ? "text-white" : "text-gray-800"} text-sm font-semibold`}>
-              {language === "pt" ? "Todas" : "All"}
+              {t("Categories", "Todas")}
             </Text>
           </TouchableOpacity>
           {categories.map((cat) => (
@@ -299,20 +307,20 @@ export default function ProductsScreen() {
           <View style={tw`items-center justify-center w-full py-12`}>
             <ActivityIndicator size="large" color="#3B82F6" />
             <Text style={tw`text-gray-100 mt-3`}>
-              {language === "pt" ? "Carregando produtos..." : "Loading products..."}
+              {t("loading", "Carregando produtos...")}
             </Text>
           </View>
         )}
 
         {!loading && error && (
           <Text style={tw`text-red-100 bg-red-500/70 text-center w-full py-3 rounded-xl mx-4`}>
-            {language === "pt" ? "Falha ao carregar produtos. Tente novamente." : "Failed to load products. Please try again."}
+            {t("error", "Falha ao carregar produtos. Tente novamente.")}
           </Text>
         )}
 
         {!loading && !error && filteredProducts.length === 0 && (
           <Text style={tw`text-center text-white/90 mt-16 w-full`}>
-            {language === "pt" ? "Nenhum produto encontrado." : "No products match your search/filter."}
+            {t("noStores", "Nenhum produto encontrado.")}
           </Text>
         )}
 
@@ -331,15 +339,15 @@ export default function ProductsScreen() {
               let stockBadgeColor = "";
               let disableAddToCart = false;
               if (product.stock <= 0) {
-                stockLabel = language === "pt" ? "Esgotado" : "Sold Out";
+                stockLabel = t("outOfStock", "Esgotado");
                 stockBadgeColor = "#EF4444";
                 disableAddToCart = true;
               } else if (product.stock === 1) {
-                stockLabel = language === "pt" ? "Último!" : "Last one!";
+                stockLabel = t("lastOne", "Último!");
                 stockBadgeColor = "#F59E42";
                 disableAddToCart = true;
               } else if (product.stock < 10) {
-                stockLabel = language === "pt" ? "Pouco Stock" : "Low Stock";
+                stockLabel = t("lowStock", "Pouco Stock");
                 stockBadgeColor = "#FCD34D";
               }
 
@@ -352,6 +360,8 @@ export default function ProductsScreen() {
                 (product.sizes?.length
                   ? getCartItem(product.id, selectedSize)
                   : getCartItem(product.id, ""));
+
+              const alreadyInCart = isProductInCart(product);
 
               return (
                 <Animated.View
@@ -416,75 +426,90 @@ export default function ProductsScreen() {
                     </View>
 
                     {/* Add to Cart flow */}
-                    {/* 1. Button */}
-                    {!isActive && !disableAddToCart && (
-                      <TouchableOpacity
-                        style={tw`bg-green-600 py-2 rounded-lg items-center`}
-                        onPress={() => handleAddToCart(product)}
-                        disabled={disableAddToCart}
-                      >
-                        <Text style={tw`text-white font-bold`}>
-                          {language === "pt"
-                            ? "Adicionar ao Carrinho"
-                            : "Add to Cart"}
-                        </Text>
-                      </TouchableOpacity>
+                    {!alreadyInCart && !disableAddToCart && (
+                      <>
+                        {/* 1. Button */}
+                        {!isActive && (
+                          <TouchableOpacity
+                            style={tw`bg-green-600 py-2 rounded-lg items-center`}
+                            onPress={() => handleAddToCart(product)}
+                            disabled={disableAddToCart}
+                          >
+                            <Text style={tw`text-white font-bold`}>
+                              {t("addToCart", "Adicionar ao Carrinho")}
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {/* 2. Select Size */}
+                        {isActive &&
+                          product.sizes &&
+                          product.sizes.length > 0 &&
+                          !selectedSize && (
+                            <View style={tw`flex-row flex-wrap mt-2`}>
+                              {product.sizes.map((size) => (
+                                <TouchableOpacity
+                                  key={size}
+                                  style={[
+                                    tw`px-4 py-2 rounded-full border m-1`,
+                                    selectedSize === size
+                                      ? tw`bg-black border-black`
+                                      : tw`bg-white border-gray-300`,
+                                  ]}
+                                  onPress={() => handleSelectSize(size)}
+                                >
+                                  <Text
+                                    style={tw`font-bold ${selectedSize === size ? "text-white" : "text-gray-800"}`}
+                                  >
+                                    {size}
+                                  </Text>
+                                </TouchableOpacity>
+                              ))}
+                            </View>
+                          )}
+
+                        {/* 3. Plus/Minus Quantity */}
+                        {isActive &&
+                          ((product.sizes && product.sizes.length > 0 && selectedSize) ||
+                            (!product.sizes || product.sizes.length === 0)) && (
+                            <View style={tw`flex-row items-center justify-center mt-2`}>
+                              <TouchableOpacity
+                                style={tw`bg-gray-200 rounded-full w-10 h-10 items-center justify-center`}
+                                onPress={() => handleChangeQuantity(-1, product, selectedSize)}
+                                disabled={!cartItem || cartItem.quantity <= 0}
+                              >
+                                <Text style={tw`text-xl font-bold`}>-</Text>
+                              </TouchableOpacity>
+                              <Text style={tw`mx-6 text-lg font-bold`}>
+                                {cartItem?.quantity || 1}
+                              </Text>
+                              <TouchableOpacity
+                                style={tw`bg-gray-200 rounded-full w-10 h-10 items-center justify-center`}
+                                onPress={() => handleChangeQuantity(1, product, selectedSize)}
+                                disabled={
+                                  !cartItem ||
+                                  cartItem.quantity >= product.stock
+                                }
+                              >
+                                <Text style={tw`text-xl font-bold`}>+</Text>
+                              </TouchableOpacity>
+                            </View>
+                          )}
+                      </>
                     )}
 
-                    {/* 2. Select Size */}
-                    {isActive &&
-                      product.sizes &&
-                      product.sizes.length > 0 &&
-                      !selectedSize && (
-                        <View style={tw`flex-row flex-wrap mt-2`}>
-                          {product.sizes.map((size) => (
-                            <TouchableOpacity
-                              key={size}
-                              style={[
-                                tw`px-4 py-2 rounded-full border m-1`,
-                                selectedSize === size
-                                  ? tw`bg-black border-black`
-                                  : tw`bg-white border-gray-300`,
-                              ]}
-                              onPress={() => handleSelectSize(size)}
-                            >
-                              <Text
-                                style={tw`font-bold ${selectedSize === size ? "text-white" : "text-gray-800"}`}
-                              >
-                                {size}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      )}
+                    {/* Show "Go to Cart" if in cart */}
+                    {alreadyInCart && (
+                      <TouchableOpacity
+                        style={tw`bg-blue-600 py-2 rounded-lg items-center`}
+                        onPress={() => navigation.navigate("Cart")}
+                      >
+                        <Text style={tw`text-white font-bold`}>
+                        {t("goToCart")}
+                      </Text>
 
-                    {/* 3. Plus/Minus Quantity */}
-                    {isActive &&
-                      ((product.sizes && product.sizes.length > 0 && selectedSize) ||
-                        (!product.sizes || product.sizes.length === 0)) && (
-                        <View style={tw`flex-row items-center justify-center mt-2`}>
-                          <TouchableOpacity
-                            style={tw`bg-gray-200 rounded-full w-10 h-10 items-center justify-center`}
-                            onPress={() => handleChangeQuantity(-1, product, selectedSize)}
-                            disabled={!cartItem || cartItem.quantity <= 0}
-                          >
-                            <Text style={tw`text-xl font-bold`}>-</Text>
-                          </TouchableOpacity>
-                          <Text style={tw`mx-6 text-lg font-bold`}>
-                            {cartItem?.quantity || 1}
-                          </Text>
-                          <TouchableOpacity
-                            style={tw`bg-gray-200 rounded-full w-10 h-10 items-center justify-center`}
-                            onPress={() => handleChangeQuantity(1, product, selectedSize)}
-                            disabled={
-                              !cartItem ||
-                              cartItem.quantity >= product.stock
-                            }
-                          >
-                            <Text style={tw`text-xl font-bold`}>+</Text>
-                          </TouchableOpacity>
-                        </View>
-                      )}
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </Animated.View>
               );

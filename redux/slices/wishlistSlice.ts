@@ -27,7 +27,7 @@ export const fetchWishlist = createAsyncThunk(
 export const addToWishlist = createAsyncThunk(
   "wishlist/addToWishlist",
   async ({ userId, productId }: { userId: number; productId: number }) => {
-    const res = await API.post(`/restaurant/wishlist/`, { user: userId, product: productId });
+    const res = await API.post(`/store/wishlist/`, { user: userId, product: productId });
     return res.data;
   }
 );
@@ -35,7 +35,7 @@ export const addToWishlist = createAsyncThunk(
 export const removeFromWishlist = createAsyncThunk(
   "wishlist/removeFromWishlist",
   async ({ userId, productId }: { userId: number; productId: number }) => {
-    const res = await API.delete(`/restaurant/wishlist/${userId}/${productId}/`);
+    const res = await API.delete(`/store/wishlist/${userId}/${productId}/`);
     return productId;
   }
 );

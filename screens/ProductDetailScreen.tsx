@@ -102,7 +102,7 @@ const ProductDetailScreen = ({ route }: Props) => {
     setLoading(!product);
 
     if (!product) {
-      fetch(`${API_BASE_URL}/restaurant/products/${productId}/`)
+      fetch(`${API_BASE_URL}/store/products/${productId}/`)
         .then((r) => r.json())
         .then((data) => {
           if (!data || data.detail === "Not found.") {

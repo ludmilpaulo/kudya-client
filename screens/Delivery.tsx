@@ -42,7 +42,7 @@ const Delivery = () => {
   const [driverLocation, setDriverLocation] = useState<LocationType | null>(null);
   const [data, setData] = useState<any>([]);
   const [driverData, setDriverData] = useState<any>(null);
-  const [restaurantData, setRestaurantData] = useState<any>([]);
+  const [storeData, setstoreData] = useState<any>([]);
   const [orderData, setOrderData] = useState<any>();
   const [order_id, setOrder_id] = useState<any>();
   const [userCoordinates, setUserCoordinates] = useState<LocationType | null>(null);
@@ -96,7 +96,7 @@ const Delivery = () => {
         }
 
         if (order?.total === null) {
-          alert("O restaurante ainda não aceitou o seu pedido");
+          alert("O storee ainda não aceitou o seu pedido");
           navigation.navigate("Home");
           setLoading(false);
           return;
@@ -104,7 +104,7 @@ const Delivery = () => {
 
         setData(responseJson);
         setDriverData(order.driver);
-        setRestaurantData(order.restaurant);
+        setstoreData(order.store);
         setOrderData(order.order_details);
         setOrder_id(order.id);
         setLoading(false);
@@ -122,7 +122,7 @@ const Delivery = () => {
       const driverLocationString = locationData?.order_locations?.[0]?.driver_location;
 
       if (!driverLocationString) {
-        alert("Seu pedido está sendo preparado pelo restaurante.");
+        alert("Seu pedido está sendo preparado pelo storee.");
         navigation.navigate("Home");
         setDriverLocationFetchDone(true);
         return;
@@ -221,7 +221,7 @@ const Delivery = () => {
           <Progress.Bar style={{ height: 8, borderRadius: 15 }} color="#004AAD" indeterminate={true} />
 
           <Text style={tw`mt-3 text-gray-500`}>
-            Seu pedido no {restaurantData?.name} está a caminho
+            Seu pedido no {storeData?.name} está a caminho
           </Text>
         </View>
       </SafeAreaView>

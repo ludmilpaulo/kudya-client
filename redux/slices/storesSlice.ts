@@ -17,7 +17,7 @@ const initialState: StoresState = {
 export const fetchStoresByType = createAsyncThunk(
   'stores/fetchByType',
   async (storeTypeId: number): Promise<Store[]> => {
-    const response = await API.get(`/restaurant/stores/?store_type=${storeTypeId}`)
+    const response = await API.get(`/store/stores/?store_type=${storeTypeId}`)
     return response.data
   }
 )

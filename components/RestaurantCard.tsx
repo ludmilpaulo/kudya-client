@@ -1,22 +1,22 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Restaurant } from '../services/types';
+import { store } from '../services/types';
 
 type Location = {
   latitude: number;
   longitude: number;
 };
 
-type RestaurantProps = {
-  restaurant: Restaurant;
+type storeProps = {
+  store: store;
   location: Location;
 };
 
-const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => {
+const storeCard: React.FC<storeProps> = ({ store, location }) => {
   const navigation = useNavigation<any>();
 
-  if (!restaurant) {
+  if (!store) {
     return null;
   }
 
@@ -25,7 +25,7 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
     const currentDay = today.toLocaleString('pt-BR', { weekday: 'long' }).toLowerCase();
     const currentTime = today.getHours() * 60 + today.getMinutes();
 
-    const openingHour = restaurant.opening_hours.find(
+    const openingHour = store.opening_hours.find(
       (hour) => hour.day.toLowerCase() === currentDay
     );
 
@@ -54,11 +54,11 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
 
   const handleClick = () => {
     if (!isOpen()) {
-      Alert.alert(`O restaurante ${restaurant.name} está fechado de momento, tente mais tarde`);
+      Alert.alert(`O storee ${store.name} está fechado de momento, tente mais tarde`);
     } else {
-      navigation.navigate('RestaurantMenu' as never, {
-        restaurant_id: restaurant.id,
-        restaurant_logo: restaurant.logo,
+      navigation.navigate('storeMenu' as never, {
+        store_id: store.id,
+        store_logo: store.logo,
       } as never);
     }
   };
@@ -83,8 +83,8 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
     return `${Math.round(time * 60)} mins`;
   };
 
-  const { latitude: restaurantLat, longitude: restaurantLon } = restaurant.location;
-  const distance = location ? getDistance(location.latitude, location.longitude, restaurantLat, restaurantLon) : null;
+  const { latitude: storeLat, longitude: storeLon } = store.location;
+  const distance = location ? getDistance(location.latitude, location.longitude, storeLat, storeLon) : null;
   const travelTime = distance ? calculateTime(distance) : null;
 
   return (
@@ -95,21 +95,21 @@ const RestaurantCard: React.FC<RestaurantProps> = ({ restaurant, location }) => 
       ]}
       onPress={handleClick}
     >
-      {restaurant.logo && (
+      {store.logo && (
         <Image
-          source={{ uri: restaurant.logo }}
+          source={{ uri: store.logo }}
           style={styles.image}
           resizeMode="cover"
         />
       )}
       <View style={styles.infoContainer}>
-        <Text style={styles.nameText}>{restaurant.name}</Text>
+        <Text style={styles.nameText}>{store.name}</Text>
         {travelTime && (
           <Text style={styles.distanceText}>Aprox. {travelTime} de distância</Text>
         )}
-        {restaurant.category && (
+        {store.category && (
           <Text style={styles.categoryText}>
-            {restaurant.category.name}
+            {store.category.name}
           </Text>
         )}
         <View style={styles.statusContainer}>
@@ -179,4 +179,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RestaurantCard;
+export default storeCard;

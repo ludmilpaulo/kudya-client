@@ -4,11 +4,11 @@ import * as Location from 'expo-location';
 import tw from 'twrnc'; // ✅ Replaced tailwind-react-native-classnames
 import Banner from '../components/Banner';
 import { fetchAboutUsData } from '../services/information';
-import { baseAPI, Restaurant } from '../services/types';
+import { baseAPI, store } from '../services/types';
 
 const JoinScreen = () => {
   const [headerData, setHeaderData] = useState<any | null>(null);
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [stores, setstores] = useState<store[]>([]);
   const [userLocation, setUserLocation] = useState({ latitude: -25.747868, longitude: 28.229271 }); // Default fallback location
   const [loading, setLoading] = useState(true);
 
@@ -35,16 +35,16 @@ const JoinScreen = () => {
         setUserLocation(fallbackLocation);
   
         const header = await fetchAboutUsData();
-        const restaurantResponse = await fetch(`${baseAPI}/customer/customer/restaurants/`)
+        const storeResponse = await fetch(`${baseAPI}/customer/customer/stores/`)
           .then(response => response.json());
   
-        const approvedRestaurants = restaurantResponse.restaurants.map((restaurant: any) => ({
-          ...restaurant,
-          location: parseLocation(restaurant.location),
+        const approvedstores = storeResponse.stores.map((store: any) => ({
+          ...store,
+          location: parseLocation(store.location),
         }));
   
         setHeaderData(header);
-        setRestaurants(approvedRestaurants);
+        setstores(approvedstores);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -69,7 +69,7 @@ const JoinScreen = () => {
           backgroundApp={headerData.backgroundApp}
           bottomImage={headerData.bottomImage}
           aboutText={headerData.about}
-          restaurants={restaurants}
+          stores={stores}
           userLocation={userLocation}
         />
       )}

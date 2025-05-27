@@ -26,7 +26,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 const getFallbackIcon = (name?: string) => {
   const key = (name ?? '').toLowerCase();
-  if (key.includes('restaurant')) return <MaterialIcons name="restaurant" size={24} color="white" />;
+  if (key.includes('store')) return <MaterialIcons name="store" size={24} color="white" />;
   if (key.includes('clothing')) return <FontAwesome5 name="tshirt" size={24} color="white" />;
   if (key.includes('tech')) return <Feather name="cpu" size={24} color="white" />;
   if (key.includes('pharmacy')) return <MaterialIcons name="local-pharmacy" size={24} color="white" />;

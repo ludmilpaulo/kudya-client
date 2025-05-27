@@ -1,10 +1,10 @@
 
 import axios from "axios";
-import { baseAPI,  Category, FornecedorType, OpeningHourType, OrderTypes, Product, RestaurantType } from "./types";
+import { baseAPI,  Category, FornecedorType, OpeningHourType, OrderTypes, Product, storeType } from "./types";
 
 export const fetchFornecedorData = async (userId: number): Promise<FornecedorType | null> => {
     try {
-      const response = await fetch(`${baseAPI}/restaurant/get_fornecedor/?user_id=${userId}`);
+      const response = await fetch(`${baseAPI}/store/get_fornecedor/?user_id=${userId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch fornecedor data");
       }
@@ -24,15 +24,15 @@ export const fetchFornecedorData = async (userId: number): Promise<FornecedorTyp
 
 
 export const fetchCategorias = async (): Promise<Category[]> => {
-  const response = await fetch(`${baseAPI}/restaurant/meal-categories/`);
+  const response = await fetch(`${baseAPI}/store/meal-categories/`);
   if (!response.ok) {
     throw new Error("Failed to fetch categories");
   }
   return response.json();
 };
 
-export const fetchRestaurantCategory = async (): Promise<Category[]> => {
-    const response = await fetch(`${baseAPI}/restaurant/restaurant-categories/`);
+export const fetchstoreCategory = async (): Promise<Category[]> => {
+    const response = await fetch(`${baseAPI}/store/store-categories/`);
     if (!response.ok) {
       throw new Error("Failed to fetch categories");
     }
@@ -40,7 +40,7 @@ export const fetchRestaurantCategory = async (): Promise<Category[]> => {
   };
 
 export const fetchProducts = async (userId: number): Promise<Product[]> => {
-  const response = await fetch(`${baseAPI}/restaurant/get_products/?user_id=${userId}`);
+  const response = await fetch(`${baseAPI}/store/get_products/?user_id=${userId}`);
   if (!response.ok) {
     throw new Error("Failed to fetch products");
   }
@@ -48,7 +48,7 @@ export const fetchProducts = async (userId: number): Promise<Product[]> => {
 };
 
 export const addProduct = async (formData: FormData): Promise<Product> => {
-    const response = await fetch(`${baseAPI}/restaurant/add-product/`, {
+    const response = await fetch(`${baseAPI}/store/add-product/`, {
       method: "POST",
       body: formData,
     });
@@ -63,7 +63,7 @@ export const addProduct = async (formData: FormData): Promise<Product> => {
   };
   
   export const updateProduct = async (productId: number, formData: FormData): Promise<void> => {
-    const response = await fetch(`${baseAPI}/restaurant/update-product/${productId}/`, {
+    const response = await fetch(`${baseAPI}/store/update-product/${productId}/`, {
       method: "PUT",
       body: formData,
     });
@@ -76,7 +76,7 @@ export const addProduct = async (formData: FormData): Promise<Product> => {
   
 
 export const deleteProduct = async (productId: number, userId: number): Promise<void> => {
-  const response = await fetch(`${baseAPI}/restaurant/delete-product/${productId}`, {
+  const response = await fetch(`${baseAPI}/store/delete-product/${productId}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -90,7 +90,7 @@ export const deleteProduct = async (productId: number, userId: number): Promise<
 
 
 export const fetchOrders = async (userId: number): Promise<OrderTypes[]> => {
-    const response = await fetch(`${baseAPI}/restaurant/restaurant/orders/?user_id=${userId}`);
+    const response = await fetch(`${baseAPI}/store/store/orders/?user_id=${userId}`);
     if (!response.ok) {
       throw new Error("Failed to fetch orders");
     }
@@ -99,7 +99,7 @@ export const fetchOrders = async (userId: number): Promise<OrderTypes[]> => {
 
   export const updateOrderStatus = async (userId: number, orderId: number): Promise<void> => {
     console.log("order status");
-    const response = await fetch(`${baseAPI}/restaurant/restaurant/status/`, {
+    const response = await fetch(`${baseAPI}/store/store/status/`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -115,13 +115,13 @@ export const fetchOrders = async (userId: number): Promise<OrderTypes[]> => {
 
 const API_URL = baseAPI;
 
-export const getRestaurant = async (userId: number): Promise<RestaurantType> => {
-    const response = await axios.get(`${API_URL}/restaurant/restaurants/${userId}/`);
+export const getstore = async (userId: number): Promise<storeType> => {
+    const response = await axios.get(`${API_URL}/store/stores/${userId}/`);
     return response.data;
 };
 
-export const updateRestaurant = async (userId: number, data: FormData): Promise<RestaurantType> => {
-    const response = await axios.put(`${API_URL}/restaurant/restaurants/${userId}/`, data, {
+export const updatestore = async (userId: number, data: FormData): Promise<storeType> => {
+    const response = await axios.put(`${API_URL}/store/stores/${userId}/`, data, {
         headers: {
             'Content-Type': 'multipart/form-data'
         }
@@ -129,12 +129,12 @@ export const updateRestaurant = async (userId: number, data: FormData): Promise<
     return response.data;
 };
 
-export const getOpeningHours = async (restaurantId: number): Promise<OpeningHourType[]> => {
-    const response = await axios.get(`${API_URL}/restaurant/restaurants/${restaurantId}/opening_hours/`);
+export const getOpeningHours = async (storeId: number): Promise<OpeningHourType[]> => {
+    const response = await axios.get(`${API_URL}/store/stores/${storeId}/opening_hours/`);
     return response.data;
 };
 
-export const createOpeningHour = async (restaurantId: number, data: OpeningHourType): Promise<OpeningHourType> => {
-    const response = await axios.post(`${API_URL}/restaurant/restaurants/${restaurantId}/opening_hours/`, data);
+export const createOpeningHour = async (storeId: number, data: OpeningHourType): Promise<OpeningHourType> => {
+    const response = await axios.post(`${API_URL}/store/stores/${storeId}/opening_hours/`, data);
     return response.data;
 };

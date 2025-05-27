@@ -10,7 +10,7 @@ export interface WishlistItem {
 
 export async function getWishlist(userId: number): Promise<WishlistItem[]> {
   try {
-    const resp = await API.get(`/restaurant/wishlist/?user_id=${userId}`);
+    const resp = await API.get(`/store/wishlist/?user_id=${userId}`);
     return resp.data;
   } catch (error) {
     console.error('Failed to fetch wishlist:', error);
@@ -20,7 +20,7 @@ export async function getWishlist(userId: number): Promise<WishlistItem[]> {
 
 export async function addToWishlist(userId: number, productId: number): Promise<boolean> {
   try {
-    await API.post(`/restaurant/wishlist/`, {
+    await API.post(`/store/wishlist/`, {
       user: userId,
       product: productId,
     });
@@ -34,7 +34,7 @@ export async function addToWishlist(userId: number, productId: number): Promise<
 export async function removeFromWishlist(userId: number, productId: number): Promise<boolean> {
   try {
     // Option 1: If you use a DELETE with user+product as query params
-    await API.delete(`/restaurant/wishlist/`, {
+    await API.delete(`/store/wishlist/`, {
       params: { user_id: userId, product_id: productId },
     });
     // Option 2: If you use /wishlist/:id/
@@ -49,7 +49,7 @@ export async function removeFromWishlist(userId: number, productId: number): Pro
 // (Optional) Get wishlist count for badge
 export async function fetchWishlistCount(userId: number): Promise<number> {
   try {
-    const resp = await API.get(`/restaurant/wishlist/count/?user_id=${userId}`);
+    const resp = await API.get(`/store/wishlist/count/?user_id=${userId}`);
     return resp.data.count ?? 0;
   } catch (error) {
     console.error('Failed to fetch wishlist count:', error);

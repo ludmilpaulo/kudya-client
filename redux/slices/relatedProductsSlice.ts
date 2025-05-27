@@ -17,7 +17,7 @@ const initialState: RelatedProductsState = {
 export const fetchRelatedProducts = createAsyncThunk(
   "relatedProducts/fetchRelatedProducts",
   async (productId: number): Promise<Product[]> => {
-    const res = await API.get(`/restaurant/products/related/${productId}/`);
+    const res = await API.get(`/store/products/related/${productId}/`);
     return res.data;
   }
 );

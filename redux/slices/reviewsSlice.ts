@@ -17,7 +17,7 @@ const initialState: ReviewsState = {
 export const fetchReviewsByProduct = createAsyncThunk(
   "reviews/fetchReviewsByProduct",
   async (productId: number): Promise<Review[]> => {
-    const res = await API.get(`/restaurant/reviews/?product=${productId}`);
+    const res = await API.get(`/store/reviews/?product=${productId}`);
     return res.data;
   }
 );
