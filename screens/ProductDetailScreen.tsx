@@ -394,7 +394,14 @@ const ProductDetailScreen = ({ route }: Props) => {
           {/* Add to Cart */}
           <Animated.View entering={FadeInUp.delay(300)}>
             <TouchableOpacity
-              onPress={handleAddToCart}
+             onPress={() => {
+                  if (productToShow.stock === 0) return;
+                  if (isInCart) {
+                    navigation.navigate("Cart"); // Make sure "Cart" matches your stack name
+                  } else {
+                    handleAddToCart();
+                  }
+                }}
               disabled={productToShow.stock === 0}
               style={tw`mt-6 py-4 rounded-xl shadow-lg ${
                 productToShow.stock === 0
