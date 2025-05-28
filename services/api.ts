@@ -2,7 +2,7 @@ import axios from "axios";
 import * as Localization from 'expo-localization';
 
 //export const baseAPI : string = "http://192.168.1.109:8000";
- export const baseAPI = "http://192.168.1.143:8000";
+ export const baseAPI = "http://192.168.100.230:8000";
 
 export const getDeviceLanguage = (): string => {
   const locales = Localization.getLocales();

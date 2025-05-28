@@ -1,31 +1,61 @@
 // utils/currency.ts
 
-type CurrencyMap = { [code: string]: string };
+export type RegionCode =
+  | "ZA" | "AO" | "MZ" | "CV" | "PT" | "BR" | "GW" | "ST" | "TL" | "GQ"
+  | "SN" | "ZW" | "BW" | "NA" | "ZM" | "BF" | "NG";
 
-const regionCurrencyMap: { [region: string]: string } = {
-  ZA: "ZAR", AO: "AOA", MZ: "MZN", CV: "CVE", PT: "EUR", BR: "BRL",
-  GW: "XOF", ST: "STN", TL: "USD", GQ: "XAF", SN: "XOF", ZW: "USD",
-  BW: "BWP", NA: "NAD", ZM: "ZMW", BF: "XOF", NG: "NGN",
+export type CurrencyCode =
+  | "ZAR" | "AOA" | "MZN" | "CVE" | "EUR" | "BRL" | "XOF" | "STN" | "USD"
+  | "XAF" | "ZWL" | "BWP" | "NAD" | "ZMW" | "NGN";
+
+const regionCurrencyMap: Record<RegionCode, CurrencyCode> = {
+  ZA: "ZAR",
+  AO: "AOA",
+  MZ: "MZN",
+  CV: "CVE",
+  PT: "EUR",
+  BR: "BRL",
+  GW: "XOF",
+  ST: "STN",
+  TL: "USD",
+  GQ: "XAF",
+  SN: "XOF",
+  ZW: "USD",
+  BW: "BWP",
+  NA: "NAD",
+  ZM: "ZMW",
+  BF: "XOF",
+  NG: "NGN",
 };
 
-const currencySymbols: CurrencyMap = {
-  ZAR: "R",  AOA: "Kz",  MZN: "MT", CVE: "$",  EUR: "€", BRL: "R$",
-  XOF: "CFA", STN: "Db", USD: "$", XAF: "FCFA", ZWL: "Z$", BWP: "P",
-  NAD: "N$", ZMW: "K", NGN: "₦"
+const currencySymbols: Record<CurrencyCode, string> = {
+  ZAR: "R",
+  AOA: "Kz",
+  MZN: "MT",
+  CVE: "$",
+  EUR: "€",
+  BRL: "R$",
+  XOF: "CFA",
+  STN: "Db",
+  USD: "$",
+  XAF: "FCFA",
+  ZWL: "Z$",
+  BWP: "P",
+  NAD: "N$",
+  ZMW: "K",
+  NGN: "₦",
 };
 
-export function getCurrencyForCountry(region?: string): string {
+export function getCurrencyForCountry(region?: string): CurrencyCode {
   if (!region) return "USD";
-  return regionCurrencyMap[region] || "USD";
+  return (regionCurrencyMap as any)[region] || "USD";
 }
 
-// UPDATED: Handle bad values gracefully
 export function formatCurrency(
   amount: number | undefined | null,
-  code = "USD",
-  lang = "en"
+  code: CurrencyCode = "USD",
+  lang: string = "en"
 ) {
-  // Guard against undefined, null, NaN, and non-number
   if (typeof amount !== "number" || isNaN(amount)) return "";
   try {
     return new Intl.NumberFormat(lang, {

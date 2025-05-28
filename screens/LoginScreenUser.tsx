@@ -12,14 +12,14 @@ import {
   Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Feather } from "@expo/vector-icons";
-import { loginUserService } from "../services/authService";
-import ForgotPasswordModal from "../components/ForgotPasswordModal";
-import { clearAllCart } from "../redux/slices/basketSlice";
-import { loginUser } from "../redux/slices/authSlice";
 import { RootStackParamList } from "../navigation/navigation";
 import { StackNavigationProp } from "@react-navigation/stack";
+import { loginUser, selectAuth, clearAuthMessage } from "../redux/slices/authSlice";
+import { AppDispatch } from "../redux/store"; // If you use Typed dispatch
+import { clearAllCart } from "../redux/slices/basketSlice";
+import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import tw from "twrnc";
 import { useTranslation } from "../hooks/useTranslation";
 import { LinearGradient } from "expo-linear-gradient";
@@ -28,44 +28,49 @@ type NavigationProp = StackNavigationProp<RootStackParamList, "UserLogin">;
 
 const LoginScreenUser = () => {
   const navigation = useNavigation<NavigationProp>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { t } = useTranslation();
 
+  // Local state
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
-  const toggleForgotPasswordModal = () => setShowForgotPasswordModal((prev) => !prev);
+  // Redux state
+  const { loading, error, user, message } = useSelector(selectAuth);
 
+  // Clear cart on login screen open
   useEffect(() => {
     dispatch(clearAllCart());
   }, [dispatch]);
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const response = await loginUserService(username, password);
-      dispatch(loginUser(response));
-      Alert.alert(t("success"), t("loginSuccess"));
-      navigation.goBack();
-    } catch (error: any) {
-      // If error is from backend and has a message, show it
-      if (error?.message) {
-        Alert.alert(t("error"), error.message);
-      } else if (typeof error === "string") {
-        Alert.alert(t("error"), error);
-      } else {
-        Alert.alert(t("error"), t("loginFailed"));
-      }
-    } finally {
-      setLoading(false);
+  // Handle success or error from Redux
+  useEffect(() => {
+    if (user && message) {
+      Alert.alert(t("success"), message);
+      dispatch(clearAuthMessage());
+      navigation.goBack(); // Or navigate to home, e.g. navigation.replace("Home")
+    } else if (error) {
+      Alert.alert(t("error"), error);
+      dispatch(clearAuthMessage());
     }
+  }, [user, message, error, dispatch, t, navigation]);
+
+  // Submission handler
+  const handleSubmit = () => {
+    if (!username || !password) {
+      Alert.alert(t("error"), t("fillAllFields"));
+      return;
+    }
+    dispatch(loginUser({ username, password }));
   };
+
+  const toggleForgotPasswordModal = () => setShowForgotPasswordModal((prev) => !prev);
 
   return (
     <SafeAreaView style={tw`flex-1`}>
+      {/* Gradient background */}
       <LinearGradient
         colors={["#FCD34D", "#ffcc00", "#3B82F6"]}
         start={{ x: 0, y: 0 }}
@@ -95,6 +100,7 @@ const LoginScreenUser = () => {
               </Text>
             </Text>
           </TouchableOpacity>
+          {/* Username input */}
           <View style={tw`mb-4`}>
             <TextInput
               placeholder={t("username")}
@@ -104,8 +110,11 @@ const LoginScreenUser = () => {
               autoCapitalize="none"
               autoCorrect={false}
               textContentType="username"
+              editable={!loading}
+              returnKeyType="next"
             />
           </View>
+          {/* Password input */}
           <View style={tw`mb-2 relative`}>
             <TextInput
               value={password}
@@ -115,6 +124,9 @@ const LoginScreenUser = () => {
               style={tw`border border-gray-300 rounded px-4 py-3 bg-gray-100`}
               autoCapitalize="none"
               textContentType="password"
+              editable={!loading}
+              returnKeyType="done"
+              onSubmitEditing={handleSubmit}
             />
             <TouchableOpacity
               onPress={() => setShowPassword((s) => !s)}
@@ -127,11 +139,12 @@ const LoginScreenUser = () => {
               )}
             </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={toggleForgotPasswordModal}>
+          <TouchableOpacity onPress={toggleForgotPasswordModal} disabled={loading}>
             <Text style={tw`text-right text-blue-600 underline mb-6`}>
               {t("forgotPassword")}
             </Text>
           </TouchableOpacity>
+          {/* Login button */}
           <TouchableOpacity
             onPress={handleSubmit}
             style={tw`bg-blue-600 rounded-full py-3 items-center`}
@@ -146,6 +159,7 @@ const LoginScreenUser = () => {
             )}
           </TouchableOpacity>
         </View>
+        {/* Forgot password modal */}
         <ForgotPasswordModal
           show={showForgotPasswordModal}
           onClose={toggleForgotPasswordModal}

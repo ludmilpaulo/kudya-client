@@ -3,6 +3,8 @@ import { baseAPI } from "./types";
 import axios, { isAxiosError } from 'axios';
 const API_URL = baseAPI;
 
+// services/authService.ts
+
 export const loginUserService = async (username: string, password: string) => {
   const response = await fetch(`${baseAPI}/conta/login/`, {
     method: "POST",
@@ -16,10 +18,11 @@ export const loginUserService = async (username: string, password: string) => {
   const data = await response.json();
 
   if (!response.ok) {
-    return data;
+    // THROW error for thunk to catch and handle
+    throw new Error(data.message || "Erro desconhecido.");
   }
 
-  return data;
+  return data; // { token, user_id, username, is_customer, is_driver, message }
 };
 
 export const signup = async (role: "client" | "store", signupData: Record<string, any>) => {

@@ -65,6 +65,7 @@ export const translationKeys = [
   'loginSuccess',
   'loginFailed',
   'resetFailed',
+  'fillAllFields',
 
   'checkout',
   'paymentMethod',
@@ -123,6 +124,7 @@ const translations: Record<SupportedLocale, Record<TranslationKey, string>> = {
     loginRequired: "Login Required",
     sharingNotSupported: "Sharing not supported on this device.",
     shareFailed: "Failed to share product.",
+    fillAllFields: "Please fill all fields.",
     increase: "Increase",
     decrease: "Decrease",
     loginToAccessCart: "You need to log in to access your cart and complete your purchase.",
@@ -213,6 +215,7 @@ const translations: Record<SupportedLocale, Record<TranslationKey, string>> = {
     username: "Nome do usuário",
     password: "Senha",
     forgotPassword: "Esqueceu a senha?",
+    fillAllFields: "Preenche todos campos.",
     email: "Email",
     enterEmail: "Digite seu email",
     send: "Enviar",

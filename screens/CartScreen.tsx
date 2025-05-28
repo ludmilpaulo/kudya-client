@@ -1,73 +1,95 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../redux/store';
-import { removeItem, clearAllCart, addItem } from '../redux/slices/basketSlice';
-import { Image } from 'expo-image';
-import { useTranslation } from "../hooks/useTranslation";
-import { Swipeable } from 'react-native-gesture-handler';
-import tw from 'twrnc';
-import { FontAwesome } from '@expo/vector-icons';
-import * as Localization from "expo-localization";
-import { selectUser } from "../redux/slices/authSlice";
+import React, { useCallback } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "../redux/store";
+import { removeItem, clearAllCart, addItem } from "../redux/slices/basketSlice";
+import { Image } from "expo-image";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { selectUser } from "../redux/slices/authSlice";
 import { RootStackParamList } from "../navigation/navigation";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { formatCurrency, getCurrencyForCountry } from '../utils/currency';
+import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
+import { Swipeable } from "react-native-gesture-handler";
+import tw from "twrnc";
+import { FontAwesome } from "@expo/vector-icons";
+import * as Localization from "expo-localization";
+
+// Use the CartItem type you defined and imported from your services/types
+export interface CartItem {
+  id: number;         // productId
+  name: string;
+  price: number;
+  image?: string;
+  size: string;
+  quantity: number;
+  store: number;      // storeId
+}
 
 type NavigationProp = StackNavigationProp<RootStackParamList, "Cart">;
 
 export default function CartScreen() {
-  const items = useSelector((state: RootState) => state.basket.items);
+  const items: CartItem[] = useSelector((state: RootState) => state.basket.items);
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<NavigationProp>();
-
   const user = useSelector(selectUser);
 
-
+  // Get locale, region, currency and language
   const localeObj = Localization.getLocales?.()[0];
   const language = (localeObj?.languageCode || "en").toLowerCase();
   const regionCode = localeObj?.regionCode || "ZA";
   const currencyCode = getCurrencyForCountry(regionCode);
 
+  // Calculate total
   const total = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-  
-const t = (en: string, pt: string) => (language.startsWith("pt") ? pt : en);
+  // Simple translation util
+  const t = (en: string, pt: string) => (language.startsWith("pt") ? pt : en);
 
- useFocusEffect(
-  useCallback(() => {
-    if (!user) {
-      Alert.alert(
-        t("Login Required", "Login Obrigatório"),
-        t(
-          "You need to log in to access your cart and complete your purchase.",
-          "Você precisa fazer login para acessar seu carrinho e finalizar a compra."
-        ),
-        [
-          {
-            text: t("Login", "Entrar"),
-            onPress: () => navigation.navigate("UserLogin"),
-          },
-          {
-            text: t("Cancel", "Cancelar"),
-            style: "cancel",
-            onPress: () => navigation.goBack(),
-          },
-        ],
-      );
-    }
-  }, [user, navigation, t])
-);
+  // Require login to view cart
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) {
+        Alert.alert(
+          t("Login Required", "Login Obrigatório"),
+          t(
+            "You need to log in to access your cart and complete your purchase.",
+            "Você precisa fazer login para acessar seu carrinho e finalizar a compra."
+          ),
+          [
+            {
+              text: t("Login", "Entrar"),
+              onPress: () => navigation.navigate("UserLogin"),
+            },
+            {
+              text: t("Cancel", "Cancelar"),
+              style: "cancel",
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
+      }
+    }, [user, navigation, t])
+  );
 
-
+  // Handlers
   const handleRemove = (itemId: number, size?: string) => {
     dispatch(removeItem({ id: itemId, size: size || "" }));
   };
 
-  const handleQuantityChange = (item: any, diff: 1 | -1) => {
+  // Always pass store!
+  const handleQuantityChange = (item: CartItem, diff: 1 | -1) => {
     if (diff === 1) {
-      dispatch(addItem({ ...item, quantity: 1 }));
+      dispatch(
+        addItem({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          image: item.image,
+          size: item.size,
+          store: item.store,      // REQUIRED for your reducer!
+          quantity: 1,
+        })
+      );
     } else if (item.quantity === 1) {
       dispatch(removeItem({ id: item.id, size: item.size || "" }));
     } else {
@@ -78,7 +100,10 @@ const t = (en: string, pt: string) => (language.startsWith("pt") ? pt : en);
   const confirmClearCart = () => {
     Alert.alert(
       t("Clear Cart", "Esvaziar carrinho"),
-      t("Are you sure you want to remove all items from your cart?", "Tem certeza que deseja remover todos os itens do carrinho?"),
+      t(
+        "Are you sure you want to remove all items from your cart?",
+        "Tem certeza que deseja remover todos os itens do carrinho?"
+      ),
       [
         { text: t("Cancel", "Cancelar"), style: "cancel" },
         { text: t("Yes, Clear", "Sim, Esvaziar"), style: "destructive", onPress: () => dispatch(clearAllCart()) }
@@ -114,7 +139,7 @@ const t = (en: string, pt: string) => (language.startsWith("pt") ? pt : en);
 
         {items.map((item, idx) => (
           <Swipeable
-            key={`${item.id}-${item.size || ""}-${idx}`}
+            key={`${item.id}-${item.size || ""}-${item.store}-${idx}`}
             renderRightActions={() => (
               <TouchableOpacity
                 style={tw`bg-red-500 justify-center items-center w-16 h-full rounded-r-xl`}
@@ -127,11 +152,17 @@ const t = (en: string, pt: string) => (language.startsWith("pt") ? pt : en);
             containerStyle={tw`mb-4`}
           >
             <View style={tw`bg-white rounded-2xl flex-row items-center p-4 shadow-lg`}>
-              <Image
-                source={{ uri: item.image }}
-                style={tw`w-16 h-16 rounded-xl bg-gray-100`}
-                contentFit="cover"
-              />
+              {item.image ? (
+                <Image
+                  source={{ uri: item.image }}
+                  style={tw`w-16 h-16 rounded-xl bg-gray-100`}
+                  contentFit="cover"
+                />
+              ) : (
+                <View style={tw`w-16 h-16 rounded-xl bg-gray-200 items-center justify-center`}>
+                  <FontAwesome name="image" size={24} color="#bbb" />
+                </View>
+              )}
               <View style={tw`ml-4 flex-1`}>
                 <Text style={tw`text-lg font-bold`} numberOfLines={2}>{item.name}</Text>
                 {!!item.size && (
@@ -171,7 +202,7 @@ const t = (en: string, pt: string) => (language.startsWith("pt") ? pt : en);
         ))}
       </ScrollView>
 
-      {/* Total Bar - sticks at bottom */}
+      {/* Total Bar */}
       {items.length > 0 && (
         <View
           style={[
