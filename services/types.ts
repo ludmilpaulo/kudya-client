@@ -1,6 +1,6 @@
 //export const baseAPI: string = "http://192.168.1.108:8000";
-export const baseAPI: string = "https://kudya.pythonanywhere.com";
-//export const baseAPI : string = "http://192.168.1.109:8000";
+//export const baseAPI: string = "https://kudya.pythonanywhere.com";
+export const baseAPI : string = "http://192.168.1.105:8000";
 
 
 
@@ -10,23 +10,14 @@ export type RootStackParamList = {
   SignupScreen: undefined;
   storeDashboard: undefined;
   LoginScreenUser: undefined;
-  FoodDetailsPage: { meal: Meal };
+
   CartPage: undefined;
   storeMenu: { store_id: number; store_logo: string };
   CheckoutPage: { storeId: number };
 };
 
 
-export type Meal = {
-  id: number;
-  image_url: string;
-  name: string;
-  short_description: string;
-  price: number;
-  quantity: number;
-  category: string;
-  store: number;
-};
+
 
 //export type Category = string; // Define Category as a string
 
@@ -130,17 +121,7 @@ export interface store {
     image: string | null;
   };
   
-  export type storeType = {
-    id: number;
-    name: string;
-    phone: string;
-    address: string;
-    logo: string;
-    category?: CategoryType;
-    barnner: boolean;
-    is_approved: boolean;
-    opening_hours: OpeningHourType[];
-  };
+ 
 
   export interface AboutUsData {
     id: number;
