@@ -15,7 +15,7 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "2",
+      "buildNumber": "3",
       "supportsTablet": true,
       "infoPlist": {
         "CFBundleDisplayName": "kudya",
@@ -38,7 +38,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 21
+      "versionCode": 23
     },
     "web": {
       "favicon": "./assets/azul.png"
