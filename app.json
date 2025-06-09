@@ -15,17 +15,17 @@
       "**/*"
     ],
     "ios": {
-        "buildNumber": "4",
-        "supportsTablet": true,
-        "infoPlist": {
-          "CFBundleDisplayName": "kudya",
-          "NSLocationWhenInUseUsageDescription": "We use your location to autofill your delivery address.",
-          "NSLocationAlwaysAndWhenInUseUsageDescription": "We use your location to autofill your delivery address even when the app is in the background.",
-          "NSPhotoLibraryUsageDescription": "We need access to your photo library so you can select images to share with us.",
-          "ITSAppUsesNonExemptEncryption": false
-        },
-        "bundleIdentifier": "com.ludmil.kudyaclient"
+      "buildNumber": "5",
+      "supportsTablet": true,
+      "infoPlist": {
+        "CFBundleDisplayName": "kudya",
+        "NSLocationWhenInUseUsageDescription": "We use your location to autofill your delivery address.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We use your location to autofill your delivery address even when the app is in the background.",
+        "NSPhotoLibraryUsageDescription": "We need access to your photo library so you can select images to share with us.",
+        "ITSAppUsesNonExemptEncryption": false
       },
+      "bundleIdentifier": "com.ludmil.kudyaclient"
+    },
     "android": {
       "config": {
         "googleMaps": {
