@@ -381,17 +381,19 @@ export default function ProductsScreen() {
                     >
                       <View>
                         <Image
-                          source={
-                            product.images?.[0]?.image
-                              ? { uri: product.images[0].image.startsWith("/media/")
-                                  ? `${process.env.NEXT_PUBLIC_BASE_API}${product.images[0].image}`
-                                  : product.images[0].image
-                                }
-                              : undefined
-                          }
-                          style={tw`w-full h-28 rounded-lg mb-2 bg-gray-200`}
-                          contentFit="cover"
-                        />
+                            source={
+                              product.images?.[0]
+                                ? {
+                                    uri: product.images[0].startsWith("/media/")
+                                      ? `${process.env.NEXT_PUBLIC_BASE_API}${product.images[0]}`
+                                      : product.images[0]
+                                  }
+                                : undefined
+                            }
+                            style={tw`w-full h-28 rounded-lg mb-2 bg-gray-200`}
+                            contentFit="cover"
+                          />
+
                         {hasSale && (
                           <View style={tw`absolute top-2 right-2 bg-blue-500 rounded-lg px-2 py-1 flex-row items-center`}>
                             <Text style={tw`text-white text-xs font-bold`}>

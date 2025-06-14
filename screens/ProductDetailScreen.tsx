@@ -272,7 +272,7 @@ const ProductDetailScreen = ({ route }: Props) => {
             scrollAnimationDuration={800}
             renderItem={({ item }) => (
               <Image
-                source={{ uri: item.image }}
+                source={{ uri: item?.images }}
                 style={tw`w-full h-full rounded-xl`}
                 placeholder={{
                   uri: "https://via.placeholder.com/400?text=Loading...",
@@ -485,7 +485,7 @@ const ProductDetailScreen = ({ route }: Props) => {
                   activeOpacity={0.93}
                 >
                   <Image
-                    source={{ uri: rel.images?.[0]?.image || "https://via.placeholder.com/200" }}
+                    source={{ uri: rel.images?.[0] || "https://via.placeholder.com/200" }}
                     style={tw`w-full h-32 rounded-lg bg-gray-200`}
                     contentFit="cover"
                   />

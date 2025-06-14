@@ -1,6 +1,6 @@
 //export const baseAPI: string = "http://192.168.1.108:8000";
-//export const baseAPI: string = "https://kudya.pythonanywhere.com";
-export const baseAPI : string = "http://192.168.1.105:8000";
+export const baseAPI: string = "https://kudya.pythonanywhere.com";
+//export const baseAPI : string = "http://192.168.1.105:8000";
 
 
 
@@ -196,7 +196,7 @@ export interface Product {
   bulk_sale: boolean;
   discount_percentage: number;
   season?: string;
-  images?: ProductImage[];
+  images?: string[];
   gender?: string;
   sizes?: string[];
 

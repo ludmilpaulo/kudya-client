@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as Localization from 'expo-localization';
+import { baseAPI } from "./types";
 
-export const baseAPI : string = "https://kudya.pythonanywhere.com";
  //export const baseAPI = "http://192.168.100.230:8000";
 
  //export const baseAPI : string = "http://192.168.1.105:8000";
