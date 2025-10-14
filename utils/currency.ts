@@ -203,3 +203,107 @@ export function getCurrencySymbol(region: RegionCode): string {
   const currency = getCurrencyForCountry(region);
   return currencySymbols[currency] || "$";
 }
+
+// Currency conversion functionality
+const BASE_CURRENCY = "AOA"; // Angolan Kwanza
+const API_BASE_URL = "https://www.kudya.shop";
+
+/**
+ * Fetch latest exchange rates from backend
+ */
+export async function fetchExchangeRates(): Promise<Record<string, number> | null> {
+  try {
+    const cached = await AsyncStorage.getItem("exchangeRates");
+    const cacheTime = await AsyncStorage.getItem("exchangeRatesTime");
+    
+    // Use cached rates if less than 12 hours old
+    if (cached && cacheTime) {
+      const age = Date.now() - parseInt(cacheTime);
+      if (age < 12 * 60 * 60 * 1000) { // 12 hours
+        return JSON.parse(cached);
+      }
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/currency/rates/`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch exchange rates");
+    }
+    
+    const data = await response.json();
+    const rates = data.rates || {};
+    
+    // Cache the rates
+    await AsyncStorage.setItem("exchangeRates", JSON.stringify(rates));
+    await AsyncStorage.setItem("exchangeRatesTime", Date.now().toString());
+    
+    return rates;
+  } catch (error) {
+    console.error("Error fetching exchange rates:", error);
+    
+    // Return cached rates if available, even if old
+    const cached = await AsyncStorage.getItem("exchangeRates");
+    if (cached) {
+      return JSON.parse(cached);
+    }
+    
+    return null;
+  }
+}
+
+/**
+ * Convert amount from base currency (AOA) to target currency
+ */
+export async function convertCurrency(
+  amount: number,
+  fromCurrency: CurrencyCode,
+  toCurrency: CurrencyCode
+): Promise<number> {
+  if (fromCurrency === toCurrency) {
+    return amount;
+  }
+  
+  const rates = await fetchExchangeRates();
+  if (!rates) {
+    return amount; // Return original if rates unavailable
+  }
+  
+  // Convert from base to target
+  if (fromCurrency === BASE_CURRENCY) {
+    const rate = rates[toCurrency] || 1;
+    return amount * rate;
+  }
+  
+  // Convert from target to base
+  if (toCurrency === BASE_CURRENCY) {
+    const rate = rates[fromCurrency] || 1;
+    return rate > 0 ? amount / rate : amount;
+  }
+  
+  // Convert via base currency
+  const fromRate = rates[fromCurrency] || 1;
+  const toRate = rates[toCurrency] || 1;
+  const amountInBase = fromRate > 0 ? amount / fromRate : amount;
+  return amountInBase * toRate;
+}
+
+/**
+ * Format currency with conversion from base currency
+ */
+export async function formatCurrencyWithConversion(
+  amountInBaseCurrency: number,
+  targetCode: CurrencyCode = "AOA",
+  lang: string = "en"
+): Promise<string> {
+  try {
+    const convertedAmount = await convertCurrency(
+      amountInBaseCurrency,
+      "AOA",
+      targetCode
+    );
+    
+    return formatCurrency(convertedAmount, targetCode, lang);
+  } catch (error) {
+    // Fallback to original amount if conversion fails
+    return formatCurrency(amountInBaseCurrency, targetCode, lang);
+  }
+}
