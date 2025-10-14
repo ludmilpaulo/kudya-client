@@ -11,6 +11,7 @@ import ProductsScreen from "../screens/ProductsScreen";
 import ProductsByCategoryScreen from "../screens/ProductsByCategoryScreen";
 import CategoriesScreen from "../screens/CategoriesScreen";
 import StoresScreen from "../screens/StoresScreen";
+import ServiceDetailScreen from "../screens/ServiceDetailScreen";
 
 import SignupScreen from "../screens/SignupScreen";
 import LoginScreenUser from "../screens/LoginScreenUser";
@@ -35,7 +36,7 @@ export default function AppNavigator() {
     
       <Stack.Screen name="Checkout" component={CheckoutScreen} />
       <Stack.Screen name="Categories" component={CategoriesScreen} />
-
+      <Stack.Screen name="ServiceDetail" component={ServiceDetailScreen} />
      
       <Stack.Screen name="ProductsByCategory" component={ProductsByCategoryScreen} />
 

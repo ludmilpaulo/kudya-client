@@ -22,10 +22,26 @@ const API = axios.create({
   },
 });
 
-API.interceptors.request.use((config) => {
+API.interceptors.request.use(async (config) => {
   const url = (config.baseURL ?? "") + (config.url ?? "");
   console.log("[API] Requesting:", url);
   config.headers['Accept-Language'] = getDeviceLanguage();
+  
+  // Attach auth token if available
+  try {
+    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const persistedState = await AsyncStorage.getItem('persist:root');
+    if (persistedState) {
+      const parsed = JSON.parse(persistedState);
+      const auth = parsed.auth ? JSON.parse(parsed.auth) : null;
+      if (auth?.token) {
+        config.headers['Authorization'] = `Token ${auth.token}`;
+      }
+    }
+  } catch (e) {
+    // Ignore errors in token retrieval
+  }
+  
   return config;
 });
 

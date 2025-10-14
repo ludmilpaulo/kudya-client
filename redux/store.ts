@@ -14,6 +14,7 @@ import reviewsReducer from './slices/reviewsSlice';
 import relatedProductsReducer from './slices/relatedProductsSlice';
 import categoryReducer from './slices/categorySlice';
 import productsByCategoryReducer from './slices/productsByCategorySlice';
+import servicesReducer from './slices/servicesSlice';
 
 // Combine reducer
 const rootReducer = combineReducers({
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
   relatedProducts: relatedProductsReducer,
   categories: categoryReducer,
   productsByCategory: productsByCategoryReducer,
+  services: servicesReducer,
 });
 
 // ✅ Persist config

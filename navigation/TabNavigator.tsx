@@ -11,6 +11,7 @@ import CartScreen from "../screens/CartScreen";
 import OrdersScreen from "../screens/OrdersScreen";
 import WishlistScreen from "../screens/WishlistScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import ServicesScreen from "../screens/ServicesScreen";
 import { useTranslation } from "../hooks/useTranslation";
 import { RootState } from "../redux/store";
 
@@ -111,6 +112,15 @@ export default function BottomTabNavigator() {
         options={{
           tabBarIcon: ({ color }) => (
             <FontAwesome5 name="heart" color={color} size={22} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Services"
+        component={ServicesScreen}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="briefcase-outline" color={color} size={24} />
           ),
         }}
       />
