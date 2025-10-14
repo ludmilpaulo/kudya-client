@@ -16,6 +16,7 @@ import axios from "axios";
 import * as FileSystem from "expo-file-system";
 import { baseAPI } from "../services/types";
 import tw from "twrnc";
+import AudioPlayer from "./AudioPlayer";
 
 interface ChatComponentProps {
   user: "customer" | "driver";
@@ -116,7 +117,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
 
       const { recording } = await Audio.Recording.createAsync(
-        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
 
       setRecording(recording);

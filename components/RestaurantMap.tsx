@@ -1,7 +1,7 @@
-import React, { useRef } from "react";
+import React from "react";
 import { View, StyleSheet, Image } from "react-native";
 import MapView, { Marker } from "react-native-maps";
-import tailwind from "tailwind-react-native-classnames";
+import tw from "twrnc";
 
 const storeMap = ({
   coordinates,
@@ -10,18 +10,15 @@ const storeMap = ({
   coordinates: any;
   title: any;
 }) => {
-  const mapRef = useRef(null);
-
   return (
-    <View style={[tailwind`bg-blue-300 relative `, { height: 250 }]}>
+    <View style={[tw`bg-blue-300 relative`, { height: 250 }]}>
       <MapView
         region={{
           ...coordinates,
           latitudeDelta: 0.005,
           longitudeDelta: 0.005,
         }}
-        ref={mapRef}
-        style={tailwind`h-full z-10`}
+        style={tw`h-full z-10`}
       >
         {coordinates && (
           <Marker

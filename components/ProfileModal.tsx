@@ -22,7 +22,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
   const [firstName, setFirstName] = useState<string>(userDetails?.first_name || '');
   const [lastName, setLastName] = useState<string>(userDetails?.last_name || '');
   const [phone, setPhone] = useState<string>(userDetails?.phone || '');
-  const userToken = user.token;
+  const userToken = null;
   const navigation = useNavigation<any>();
 
   useEffect(() => {

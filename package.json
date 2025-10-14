@@ -87,8 +87,8 @@
     "@babel/core": "^7.24.0",
     "@expo/ngrok": "^4.1.0",
     "@types/node": "^20.14.9",
-    "@types/react": "~19.0.10",
-    "@types/react-native-vector-icons": "^6.4.17",
+    "@types/react": "^19.2.2",
+    "@types/react-native-vector-icons": "^6.4.18",
     "eas-cli": "^16.3.3",
     "typescript": "~5.8.3"
   }

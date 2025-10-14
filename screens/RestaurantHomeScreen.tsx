@@ -17,7 +17,7 @@ import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import tw from "twrnc";
 
-import storeCard from "../components/storeCard";
+import StoreCard from "../components/StoreCard";
 import { useAppSelector } from "../redux/store";
 import { selectCartItems } from "../redux/slices/basketSlice";
 import { store, Category, baseAPI } from "../services/types";
@@ -211,21 +211,21 @@ const HomeScreen: React.FC = () => {
             <Text style={tw`text-white text-xl font-bold mb-4`}>Ofertas de Hoje</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`pb-4`}>
               {filteredDataSource.filter((r) => r.barnner).map((store) => (
-                location && <storeCard key={store.id} store={store} location={location} />
+                location && <StoreCard key={store.id} store={store} location={location} />
               ))}
             </ScrollView>
 
             <Text style={tw`text-white text-xl font-bold mb-4`}>storees Próximos</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`pb-4`}>
               {nearbystores.map((store) => (
-                <storeCard key={store.id} store={store} location={location!} />
+                <StoreCard key={store.id} store={store} location={location!} />
               ))}
             </ScrollView>
 
             <Text style={tw`text-white text-xl font-bold mb-4`}>Todos os storees</Text>
             <View>
               {filteredDataSource.map((store) => (
-                <storeCard key={store.id} store={store} location={location!} />
+                <StoreCard key={store.id} store={store} location={location!} />
               ))}
             </View>
           </ScrollView>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, ScrollView } from 'react-native';
-import tailwind from 'tailwind-react-native-classnames';
+import tw from 'twrnc';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../redux/slices/authSlice';
 
@@ -59,7 +59,6 @@ const DeliveryInfo: React.FC<Props> = () => {
   const fetchOrderHistory = async () => {
     try {
       const user = useSelector(selectUser);
-      let userData = user;
 
       let response = await fetch(
         'https://www.kudya.shop/api/customer/order/history/',
@@ -70,7 +69,7 @@ const DeliveryInfo: React.FC<Props> = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            access_token: user.token,
+            access_token: user?.user_id ? String(user.user_id) : "",
           }),
         }
       );
@@ -88,32 +87,32 @@ const DeliveryInfo: React.FC<Props> = () => {
   }, []);
 
   return (
-    <ScrollView style={tailwind`p-4`}>
+    <ScrollView style={tw`p-4`}>
       {orderHistory.map((order, index) => (
-        <View key={index} style={tailwind`mb-4 border border-gray-300 p-4 rounded`}>
-          <View style={tailwind`flex-row items-center mb-2`}>
-            <Image source={{ uri: order.customer.avatar }} style={tailwind`w-12 h-12 rounded-full mr-2`} />
+        <View key={index} style={tw`mb-4 border border-gray-300 p-4 rounded`}>
+          <View style={tw`flex-row items-center mb-2`}>
+            <Image source={{ uri: order.customer.avatar }} style={tw`w-12 h-12 rounded-full mr-2`} />
             <View>
-              <Text style={tailwind`font-bold`}>{order.customer.name}</Text>
+              <Text style={tw`font-bold`}>{order.customer.name}</Text>
               <Text>{order.customer.phone}</Text>
             </View>
           </View>
-          <View style={tailwind`mb-2`}>
-            <Text style={tailwind`font-bold text-lg`}>{order.store.name}</Text>
-            <Text style={tailwind`text-gray-500`}>{order.store.address}</Text>
-            <Text style={tailwind`font-bold text-green-500`}>{order.status}</Text>
+          <View style={tw`mb-2`}>
+            <Text style={tw`font-bold text-lg`}>{order.store.name}</Text>
+            <Text style={tw`text-gray-500`}>{order.store.address}</Text>
+            <Text style={tw`font-bold text-green-500`}>{order.status}</Text>
           </View>
-          <View style={tailwind`mb-2`}>
+          <View style={tw`mb-2`}>
             {order.order_details.map((detail, detailIndex) => (
-              <View key={detailIndex} style={tailwind`mb-2`}>
+              <View key={detailIndex} style={tw`mb-2`}>
                 <Text>{detail.meal.name}</Text>
                 <Text>Quantity: {detail.quantity}</Text>
                 <Text>Subtotal: {detail.sub_total}</Text>
               </View>
             ))}
           </View>
-          <Text style={tailwind`font-bold text-lg mb-2`}>Total: {order.total}</Text>
-          <Text style={tailwind`text-gray-500`}>Address: {order.address}</Text>
+          <Text style={tw`font-bold text-lg mb-2`}>Total: {order.total}</Text>
+          <Text style={tw`text-gray-500`}>Address: {order.address}</Text>
         </View>
       ))}
     </ScrollView>

@@ -1,6 +1,6 @@
 // hooks/useTranslation.ts
 import * as Localization from 'expo-localization';
-import translations, { SupportedLocale, TranslationKey, supportedLocales } from '../configs/translations';
+import translations, { SupportedLocale, supportedLocales } from '../configs/translations';
 import { useMemo } from 'react';
 
 export function useTranslation() {
@@ -13,8 +13,10 @@ export function useTranslation() {
       ? (locales[0].languageCode as SupportedLocale)
       : 'en';
 
-  function t(key: TranslationKey): string {
-    return translations[languageCode][key] || translations['en'][key] || key;
+  function t(key: string, fallback?: string): string {
+    const table: Record<string, string> = translations[languageCode] as any;
+    const en: Record<string, string> = translations['en'] as any;
+    return table[key] || en[key] || fallback || key;
   }
   // You could also return languageCode if you need to render language-specific stuff
   return { t, languageCode };

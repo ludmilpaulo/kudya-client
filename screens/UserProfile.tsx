@@ -135,7 +135,7 @@ const UserProfile = () => {
         type: blob.type,
         name: "image.jpg",
       } as any);
-      formData.append("access_token", user?.token);
+      formData.append("access_token", "");
       formData.append("address", address);
       formData.append("first_name", first_name);
       formData.append("last_name", last_name);

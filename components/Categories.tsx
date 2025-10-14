@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, Image, Text, ActivityIndicator } from "react-native";
-import tailwind from "tailwind-react-native-classnames";
+import tw from "twrnc";
 import { store } from "../configs/types";
 
 // Define the category type
@@ -92,11 +92,11 @@ const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
       {categories.map((category, index) => (
         <TouchableOpacity
         key={category.id}
-        style={tailwind`relative mr-2`}
+        style={tw`relative mr-2`}
         onPress={() => onSelectCategory(category.name)}
       >
-          <Image source={{ uri: category.image }} style={tailwind`h-20 w-20 rounded`} />
-          <Text style={tailwind`text-black font-bold`}>{category.name}</Text>
+          <Image source={{ uri: category.image }} style={tw`h-20 w-20 rounded`} />
+          <Text style={tw`text-black font-bold`}>{category.name}</Text>
         </TouchableOpacity>
       ))}
     </ScrollView>

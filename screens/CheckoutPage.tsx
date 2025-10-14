@@ -68,9 +68,9 @@ const CheckoutPage: React.FC = () => {
         }
       }
 
-      if (user?.user_id && user?.token) {
+      if (user?.user_id) {
         try {
-          const details = await fetchUserDetails(user.user_id, user.token);
+          const details = await fetchUserDetails(user.user_id, "");
           setUserDetails(details);
           if (!details.avatar) {
             setIsProfileModalOpen(true);
@@ -84,7 +84,7 @@ const CheckoutPage: React.FC = () => {
     };
 
     fetchData();
-  }, [storeId, user?.user_id, user?.token, dispatch]);
+  }, [storeId, user?.user_id, dispatch]);
 
   const getUserLocation = async () => {
     try {

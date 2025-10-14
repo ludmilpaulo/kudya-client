@@ -13,7 +13,7 @@ import { NavigationContainer } from "@react-navigation/native"; // <-- ADD THIS
 
 export default function App() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <ErrorBoundary>

@@ -82,7 +82,6 @@ const Banner: React.FC<BannerProps> = ({
       >
         {stores.map((store, index) => (
           <Marker
-            key={index}
             coordinate={store.location}
             title={store.name}
           >

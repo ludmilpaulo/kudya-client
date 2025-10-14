@@ -27,3 +27,5 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ uri, isUser }) => {
     </TouchableOpacity>
   );
 };
+
+export default AudioPlayer;

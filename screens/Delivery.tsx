@@ -86,7 +86,7 @@ const Delivery = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const responseJson = await fetchLatestOrder(user?.token);
+        const responseJson = await fetchLatestOrder("");
         const order = responseJson?.orders?.[0];
 
         if (!order) {
@@ -114,11 +114,11 @@ const Delivery = () => {
     };
 
     fetchData();
-  }, [order_id, user?.token]);
+  }, [order_id]);
 
   const getDriverLocation = async () => {
     try {
-      const locationData = await fetchDriverLocation(user?.token);
+      const locationData = await fetchDriverLocation("");
       const driverLocationString = locationData?.order_locations?.[0]?.driver_location;
 
       if (!driverLocationString) {
@@ -262,7 +262,7 @@ const Delivery = () => {
           <ChatComponent
             user="customer"
             userData={user}
-            accessToken={user?.token}
+            accessToken={""}
             orderId={order_id}
             onClose={() => setChatModalVisible(false)}
             isChatModalVisible={isChatModalVisible}
