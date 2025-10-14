@@ -26,8 +26,9 @@ import { RootStackParamList } from "../navigation/navigation";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
 import { t } from "../configs/i18n";
-import { formatCurrency } from "../utils/currency";
+import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
 import * as Localization from "expo-localization";
+import { useUserRegion } from "../hooks/useUserRegion";
 import { getWishlist, removeFromWishlist, addToWishlist, fetchWishlistCount } from "../services/WishlistService";
 import { setWishlistCount } from "../redux/slices/wishlistSlice";
 import { StackScreenProps, StackNavigationProp } from "@react-navigation/stack";
@@ -70,8 +71,9 @@ const ProductDetailScreen = ({ route }: Props) => {
   const [averageRating, setAverageRating] = useState<number>(0);
 
   // Region/currency/language
-  const regionCode: string = Localization.getLocales?.()[0]?.regionCode || "ZA";
+  const { region: regionCode } = useUserRegion();
   const language = (Localization.getLocales?.()[0]?.languageCode || "en").toLowerCase();
+  const currencyCode = getCurrencyForCountry(regionCode);
 
   // User/auth
   const user = useSelector(selectUser);
@@ -293,7 +295,7 @@ const ProductDetailScreen = ({ route }: Props) => {
             {productToShow.on_sale ? (
               <>
                 <Text style={tw`text-lg text-gray-400 line-through mr-2`}>
-                  {formatCurrency(Number(productToShow.price), regionCode, language)}
+                  {formatCurrency(Number(productToShow.price), currencyCode, language)}
                 </Text>
                 <Text style={tw`text-xl text-green-700 font-bold`}>
                   {formatCurrency(
@@ -301,7 +303,7 @@ const ProductDetailScreen = ({ route }: Props) => {
                       (Number(productToShow.price) *
                         productToShow.discount_percentage) /
                         100,
-                    regionCode,
+                    currencyCode,
                     language
                   )}
                 </Text>
@@ -497,7 +499,7 @@ const ProductDetailScreen = ({ route }: Props) => {
                       rel.on_sale
                         ? rel.price - (rel.price * rel.discount_percentage) / 100
                         : rel.price,
-                      regionCode,
+                      currencyCode,
                       language
                     )}
                   </Text>
