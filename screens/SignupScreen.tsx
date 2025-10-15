@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet, ImageStyle, ViewStyle } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
@@ -8,6 +8,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from 'moti';
 import { loginUser } from "../redux/slices/authSlice"; // Ensure correct path
 import * as ImagePicker from 'expo-image-picker';
+import { analytics } from "../utils/mixpanel";
 
 interface SignupData {
   username: string;
@@ -41,6 +42,10 @@ const SignupScreen: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<'client' | 'store'>('client');
 
+  useEffect(() => {
+    analytics.trackScreenView('Signup Screen');
+  }, []);
+
   const handleInputChange = (name: string, value: string) => {
     setSignupData(prev => ({ ...prev, [name]: value }));
   };
@@ -73,6 +78,12 @@ const SignupScreen: React.FC = () => {
 
       if (status === 200 || status === 201) {
         dispatch(loginUser(data));
+        analytics.trackSignup(signupData.username, {
+          name: signupData.name,
+          email: signupData.email,
+          user_type: role,
+          platform: 'mobile'
+        });
         Alert.alert("Sucesso", "Você se cadastrou com sucesso.");
         navigation.navigate(role === 'store' ? 'storeDashboard' : 'HomeScreen');
       } else {
@@ -80,6 +91,7 @@ const SignupScreen: React.FC = () => {
       }
     } catch (error) {
       console.error("Signup error:", error);
+      analytics.trackError('Signup Failed', { role, error: error?.toString() });
       Alert.alert("Erro de Rede", "Não foi possível conectar. Por favor, tente novamente.");
     } finally {
       setLoading(false);

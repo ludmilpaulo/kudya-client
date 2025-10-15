@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
 import { t } from '../configs/i18n'; // <--- Use your new t function!
+import { analytics } from '../utils/mixpanel';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -45,6 +46,10 @@ export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
 
   useAutoRefreshStoreTypes();
+
+  useEffect(() => {
+    analytics.trackScreenView('Home Screen');
+  }, []);
 
   const filteredTypes = useMemo(() => {
     return storeTypes.filter(type =>

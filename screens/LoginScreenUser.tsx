@@ -23,6 +23,7 @@ import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import tw from "twrnc";
 import { useTranslation } from "../hooks/useTranslation";
 import { LinearGradient } from "expo-linear-gradient";
+import { analytics } from "../utils/mixpanel";
 
 type NavigationProp = StackNavigationProp<RootStackParamList, "UserLogin">;
 
@@ -42,16 +43,22 @@ const LoginScreenUser = () => {
 
   // Clear cart on login screen open
   useEffect(() => {
+    analytics.trackScreenView('Login Screen');
     dispatch(clearAllCart());
   }, [dispatch]);
 
   // Handle success or error from Redux
   useEffect(() => {
     if (user && message) {
+      analytics.trackLogin(user.id?.toString() || user.username || 'unknown', {
+        user_type: 'customer',
+        platform: 'mobile'
+      });
       Alert.alert(t("success"), message);
       dispatch(clearAuthMessage());
       navigation.goBack(); // Or navigate to home, e.g. navigation.replace("Home")
     } else if (error) {
+      analytics.trackError('Login Failed', { error });
       Alert.alert(t("error"), error);
       dispatch(clearAuthMessage());
     }

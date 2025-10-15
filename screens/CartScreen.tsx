@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Alert, Platform } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../redux/store";
@@ -13,6 +13,7 @@ import { Swipeable } from "react-native-gesture-handler";
 import tw from "twrnc";
 import { FontAwesome } from "@expo/vector-icons";
 import * as Localization from "expo-localization";
+import { analytics } from "../utils/mixpanel";
 
 // Use the CartItem type you defined and imported from your services/types
 export interface CartItem {
@@ -45,6 +46,10 @@ export default function CartScreen() {
   // Simple translation util
   const t = (en: string, pt: string) => (language.startsWith("pt") ? pt : en);
 
+  useEffect(() => {
+    analytics.trackScreenView('Cart Screen', { items_count: items.length });
+  }, []);
+
   // Require login to view cart
   useFocusEffect(
     useCallback(() => {
@@ -73,6 +78,10 @@ export default function CartScreen() {
 
   // Handlers
   const handleRemove = (itemId: number, size?: string) => {
+    const item = items.find(i => i.id === itemId && i.size === (size || ""));
+    if (item) {
+      analytics.trackRemoveFromCart(item.id.toString(), item.name);
+    }
     dispatch(removeItem({ id: itemId, size: size || "" }));
   };
 
