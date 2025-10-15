@@ -40,7 +40,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 25
+      "versionCode": 26
     },
     "web": {
       "favicon": "./assets/azul.png"
@@ -51,7 +51,7 @@
       },
       "googleMapsApiKey": "AIzaSyBJxPi5xtT7F3oxZzlSmIuaXsIswasjkKw"
     },
-    "jsEngine": "jsc",
+    "jsEngine": "hermes",
     "owner": "ludmil"
   }
 }

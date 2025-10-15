@@ -34,6 +34,7 @@
     "expo-av": "~15.0.1",
     "expo-blur": "~14.0.1",
     "expo-constants": "~17.0.3",
+    "expo-dev-client": "^6.0.15",
     "expo-device": "~7.0.1",
     "expo-file-system": "~18.0.4",
     "expo-image": "~2.0.0",

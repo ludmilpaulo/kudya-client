@@ -16,7 +16,8 @@ import { ForgotPasswordRequest } from "./types";
 
 export const googleAPi = "AIzaSyBJxPi5xtT7F3oxZzlSmIuaXsIswasjkKw";
 
-export const apiUrl = "https://ludmil.pythonanywhere.com";
+//export const apiUrl = "https://ludmil.pythonanywhere.com";
+export const apiUrl = "https://www.kudya.store";
 
 //export const apiUrl = "http://127.0.0.1:8000";
 
