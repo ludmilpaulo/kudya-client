@@ -1,5 +1,5 @@
 export type RootStackParamList = {
-  MainTabs: undefined; // <--- ADD THIS LINE
+  MainTabs: undefined;
   Home: undefined;
   Stores: { storeTypeId: number };
   Products: { storeId: number; storeName: string };
@@ -12,4 +12,6 @@ export type RootStackParamList = {
   SignupScreen: undefined;
   ForgotPassword: undefined;
   ServiceDetail: { serviceId: number };
+  Properties: undefined;
+  PropertyDetail: { propertyId: number };
 };

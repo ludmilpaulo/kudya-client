@@ -1,7 +1,6 @@
-//export const baseAPI: string = "http://192.168.1.108:8000";
-//export const baseAPI: string = "https://kudya.pythonanywhere.com";
-export const baseAPI: string = "https://www.kudya.store";
-//export const baseAPI : string = "http://192.168.1.105:8000";
+export const baseAPI: string =
+  (typeof process !== "undefined" && (process.env?.EXPO_PUBLIC_BASE_API || process.env?.NEXT_PUBLIC_BASE_API)) ||
+  "https://www.kudya.store";
 
 
 

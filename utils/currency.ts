@@ -206,7 +206,7 @@ export function getCurrencySymbol(region: RegionCode): string {
 
 // Currency conversion functionality
 const BASE_CURRENCY = "AOA"; // Angolan Kwanza
-const API_BASE_URL = "https://www.kudya.shop";
+const API_BASE_URL = (typeof process !== "undefined" && (process.env?.EXPO_PUBLIC_BASE_API || process.env?.NEXT_PUBLIC_BASE_API)) || "https://www.kudya.store";
 
 /**
  * Fetch latest exchange rates from backend
