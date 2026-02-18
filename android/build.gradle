@@ -19,6 +19,16 @@ allprojects {
     mavenCentral()
     maven { url 'https://www.jitpack.io' }
   }
+  // Force Kotlin 2.0.21 so KSP matches (expo-updates was seeing 2.1.20 from plugin classpath)
+  buildscript {
+    repositories {
+      google()
+      mavenCentral()
+    }
+    dependencies {
+      classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : "2.0.21"}")
+    }
+  }
 }
 
 apply plugin: "expo-root-project"
