@@ -1,36 +1,72 @@
 // Mixpanel Analytics Configuration for React Native
-import { Mixpanel } from 'mixpanel-react-native';
-
-// Initialize Mixpanel with your token
 const MIXPANEL_TOKEN = 'a8cf933c3054afed7f397f71249ba506';
 
-// Create Mixpanel instance
-const mixpanel = new Mixpanel(MIXPANEL_TOKEN, true); // true enables automatic events
+let mixpanel: import('mixpanel-react-native').Mixpanel | null = null;
+let mixpanelInitialized = false;
 
-// Initialize Mixpanel
-mixpanel.init();
+function isExpoGo(): boolean {
+  try {
+    const Constants = require('expo-constants').default;
+    return (
+      Constants.executionEnvironment === 'storeClient' ||
+      Constants.appOwnership === 'expo'
+    );
+  } catch {
+    return false;
+  }
+}
 
-// Analytics class for tracking events
+function getMixpanel(): import('mixpanel-react-native').Mixpanel | null {
+  if (mixpanel !== null) return mixpanel;
+  if (isExpoGo()) return null; // Skip native module in Expo Go to avoid "using JavaScript mode" warning
+  try {
+    const { Mixpanel } = require('mixpanel-react-native');
+    mixpanel = new Mixpanel(MIXPANEL_TOKEN, true);
+    return mixpanel;
+  } catch (_) {
+    return null;
+  }
+}
+
+function ensureInit() {
+  if (mixpanelInitialized) return;
+  const mp = getMixpanel();
+  if (!mp) return;
+  try {
+    mp.init();
+    mixpanelInitialized = true;
+  } catch (_) {
+    // Native init can fail in Expo Go / simulator; avoid crashing the app
+  }
+}
+
+// Analytics class for tracking events (no-op when native Mixpanel unavailable, e.g. Expo Go)
 class Analytics {
-  private mixpanelInstance: Mixpanel;
-
-  constructor() {
-    this.mixpanelInstance = mixpanel;
-  }
-
-  // Track events
   track(eventName: string, properties?: Record<string, any>) {
-    this.mixpanelInstance.track(eventName, properties);
+    ensureInit();
+    const mp = getMixpanel();
+    if (!mp) return;
+    try {
+      mp.track(eventName, properties);
+    } catch (_) {}
   }
 
-  // Identify user
   identify(userId: string) {
-    this.mixpanelInstance.identify(userId);
+    ensureInit();
+    const mp = getMixpanel();
+    if (!mp) return;
+    try {
+      mp.identify(userId);
+    } catch (_) {}
   }
 
-  // Set user properties
   setUserProperties(properties: Record<string, any>) {
-    this.mixpanelInstance.getPeople().set(properties);
+    ensureInit();
+    const mp = getMixpanel();
+    if (!mp) return;
+    try {
+      mp.getPeople().set(properties);
+    } catch (_) {}
   }
 
   // Track user signup
@@ -55,10 +91,14 @@ class Analytics {
     });
   }
 
-  // Track user logout
   trackLogout() {
     this.track('User Logout');
-    this.mixpanelInstance.reset();
+    const mp = getMixpanel();
+    if (!mp) return;
+    try {
+      ensureInit();
+      mp.reset();
+    } catch (_) {}
   }
 
   // Track screen views
@@ -204,20 +244,25 @@ class Analytics {
     });
   }
 
-  // Set super properties (sent with every event)
   setSuperProperties(properties: Record<string, any>) {
-    this.mixpanelInstance.registerSuperProperties(properties);
+    ensureInit();
+    const mp = getMixpanel();
+    if (!mp) return;
+    try {
+      mp.registerSuperProperties(properties);
+    } catch (_) {}
   }
 
-  // Time an event
   timeEvent(eventName: string) {
-    this.mixpanelInstance.timeEvent(eventName);
+    ensureInit();
+    const mp = getMixpanel();
+    if (!mp) return;
+    try {
+      mp.timeEvent(eventName);
+    } catch (_) {}
   }
 }
 
 // Export singleton instance
 export const analytics = new Analytics();
-
-// Export mixpanel instance for direct access if needed
-export { mixpanel };
 

@@ -40,7 +40,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 27
+      "versionCode": 29
     },
     "web": {
       "favicon": "./assets/azul.png"

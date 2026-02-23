@@ -1,6 +1,7 @@
 {
   "extends": "expo/tsconfig.base.json",
   "compilerOptions": {
+    "jsx": "react-native",
     "types": ["react-native", "react-native-vector-icons", "node"],
     "strict": false,
     "target": "es2017",
@@ -11,9 +12,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
-    "paths": {
-      "*": ["node_modules/*"]
-    }
+    "paths": { "*": ["node_modules/*"] }
   },
   "exclude": ["node_modules"]
 }
