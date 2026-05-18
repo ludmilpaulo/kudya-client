@@ -21,7 +21,7 @@ export function useStoresWithDistance(stores: Store[]) {
         const coords = await getCoordsFromLocationOrAddress(store.location, store.address);
         const distance =
           coords && userLoc
-            ? haversineDistance(userLoc.lat, userLoc.lng, coords.lat, coords.lng)
+            ? haversineDistance(userLoc.latitude, userLoc.longitude, coords.lat, coords.lng)
             : null;
         results.push({ ...store, distance, coords });
       }

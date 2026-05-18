@@ -31,7 +31,7 @@ interface SignupData {
 
 const SignupScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<any>();
 
   const [signupData, setSignupData] = useState<SignupData>({
     username: '',
@@ -156,7 +156,7 @@ const SignupScreen: React.FC = () => {
             style={styles.input}
           />
           <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
-            {showPassword ? <Feather name="eye-off" width={20} height={20} color="#040405"/> : <Feather name="eye"width={20} height={20} color="#040405" />}
+            {showPassword ? <Feather name="eye-off" size={20} color="#040405"/> : <Feather name="eye" size={20} color="#040405" />}
           </TouchableOpacity>
         </View>
         {role === 'store' && (

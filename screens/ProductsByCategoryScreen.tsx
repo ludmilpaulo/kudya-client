@@ -79,6 +79,8 @@ const ProductsByCategoryScreen: React.FC<Props> = ({ route }) => {
   }, [search, loadProducts]);
 
   // Handler for add to cart (open modal for sizes)
+  const getProductImage = (product: Product) => product.images?.[0]?.image || "";
+
   const handleAddToCart = (product: Product) => {
     if (Array.isArray(product.sizes) && product.sizes.length > 0) {
       setModalProduct(product);
@@ -91,7 +93,7 @@ const ProductsByCategoryScreen: React.FC<Props> = ({ route }) => {
         price: product.on_sale
           ? product.price - (product.price * product.discount_percentage) / 100
           : product.price,
-        image: product.images?.[0] || "",
+        image: getProductImage(product),
         store: product.store_id,
         quantity: 1,
       }));
@@ -109,7 +111,7 @@ const ProductsByCategoryScreen: React.FC<Props> = ({ route }) => {
       price: modalProduct.on_sale
         ? modalProduct.price - (modalProduct.price * modalProduct.discount_percentage) / 100
         : modalProduct.price,
-      image: modalProduct.images?.[0] || "",
+      image: getProductImage(modalProduct),
       store: modalProduct.store_id,
       quantity,
     }));
@@ -185,7 +187,7 @@ const ProductsByCategoryScreen: React.FC<Props> = ({ route }) => {
               activeOpacity={0.92}
             >
               <Image
-                source={{ uri: product?.images?.[0] ? product.images[0] : "" }}
+                source={{ uri: getProductImage(product) }}
                 style={tw`w-20 h-20 rounded-lg mr-4`}
                 contentFit="cover"
               />

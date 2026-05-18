@@ -6,6 +6,9 @@ import { useNavigation } from "@react-navigation/native";
 import {LinearGradient} from "expo-linear-gradient";
 import tw from "twrnc"; // ✅ Using `twrnc` instead of tailwind-react-native-classnames
 
+const AnimatableImage = Animatable.Image as any;
+const AnimatableText = Animatable.Text as any;
+
 const SuccessScreen = () => {
   const navigation = useNavigation<any>();
   const [orderSent, setOrderSent] = useState(false);
@@ -27,14 +30,14 @@ const SuccessScreen = () => {
       style={tw`flex-1`}
     >
       <SafeAreaView style={tw`flex-1 justify-center items-center`}>
-        <Animatable.Image
+        <AnimatableImage
           source={require("../assets/orderLoading.gif")}
           animation="slideInUp"
           iterationCount={1}
           style={tw`h-96 w-96`}
         />
 
-        <Animatable.Text
+        <AnimatableText
           animation="slideInUp"
           iterationCount={1}
           style={tw`my-10 text-lg font-bold text-center text-white`}
@@ -42,18 +45,18 @@ const SuccessScreen = () => {
           {orderSent
             ? "Seu pedido foi enviado ao storee!"
             : "Aguardando o storee aceitar seu pedido!"}
-        </Animatable.Text>
+        </AnimatableText>
 
         <Progress.Circle size={60} indeterminate={true} color="#ffffff" />
 
         {orderSent && (
-          <Animatable.Text
+          <AnimatableText
             animation="fadeIn"
             duration={500}
             style={tw`mt-5 text-lg font-bold text-center text-white`}
           >
             Redirecionando...
-          </Animatable.Text>
+          </AnimatableText>
         )}
       </SafeAreaView>
     </LinearGradient>

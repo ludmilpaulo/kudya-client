@@ -1,16 +1,8 @@
 {
-  "extends": "expo/tsconfig.base.json",
+  "extends": "./node_modules/expo/tsconfig.base.json",
   "compilerOptions": {
-    "jsx": "react-native",
-    "types": ["react-native", "react-native-vector-icons", "node"],
     "strict": false,
-    "target": "es2017",
-    "lib": ["ES2017", "dom"],
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "types": ["react-native", "react-native-vector-icons", "node", "jest"],
     "baseUrl": ".",
     "paths": { "*": ["node_modules/*"] }
   },

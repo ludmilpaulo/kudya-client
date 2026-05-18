@@ -6,8 +6,8 @@ export default function Screen({
   children,
   style,
 }: {
-  children: ReactNode;
-  style: any;
+  children?: ReactNode;
+  style?: any;
 }) {
   return (
     <SafeAreaView style={[styles.container, style]}>

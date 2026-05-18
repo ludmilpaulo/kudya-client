@@ -15,6 +15,7 @@ import { RootState } from "../redux/store";
 import { selectUser } from "../redux/slices/authSlice";
 
 const Tab = createBottomTabNavigator();
+const AnimatedView = Animated.View as any;
 
 const MainTabNavigator = () => {
   const dispatch = useDispatch();
@@ -111,7 +112,7 @@ const MainTabNavigator = () => {
               <View>
                 <FontAwesome name="shopping-cart" color={color} size={size} />
                 {cartCount > 0 && (
-                  <Animated.View
+                  <AnimatedView
                     style={{
                       position: "absolute",
                       top: -5,
@@ -134,7 +135,7 @@ const MainTabNavigator = () => {
                     >
                       {cartCount}
                     </Text>
-                  </Animated.View>
+                  </AnimatedView>
                 )}
               </View>
             ),
@@ -149,7 +150,7 @@ const MainTabNavigator = () => {
               <View>
                 <FontAwesome name="heart" color={color} size={size} />
                
-                  <Animated.View
+                  <AnimatedView
                     style={{
                       position: "absolute",
                       top: -5,
@@ -172,7 +173,7 @@ const MainTabNavigator = () => {
                     >
                     
                     </Text>
-                  </Animated.View>
+                  </AnimatedView>
               
               </View>
             ),

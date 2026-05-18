@@ -21,6 +21,7 @@ import { getDistance } from "geolib";
 import * as Location from "expo-location";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { fetchLatestOrder, fetchDriverLocation } from "../services/driverService";
+const SafeMapView = MapView as any;
 
 interface LocationType {
   latitude: number;
@@ -230,7 +231,7 @@ const Delivery = () => {
         <ActivityIndicator size="large" color="#004AAD" />
       ) : center ? (
         <View style={[tw`relative`, { height: 350 }]}>
-          <MapView ref={ref} region={center} style={tw`h-full w-full z-10`}>
+          <SafeMapView ref={ref} region={center} style={tw`h-full w-full z-10`}>
             {driverLocation && (
               <Marker
                 coordinate={driverLocation}
@@ -244,7 +245,7 @@ const Delivery = () => {
                 />
               </Marker>
             )}
-          </MapView>
+          </SafeMapView>
         </View>
       ) : null}
 

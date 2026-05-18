@@ -50,7 +50,7 @@ const LoginScreenUser = () => {
   // Handle success or error from Redux
   useEffect(() => {
     if (user && message) {
-      analytics.trackLogin(user.id?.toString() || user.username || 'unknown', {
+      analytics.trackLogin(user.user_id?.toString() || user.username || 'unknown', {
         user_type: 'customer',
         platform: 'mobile'
       });

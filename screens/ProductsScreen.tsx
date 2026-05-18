@@ -382,11 +382,11 @@ export default function ProductsScreen() {
                       <View>
                         <Image
                             source={
-                              product.images?.[0]
+                              product.images?.[0]?.image
                                 ? {
-                                    uri: product.images[0].startsWith("/media/")
-                                      ? `${process.env.NEXT_PUBLIC_BASE_API}${product.images[0]}`
-                                      : product.images[0]
+                                    uri: product.images[0].image.startsWith("/media/")
+                                      ? `${process.env.NEXT_PUBLIC_BASE_API}${product.images[0].image}`
+                                      : product.images[0].image
                                   }
                                 : undefined
                             }

@@ -49,7 +49,7 @@ function findProductInRedux(productId: number, state: RootState): Product | unde
 
 const ProductDetailScreen = ({ route }: Props) => {
   const productId = route.params.productId;
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<any>();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const reduxState = useSelector((state: RootState) => state);
 
@@ -430,13 +430,14 @@ const ProductDetailScreen = ({ route }: Props) => {
             </Text>
             <View style={tw`flex-row items-center`}>
               {[...Array(5)].map((_, i) => (
-                <FontAwesome
-                  key={i}
-                  name={i < Math.round(averageRating) ? "star" : "star-o"}
-                  size={20}
-                  color="#fbbf24"
-                  style={tw`mr-1`}
-                />
+                <React.Fragment key={i}>
+                  <FontAwesome
+                    name={i < Math.round(averageRating) ? "star" : "star-o"}
+                    size={20}
+                    color="#fbbf24"
+                    style={tw`mr-1`}
+                  />
+                </React.Fragment>
               ))}
             </View>
           </Animated.View>

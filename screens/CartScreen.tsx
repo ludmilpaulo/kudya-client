@@ -27,6 +27,7 @@ export interface CartItem {
 }
 
 type NavigationProp = StackNavigationProp<RootStackParamList, "Cart">;
+const SafeSwipeable = Swipeable as any;
 
 export default function CartScreen() {
   const items: CartItem[] = useSelector((state: RootState) => state.basket.items);
@@ -147,7 +148,7 @@ export default function CartScreen() {
         )}
 
         {items.map((item, idx) => (
-          <Swipeable
+          <SafeSwipeable
             key={`${item.id}-${item.size || ""}-${item.store}-${idx}`}
             renderRightActions={() => (
               <TouchableOpacity
@@ -207,7 +208,7 @@ export default function CartScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </Swipeable>
+          </SafeSwipeable>
         ))}
       </ScrollView>
 

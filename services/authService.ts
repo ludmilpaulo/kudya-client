@@ -6,7 +6,7 @@ const API_URL = baseAPI;
 // services/authService.ts
 
 export const loginUserService = async (username: string, password: string) => {
-  const response = await fetch(`${baseAPI}/conta/login/`, {
+  const response = await fetch(`${baseAPI}/api/auth/login/`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -22,7 +22,7 @@ export const loginUserService = async (username: string, password: string) => {
     throw new Error(data.message || "Erro desconhecido.");
   }
 
-  return data; // { token, user_id, username, is_customer, is_driver, message }
+  return data; // { access, refresh, token, user, user_id, ... }
 };
 
 export const signup = async (role: "client" | "store", signupData: Record<string, any>) => {
@@ -81,9 +81,9 @@ export const resetPassword = async (uid: string, token: string, newPassword: str
 
 export const getCurrentUser = async (token: string) => {
   try {
-    const response = await axios.get(`${API_URL}/profile/`, {
+    const response = await axios.get(`${API_URL}/api/auth/me/`, {
       headers: {
-        Authorization: `Token ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
     return response.data;

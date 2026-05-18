@@ -36,7 +36,7 @@ class NativeModuleErrorBoundary extends Component<
   componentDidCatch() {}
   render() {
     if (this.state.hasError) return <ExpoGoFallback />;
-    return this.props.children;
+    return (this as React.Component<{ children: React.ReactNode }, { hasError: boolean }>).props.children;
   }
 }
 

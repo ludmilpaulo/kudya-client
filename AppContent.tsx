@@ -10,19 +10,30 @@ import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './navigation/AppNavigator';
 
 const SafeErrorBoundary = ErrorBoundary as React.ComponentType<{ children: React.ReactNode }>;
+const SafeGestureHandlerRootView = GestureHandlerRootView as React.ComponentType<{
+  children?: React.ReactNode;
+  style?: unknown;
+}>;
+const SafeProvider = Provider as unknown as React.ComponentType<{
+  children?: React.ReactNode;
+  store: typeof store;
+}>;
+const SafeNavigationContainer = NavigationContainer as React.ComponentType<{
+  children?: React.ReactNode;
+}>;
 
 export default function AppContent() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Provider store={store}>
+    <SafeGestureHandlerRootView style={{ flex: 1 }}>
+      <SafeProvider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <SafeErrorBoundary>
-            <NavigationContainer>
+            <SafeNavigationContainer>
               <AppNavigator />
-            </NavigationContainer>
+            </SafeNavigationContainer>
           </SafeErrorBoundary>
         </PersistGate>
-      </Provider>
-    </GestureHandlerRootView>
+      </SafeProvider>
+    </SafeGestureHandlerRootView>
   );
 }

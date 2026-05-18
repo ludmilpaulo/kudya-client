@@ -174,6 +174,8 @@ export interface Store {
   address: string;
   logo: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
   banner?: boolean;
   is_approved?: boolean;
 }
@@ -196,7 +198,7 @@ export interface Product {
   bulk_sale: boolean;
   discount_percentage: number;
   season?: string;
-  images?: string[];
+  images?: ProductImage[];
   gender?: string;
   sizes?: string[];
 

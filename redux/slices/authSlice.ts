@@ -6,6 +6,7 @@ import { loginUserService } from "../../services/authService"; // adjust the pat
 export interface User {
   user_id: number;
   username: string;
+  token?: string;
   is_customer: boolean;
   is_driver: boolean;
 }
@@ -13,6 +14,7 @@ export interface User {
 export interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   loading: boolean;
   error: string | null;
   message: string | null;
@@ -21,6 +23,7 @@ export interface AuthState {
 const initialState: AuthState = {
   user: null,
   token: null,
+  refreshToken: null,
   loading: false,
   error: null,
   message: null,
@@ -29,7 +32,16 @@ const initialState: AuthState = {
 // ---- Thunk for Login ----
 export const loginUser = createAsyncThunk<
   // Return type:
-  { token: string; user_id: number; username: string; is_customer: boolean; is_driver: boolean; message: string },
+  {
+    access?: string;
+    refresh?: string;
+    token: string;
+    user_id: number;
+    username: string;
+    is_customer: boolean;
+    is_driver: boolean;
+    message: string;
+  },
   // Arg type:
   { username: string; password: string },
   // ThunkAPI:
@@ -56,6 +68,7 @@ const authSlice = createSlice({
     logoutUser(state) {
       state.user = null;
       state.token = null;
+      state.refreshToken = null;
       state.loading = false;
       state.error = null;
       state.message = null;
@@ -76,9 +89,11 @@ const authSlice = createSlice({
         state.loading = false;
         if (action.payload && action.payload.token) {
           state.token = action.payload.token;
+          state.refreshToken = action.payload.refresh ?? null;
           state.user = {
             user_id: action.payload.user_id,
             username: action.payload.username,
+            token: action.payload.token,
             is_customer: action.payload.is_customer,
             is_driver: action.payload.is_driver,
           };

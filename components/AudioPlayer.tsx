@@ -3,6 +3,8 @@ import { Audio } from "expo-av";
 import { useState } from "react";
 import { TouchableOpacity, Text } from "react-native";
 import tw from "twrnc";
+
+const RNText = Text as any;
 interface AudioPlayerProps {
   uri: string;
   isUser: boolean;
@@ -23,7 +25,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ uri, isUser }) => {
 
   return (
     <TouchableOpacity onPress={play} style={tw`${isUser ? "mt-1" : "ml-1 mt-1"}`}>
-      <Text style={tw`${isUser ? "text-white" : "text-black"} text-sm`}>▶ Voice Note</Text>
+      <RNText style={tw`${isUser ? "text-white" : "text-black"} text-sm`}>▶ Voice Note</RNText>
     </TouchableOpacity>
   );
 };

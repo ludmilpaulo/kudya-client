@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from "react-native";
 import Screen from "../components/Screen";
-import LinearGradient from "expo-linear-gradient";
+import { LinearGradient } from "expo-linear-gradient";
 import { googleAPi } from "../configs/variable";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";

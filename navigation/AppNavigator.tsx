@@ -13,6 +13,17 @@ import CategoriesScreen from "../screens/CategoriesScreen";
 import StoresScreen from "../screens/StoresScreen";
 import ServiceDetailScreen from "../screens/ServiceDetailScreen";
 import PropertyDetailScreen from "../screens/PropertyDetailScreen";
+import DoctorsScreen from "../screens/DoctorsScreen";
+import DoctorDetailScreen from "../screens/DoctorDetailScreen";
+import BookAppointmentScreen from "../screens/BookAppointmentScreen";
+import AccommodationScreen from "../screens/AccommodationScreen";
+import WalletScreen from "../screens/WalletScreen";
+import ComingSoonScreen from "../screens/ComingSoonScreen";
+import RidesScreen from "../screens/RidesScreen";
+import RideTrackingScreen from "../screens/RideTrackingScreen";
+import SendPackageScreen from "../screens/SendPackageScreen";
+import CarRentalScreen from "../screens/CarRentalScreen";
+import GroceryScreen from "../screens/GroceryScreen";
 
 import SignupScreen from "../screens/SignupScreen";
 import LoginScreenUser from "../screens/LoginScreenUser";
@@ -39,9 +50,18 @@ export default function AppNavigator() {
       <Stack.Screen name="Categories" component={CategoriesScreen} />
       <Stack.Screen name="ServiceDetail" component={ServiceDetailScreen} />
       <Stack.Screen name="PropertyDetail" component={PropertyDetailScreen} />
+      <Stack.Screen name="Doctors" component={DoctorsScreen} />
+      <Stack.Screen name="DoctorDetail" component={DoctorDetailScreen} />
+      <Stack.Screen name="BookAppointment" component={BookAppointmentScreen} />
+      <Stack.Screen name="Accommodation" component={AccommodationScreen} />
+      <Stack.Screen name="Wallet" component={WalletScreen} />
+      <Stack.Screen name="ComingSoon" component={ComingSoonScreen} />
+      <Stack.Screen name="Rides" component={RidesScreen} />
+      <Stack.Screen name="RideTracking" component={RideTrackingScreen} />
+      <Stack.Screen name="SendPackage" component={SendPackageScreen} />
+      <Stack.Screen name="CarRental" component={CarRentalScreen} />
+      <Stack.Screen name="Grocery" component={GroceryScreen} />
       <Stack.Screen name="ProductsByCategory" component={ProductsByCategoryScreen} />
-
-
     </Stack.Navigator>
   );
 }
