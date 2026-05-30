@@ -1,11 +1,15 @@
 import { baseAPI } from "./types";
+import { normalizeAuthResponse, AuthSessionPayload } from "./authTypes";
 
 import axios, { isAxiosError } from 'axios';
 const API_URL = baseAPI;
 
 // services/authService.ts
 
-export const loginUserService = async (username: string, password: string) => {
+export const loginUserService = async (
+  username: string,
+  password: string,
+): Promise<AuthSessionPayload> => {
   const response = await fetch(`${baseAPI}/api/auth/login/`, {
     method: "POST",
     headers: {
@@ -18,11 +22,26 @@ export const loginUserService = async (username: string, password: string) => {
   const data = await response.json();
 
   if (!response.ok) {
-    // THROW error for thunk to catch and handle
-    throw new Error(data.message || "Erro desconhecido.");
+    throw new Error(data.detail || data.message || "Erro desconhecido.");
   }
 
-  return data; // { access, refresh, token, user, user_id, ... }
+  return normalizeAuthResponse(data);
+};
+
+export const refreshAccessToken = async (
+  refresh: string,
+): Promise<{ access: string; refresh?: string; token: string }> => {
+  const response = await fetch(`${baseAPI}/api/auth/refresh/`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.detail || "Sessão expirada.");
+  }
+  const access = String(data.access || data.token || "");
+  return { access, refresh: data.refresh, token: access };
 };
 
 export const signup = async (role: "client" | "store", signupData: Record<string, any>) => {

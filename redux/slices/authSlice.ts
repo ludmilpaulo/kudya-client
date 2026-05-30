@@ -1,7 +1,7 @@
 // redux/slices/authSlice.ts
 
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginUserService } from "../../services/authService"; // adjust the path
+import { loginUserService } from "../../services/authService";
 
 export interface User {
   user_id: number;
@@ -77,6 +77,31 @@ const authSlice = createSlice({
       state.message = null;
       state.error = null;
     },
+    setAuthFromSocial(state, action: PayloadAction<{
+      token: string;
+      access?: string;
+      refresh?: string;
+      user_id: number;
+      username: string;
+      is_customer: boolean;
+      is_driver: boolean;
+      message?: string;
+    }>) {
+      const p = action.payload;
+      const access = p.access || p.token;
+      state.loading = false;
+      state.token = access;
+      state.refreshToken = p.refresh ?? null;
+      state.user = {
+        user_id: p.user_id,
+        username: p.username,
+        token: access,
+        is_customer: p.is_customer,
+        is_driver: p.is_driver,
+      };
+      state.message = p.message || "Login com sucesso";
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -87,13 +112,14 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action: PayloadAction<any>) => {
         state.loading = false;
-        if (action.payload && action.payload.token) {
-          state.token = action.payload.token;
+        const access = action.payload?.access || action.payload?.token;
+        if (action.payload && access) {
+          state.token = access;
           state.refreshToken = action.payload.refresh ?? null;
           state.user = {
             user_id: action.payload.user_id,
             username: action.payload.username,
-            token: action.payload.token,
+            token: access,
             is_customer: action.payload.is_customer,
             is_driver: action.payload.is_driver,
           };
@@ -110,7 +136,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { logoutUser, clearAuthMessage } = authSlice.actions;
+export const { logoutUser, clearAuthMessage, setAuthFromSocial } = authSlice.actions;
 
 export const selectUser = (state: { auth: AuthState }) => state.auth.user;
 

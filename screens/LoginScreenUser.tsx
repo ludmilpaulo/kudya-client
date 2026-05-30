@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Feather } from "@expo/vector-icons";
 import { RootStackParamList } from "../navigation/navigation";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { loginUser, selectAuth, clearAuthMessage } from "../redux/slices/authSlice";
+import { loginUser, selectAuth, clearAuthMessage, setAuthFromSocial } from "../redux/slices/authSlice";
 import { AppDispatch } from "../redux/store"; // If you use Typed dispatch
 import { clearAllCart } from "../redux/slices/basketSlice";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
@@ -24,6 +24,8 @@ import tw from "twrnc";
 import { useTranslation } from "../hooks/useTranslation";
 import { LinearGradient } from "expo-linear-gradient";
 import { analytics } from "../utils/mixpanel";
+import SocialLoginButtons from "../components/SocialLoginButtons";
+import type { SocialAuthResult } from "../services/socialAuth";
 
 type NavigationProp = StackNavigationProp<RootStackParamList, "UserLogin">;
 
@@ -65,6 +67,18 @@ const LoginScreenUser = () => {
   }, [user, message, error, dispatch, t, navigation]);
 
   // Submission handler
+  const handleSocialSuccess = (result: SocialAuthResult) => {
+    if (!result.token) return;
+    dispatch(setAuthFromSocial(result));
+    analytics.trackLogin(result.user_id?.toString() || result.username, {
+      user_type: "customer",
+      platform: "mobile",
+      method: "social",
+    });
+    Alert.alert(t("success"), result.message || t("loginSuccess"));
+    navigation.goBack();
+  };
+
   const handleSubmit = () => {
     if (!username || !password) {
       Alert.alert(t("error"), t("fillAllFields"));
@@ -165,6 +179,7 @@ const LoginScreenUser = () => {
               </Text>
             )}
           </TouchableOpacity>
+          <SocialLoginButtons onSuccess={handleSocialSuccess} disabled={loading} />
         </View>
         {/* Forgot password modal */}
         <ForgotPasswordModal

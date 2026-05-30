@@ -2,7 +2,8 @@
   "expo": {
     "name": "kudya",
     "slug": "kudya",
-    "version": "1.0.2",
+    "scheme": "kudya",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -40,7 +41,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 29
+      "versionCode": 31
     },
     "web": {
       "favicon": "./assets/azul.png"

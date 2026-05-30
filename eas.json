@@ -7,17 +7,36 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "autoIncrement": true
+      "android": { "buildType": "apk" },
+      "prebuildCommand": "npx expo prebuild --platform android --clean"
     },
     "preview": {
       "distribution": "internal",
-      "autoIncrement": true
+      "android": { "buildType": "apk" },
+      "prebuildCommand": "npx expo prebuild --platform android --clean"
     },
     "production": {
-      "autoIncrement": true
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
+      },
+      "prebuildCommand": "npx expo prebuild --platform android --clean"
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal",
+        "releaseStatus": "completed"
+      },
+      "ios": {
+        "appleId": "YOUR_APPLE_ID@email.com",
+        "ascAppId": "YOUR_ASC_APP_ID",
+        "appleTeamId": "YOUR_TEAM_ID"
+      }
+    }
   }
 }

@@ -68,6 +68,12 @@ export const translationKeys = [
   'loginFailed',
   'resetFailed',
   'fillAllFields',
+  'orContinueWith',
+  'continueGoogle',
+  'continueFacebook',
+  'continueInstagram',
+  'continueTiktok',
+  'socialLoginSetupHint',
 
   'checkout',
   'paymentMethod',
@@ -212,6 +218,12 @@ const translations: Record<SupportedLocale, Partial<Record<TranslationKey, strin
     loginSuccess: "You have successfully logged in!",
     loginFailed: "Failed to login. Please try again.",
     resetFailed: "Failed to send reset password email.",
+    orContinueWith: "Or continue with",
+    continueGoogle: "Continue with Google",
+    continueFacebook: "Continue with Facebook",
+    continueInstagram: "Continue with Instagram",
+    continueTiktok: "Continue with TikTok",
+    socialLoginSetupHint: "Social login requires OAuth keys in app config.",
     //checkout
     checkout: "Checkout",
     paymentMethod: "Payment Method",
@@ -353,6 +365,12 @@ const translations: Record<SupportedLocale, Partial<Record<TranslationKey, strin
     loginSuccess: "Você se conectou com sucesso!",
     loginFailed: "Falha ao entrar. Por favor, tente novamente.",
     resetFailed: "Erro ao enviar o email de redefinição de senha.",
+    orContinueWith: "Ou continue com",
+    continueGoogle: "Continuar com Google",
+    continueFacebook: "Continuar com Facebook",
+    continueInstagram: "Continuar com Instagram",
+    continueTiktok: "Continuar com TikTok",
+    socialLoginSetupHint: "Login social requer chaves OAuth na configuração do app.",
 
     //checkout
     checkout: "Finalizar Compra",
