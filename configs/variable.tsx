@@ -1,25 +1,14 @@
 import axios from "axios";
 import * as Device from "expo-device";
 import * as Location from "expo-location";
-import { useState } from "react";
 import { Platform } from "react-native";
 import { ForgotPasswordRequest } from "./types";
-
-
-//const [longitude, setLongitude] = useState(0);
-//const [latitude, setLatitude] = useState(0);
-//const [location, setLocation] = useState({});
-
-//const [loading, setLoading] = useState(true);
-//const [loadingOrder, setLoadingOrder] = useState(false);
-
+import { baseAPI } from "../services/types";
 
 export const googleAPi = "AIzaSyBJxPi5xtT7F3oxZzlSmIuaXsIswasjkKw";
 
-//export const apiUrl = "https://ludmil.pythonanywhere.com";
-export const apiUrl = "https://www.kudya.store";
-
-//export const apiUrl = "http://127.0.0.1:8000";
+/** @deprecated Prefer baseAPI from services/types or authService */
+export const apiUrl = baseAPI;
 
 export const fetchData = async (endpoint: string) => {
   try {
@@ -58,7 +47,7 @@ export const userLocation = async () => {
 
 export const requestPasswordReset = async (data: ForgotPasswordRequest) => {
   try {
-    const response = await fetch(`${apiUrl}/api/request-password-reset/`, {
+    const response = await fetch(`${baseAPI}/conta/reset-password/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

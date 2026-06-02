@@ -32,7 +32,15 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+
+# release artifacts
+*.aab
+*.apk
+aab-extract/
+release.aab
+kudya-release.*
 
 # typescript
 *.tsbuildinfo

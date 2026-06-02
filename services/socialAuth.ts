@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
@@ -11,7 +12,11 @@ WebBrowser.maybeCompleteAuthSession();
 
 export type SocialProvider = 'google' | 'facebook' | 'instagram' | 'tiktok';
 
-const REDIRECT_URI = AuthSession.makeRedirectUri({ scheme: 'kudya', path: 'oauth' });
+/** Native redirect for production / dev client builds. */
+export const OAUTH_REDIRECT_URI = AuthSession.makeRedirectUri({
+  scheme: 'kudya',
+  path: 'oauth',
+});
 
 const GOOGLE_IOS = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
 const GOOGLE_ANDROID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? '';
@@ -20,9 +25,17 @@ const FACEBOOK_APP_ID = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
 const INSTAGRAM_APP_ID = process.env.EXPO_PUBLIC_INSTAGRAM_APP_ID ?? '';
 const TIKTOK_CLIENT_KEY = process.env.EXPO_PUBLIC_TIKTOK_CLIENT_KEY ?? '';
 
+export type SocialTokenPayload = {
+  access_token?: string;
+  id_token?: string;
+  code?: string;
+  redirect_uri?: string;
+  code_verifier?: string;
+};
+
 export async function exchangeSocialToken(
   provider: SocialProvider,
-  tokens: { access_token?: string; id_token?: string },
+  tokens: SocialTokenPayload,
 ): Promise<SocialAuthResult> {
   const response = await fetch(`${baseAPI}/api/auth/social/`, {
     method: 'POST',
@@ -31,6 +44,9 @@ export async function exchangeSocialToken(
       provider,
       access_token: tokens.access_token ?? '',
       id_token: tokens.id_token ?? '',
+      code: tokens.code ?? '',
+      redirect_uri: tokens.redirect_uri ?? '',
+      code_verifier: tokens.code_verifier ?? '',
     }),
   });
   const data = await response.json();
@@ -40,13 +56,19 @@ export async function exchangeSocialToken(
   return normalizeAuthResponse(data);
 }
 
-/** Google sign-in (call from component using useGoogleAuth hook). */
+function googleClientIdForPlatform(): string {
+  if (Platform.OS === 'ios') return GOOGLE_IOS;
+  if (Platform.OS === 'android') return GOOGLE_ANDROID;
+  return GOOGLE_WEB;
+}
+
+/** Google sign-in (use from component with useGoogleAuth hook). */
 export function useGoogleAuth() {
   return Google.useAuthRequest({
     iosClientId: GOOGLE_IOS,
     androidClientId: GOOGLE_ANDROID,
     webClientId: GOOGLE_WEB,
-    redirectUri: REDIRECT_URI,
+    redirectUri: OAUTH_REDIRECT_URI,
   });
 }
 
@@ -54,8 +76,9 @@ export function useGoogleAuth() {
 export function useFacebookAuth() {
   return Facebook.useAuthRequest({
     clientId: FACEBOOK_APP_ID,
-    redirectUri: REDIRECT_URI,
+    redirectUri: OAUTH_REDIRECT_URI,
     scopes: ['public_profile', 'email'],
+    responseType: AuthSession.ResponseType.Token,
   });
 }
 
@@ -70,7 +93,7 @@ export async function signInWithInstagram(): Promise<SocialAuthResult> {
   }
   const authRequest = new AuthSession.AuthRequest({
     clientId: INSTAGRAM_APP_ID,
-    redirectUri: REDIRECT_URI,
+    redirectUri: OAUTH_REDIRECT_URI,
     scopes: ['instagram_basic'],
     responseType: AuthSession.ResponseType.Code,
     usePKCE: false,
@@ -83,7 +106,7 @@ export async function signInWithInstagram(): Promise<SocialAuthResult> {
     {
       clientId: INSTAGRAM_APP_ID,
       code: result.params.code,
-      redirectUri: REDIRECT_URI,
+      redirectUri: OAUTH_REDIRECT_URI,
       extraParams: { grant_type: 'authorization_code' },
     },
     instagramDiscovery,
@@ -91,10 +114,7 @@ export async function signInWithInstagram(): Promise<SocialAuthResult> {
   return exchangeSocialToken('instagram', { access_token: tokenRes.accessToken });
 }
 
-const tiktokDiscovery: AuthSession.DiscoveryDocument = {
-  authorizationEndpoint: 'https://www.tiktok.com/v2/auth/authorize/',
-  tokenEndpoint: 'https://open.tiktokapis.com/v2/oauth/token/',
-};
+const tiktokAuthorizeEndpoint = 'https://www.tiktok.com/v2/auth/authorize/';
 
 export async function signInWithTikTok(): Promise<SocialAuthResult> {
   if (!TIKTOK_CLIENT_KEY) {
@@ -102,28 +122,23 @@ export async function signInWithTikTok(): Promise<SocialAuthResult> {
   }
   const authRequest = new AuthSession.AuthRequest({
     clientId: TIKTOK_CLIENT_KEY,
-    redirectUri: REDIRECT_URI,
+    redirectUri: OAUTH_REDIRECT_URI,
     scopes: ['user.info.basic'],
     responseType: AuthSession.ResponseType.Code,
+    usePKCE: true,
     extraParams: { client_key: TIKTOK_CLIENT_KEY },
   });
-  const result = await authRequest.promptAsync(tiktokDiscovery);
+  const result = await authRequest.promptAsync({
+    authorizationEndpoint: tiktokAuthorizeEndpoint,
+  });
   if (result.type !== 'success' || !result.params.code) {
     throw new Error('TikTok sign-in cancelled.');
   }
-  const tokenRes = await AuthSession.exchangeCodeAsync(
-    {
-      clientId: TIKTOK_CLIENT_KEY,
-      code: result.params.code,
-      redirectUri: REDIRECT_URI,
-      extraParams: {
-        client_key: TIKTOK_CLIENT_KEY,
-        grant_type: 'authorization_code',
-      },
-    },
-    tiktokDiscovery,
-  );
-  return exchangeSocialToken('tiktok', { access_token: tokenRes.accessToken });
+  return exchangeSocialToken('tiktok', {
+    code: result.params.code,
+    redirect_uri: OAUTH_REDIRECT_URI,
+    code_verifier: authRequest.codeVerifier ?? '',
+  });
 }
 
 export async function completeGoogleAuth(
@@ -150,7 +165,7 @@ export async function completeFacebookAuth(
 export function isSocialLoginConfigured(provider: SocialProvider): boolean {
   switch (provider) {
     case 'google':
-      return !!(GOOGLE_IOS || GOOGLE_ANDROID || GOOGLE_WEB);
+      return !!googleClientIdForPlatform();
     case 'facebook':
       return !!FACEBOOK_APP_ID;
     case 'instagram':
@@ -160,4 +175,27 @@ export function isSocialLoginConfigured(provider: SocialProvider): boolean {
     default:
       return false;
   }
+}
+
+export function getSocialLoginSetupHint(provider: SocialProvider): string {
+  switch (provider) {
+    case 'google':
+      if (Platform.OS === 'ios' && !GOOGLE_IOS) {
+        return 'Set EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID in .env';
+      }
+      if (Platform.OS === 'android' && !GOOGLE_ANDROID) {
+        return 'Set EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID in .env';
+      }
+      return 'Set EXPO_PUBLIC_GOOGLE_*_CLIENT_ID in .env (see SOCIAL_LOGIN_SETUP.md)';
+    case 'facebook':
+      return 'Set EXPO_PUBLIC_FACEBOOK_APP_ID and add kudya://oauth in Meta app settings';
+    case 'tiktok':
+      return 'Set EXPO_PUBLIC_TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET on the API';
+    default:
+      return 'OAuth keys missing in app config';
+  }
+}
+
+if (__DEV__) {
+  console.log('[Kudya OAuth] redirect URI:', OAUTH_REDIRECT_URI);
 }

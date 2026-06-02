@@ -3,6 +3,7 @@ import { View, Text, Image, ScrollView } from 'react-native';
 import tw from 'twrnc';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../redux/slices/authSlice';
+import { baseAPI } from '../services/types';
 
 type CustomerData = {
   id: number;
@@ -61,7 +62,7 @@ const DeliveryInfo: React.FC<Props> = () => {
       const user = useSelector(selectUser);
 
       let response = await fetch(
-        'https://www.kudya.shop/api/customer/order/history/',
+        `${baseAPI}/customer/customer/order/history/`,
         {
           method: 'POST',
           headers: {

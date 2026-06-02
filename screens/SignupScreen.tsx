@@ -6,9 +6,14 @@ import { Feather } from '@expo/vector-icons'
 import { signup } from "../services/authService"; // Ensure this import points to your signup service
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from 'moti';
-import { loginUser } from "../redux/slices/authSlice"; // Ensure correct path
 import * as ImagePicker from 'expo-image-picker';
 import { analytics } from "../utils/mixpanel";
+import SocialLoginButtons from "../components/SocialLoginButtons";
+import { setAuthFromSocial } from "../redux/slices/authSlice";
+import { useTranslation } from "../hooks/useTranslation";
+import { useBiometricEnrollmentPrompt } from "../hooks/useBiometricEnrollmentPrompt";
+import type { SocialAuthResult } from "../services/socialAuth";
+import { normalizeAuthResponse } from "../services/authTypes";
 
 interface SignupData {
   username: string;
@@ -32,6 +37,8 @@ interface SignupData {
 const SignupScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch<any>();
+  const { t } = useTranslation();
+  const { maybeOfferBiometricEnrollment } = useBiometricEnrollmentPrompt();
 
   const [signupData, setSignupData] = useState<SignupData>({
     username: '',
@@ -68,6 +75,18 @@ const SignupScreen: React.FC = () => {
     }
   };
 
+  const handleSocialSuccess = (result: SocialAuthResult) => {
+    dispatch(setAuthFromSocial(result));
+    analytics.trackSignup(result.username, {
+      user_type: 'client',
+      platform: 'mobile',
+      method: 'social',
+    });
+    void maybeOfferBiometricEnrollment(result);
+    Alert.alert(t('success'), result.message || t('loginSuccess'));
+    navigation.navigate('HomeScreen');
+  };
+
   const handleSubmit = async () => {
     if (loading) return;
     
@@ -77,14 +96,16 @@ const SignupScreen: React.FC = () => {
       console.log("Received", data);
 
       if (status === 200 || status === 201) {
-        dispatch(loginUser(data));
+        const authPayload = normalizeAuthResponse(data);
+        dispatch(setAuthFromSocial(authPayload));
         analytics.trackSignup(signupData.username, {
           name: signupData.name,
           email: signupData.email,
           user_type: role,
           platform: 'mobile'
         });
-        Alert.alert("Sucesso", "Você se cadastrou com sucesso.");
+        void maybeOfferBiometricEnrollment(authPayload);
+        Alert.alert(t('success'), t('loginSuccess'));
         navigation.navigate(role === 'store' ? 'storeDashboard' : 'HomeScreen');
       } else {
         Alert.alert("Falha no Cadastro", data.message || "Por favor, tente novamente.");
@@ -176,8 +197,9 @@ const SignupScreen: React.FC = () => {
           </>
         )}
         <TouchableOpacity onPress={handleSubmit} style={styles.signupButton} disabled={loading}>
-          <Text style={styles.signupButtonText}>Inscreva-se</Text>
+          <Text style={styles.signupButtonText}>{t('signUp' as never) || 'Sign up'}</Text>
         </TouchableOpacity>
+        <SocialLoginButtons onSuccess={handleSocialSuccess} disabled={loading} />
       </MotiView>
       {loading && (
         <View style={styles.loadingOverlay}>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, Image, Text, ActivityIndicator } from "react-native";
 import tw from "twrnc";
-import { store } from "../configs/types";
+import { baseAPI } from "../services/types";
 
 // Define the category type
 interface Category {
@@ -27,7 +27,7 @@ const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("https://www.kudya.shop/api/customer/stores/");
+      const response = await fetch(`${baseAPI}/customer/customer/stores/`);
       const data = await response.json();
   
       // Initialize an object to track unique categories based on their names

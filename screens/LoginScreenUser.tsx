@@ -25,7 +25,10 @@ import { useTranslation } from "../hooks/useTranslation";
 import { LinearGradient } from "expo-linear-gradient";
 import { analytics } from "../utils/mixpanel";
 import SocialLoginButtons from "../components/SocialLoginButtons";
+import BiometricLoginButton from "../components/BiometricLoginButton";
 import type { SocialAuthResult } from "../services/socialAuth";
+import { AuthSessionPayload } from "../services/authTypes";
+import { useBiometricEnrollmentPrompt } from "../hooks/useBiometricEnrollmentPrompt";
 
 type NavigationProp = StackNavigationProp<RootStackParamList, "UserLogin">;
 
@@ -41,7 +44,9 @@ const LoginScreenUser = () => {
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
   // Redux state
-  const { loading, error, user, message } = useSelector(selectAuth);
+  const { loading, error, user, message, token, refreshToken } = useSelector(selectAuth);
+
+  const { maybeOfferBiometricEnrollment } = useBiometricEnrollmentPrompt();
 
   // Clear cart on login screen open
   useEffect(() => {
@@ -56,6 +61,17 @@ const LoginScreenUser = () => {
         user_type: 'customer',
         platform: 'mobile'
       });
+      void maybeOfferBiometricEnrollment({
+        token: token || user.token || '',
+        access: token || user.token || '',
+        refresh: refreshToken || '',
+        auth_scheme: 'Bearer',
+        user_id: user.user_id,
+        username: user.username,
+        is_customer: user.is_customer,
+        is_driver: user.is_driver,
+        message: message || t('loginSuccess'),
+      });
       Alert.alert(t("success"), message);
       dispatch(clearAuthMessage());
       navigation.goBack(); // Or navigate to home, e.g. navigation.replace("Home")
@@ -64,16 +80,32 @@ const LoginScreenUser = () => {
       Alert.alert(t("error"), error);
       dispatch(clearAuthMessage());
     }
-  }, [user, message, error, dispatch, t, navigation]);
+  }, [user, message, error, token, refreshToken, dispatch, t, navigation, maybeOfferBiometricEnrollment]);
 
   // Submission handler
-  const handleSocialSuccess = (result: SocialAuthResult) => {
+  const completeAuth = (result: AuthSessionPayload | SocialAuthResult) => {
     if (!result.token) return;
     dispatch(setAuthFromSocial(result));
     analytics.trackLogin(result.user_id?.toString() || result.username, {
       user_type: "customer",
       platform: "mobile",
       method: "social",
+    });
+    Alert.alert(t("success"), result.message || t("loginSuccess"));
+    void maybeOfferBiometricEnrollment(result);
+    navigation.goBack();
+  };
+
+  const handleSocialSuccess = (result: SocialAuthResult) => {
+    completeAuth(result);
+  };
+
+  const handleBiometricSuccess = (result: AuthSessionPayload) => {
+    dispatch(setAuthFromSocial(result));
+    analytics.trackLogin(result.user_id?.toString() || result.username, {
+      user_type: "customer",
+      platform: "mobile",
+      method: "biometric",
     });
     Alert.alert(t("success"), result.message || t("loginSuccess"));
     navigation.goBack();
@@ -179,6 +211,7 @@ const LoginScreenUser = () => {
               </Text>
             )}
           </TouchableOpacity>
+          <BiometricLoginButton onSuccess={handleBiometricSuccess} disabled={loading} />
           <SocialLoginButtons onSuccess={handleSocialSuccess} disabled={loading} />
         </View>
         {/* Forgot password modal */}

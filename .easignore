@@ -1,3 +1,11 @@
+node_modules/
 android/
 ios/
-node_modules/.cache/
+.git/
+*.md
+!README.md
+.expo/
+dist/
+coverage/
+**/*.test.ts
+**/*.test.tsx

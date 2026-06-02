@@ -3,7 +3,7 @@
     "name": "kudya",
     "slug": "kudya",
     "scheme": "kudya",
-    "version": "1.0.4",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -41,7 +41,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 31
+      "versionCode": 34
     },
     "web": {
       "favicon": "./assets/azul.png"

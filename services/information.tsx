@@ -2,7 +2,7 @@ import axios from "axios";
 import { AboutUsData, baseAPI } from "./types";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BASE_API,
+  baseURL: baseAPI,
 });
 
 

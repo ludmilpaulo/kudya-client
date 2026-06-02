@@ -7,9 +7,9 @@ import {
   useFacebookAuth,
   completeGoogleAuth,
   completeFacebookAuth,
-  signInWithInstagram,
   signInWithTikTok,
   isSocialLoginConfigured,
+  getSocialLoginSetupHint,
   SocialAuthResult,
   SocialProvider,
 } from '../services/socialAuth';
@@ -25,12 +25,25 @@ const PROVIDERS: {
   labelKey: string;
   fallback: string;
   icon: React.ReactNode;
-  color: string;
 }[] = [
-  { id: 'google', labelKey: 'continueGoogle', fallback: 'Continue with Google', icon: <AntDesign name="google" size={18} color="#DB4437" />, color: '#fff' },
-  { id: 'facebook', labelKey: 'continueFacebook', fallback: 'Continue with Facebook', icon: <FontAwesome5 name="facebook" size={18} color="#1877F2" />, color: '#fff' },
-  { id: 'instagram', labelKey: 'continueInstagram', fallback: 'Continue with Instagram', icon: <FontAwesome5 name="instagram" size={18} color="#E4405F" />, color: '#fff' },
-  { id: 'tiktok', labelKey: 'continueTiktok', fallback: 'Continue with TikTok', icon: <FontAwesome5 name="tiktok" size={18} color="#000" />, color: '#fff' },
+  {
+    id: 'google',
+    labelKey: 'continueGoogle',
+    fallback: 'Continue with Google',
+    icon: <AntDesign name="google" size={18} color="#DB4437" />,
+  },
+  {
+    id: 'facebook',
+    labelKey: 'continueFacebook',
+    fallback: 'Continue with Facebook',
+    icon: <FontAwesome5 name="facebook" size={18} color="#1877F2" />,
+  },
+  {
+    id: 'tiktok',
+    labelKey: 'continueTiktok',
+    fallback: 'Continue with TikTok',
+    icon: <FontAwesome5 name="tiktok" size={18} color="#000" />,
+  },
 ];
 
 export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
@@ -52,8 +65,13 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
           setLoadingProvider(null);
         }
       })();
+    } else if (googleResponse?.type === 'error') {
+      setLoadingProvider(null);
+      Alert.alert(t('error'), googleResponse.error?.message || t('loginFailed'));
+    } else if (googleResponse?.type === 'dismiss' || googleResponse?.type === 'cancel') {
+      setLoadingProvider(null);
     }
-  }, [googleResponse]);
+  }, [googleResponse, onSuccess, t]);
 
   useEffect(() => {
     if (fbResponse?.type === 'success') {
@@ -68,30 +86,33 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
           setLoadingProvider(null);
         }
       })();
+    } else if (fbResponse?.type === 'error') {
+      setLoadingProvider(null);
+      Alert.alert(t('error'), fbResponse.error?.message || t('loginFailed'));
+    } else if (fbResponse?.type === 'dismiss' || fbResponse?.type === 'cancel') {
+      setLoadingProvider(null);
     }
-  }, [fbResponse]);
+  }, [fbResponse, onSuccess, t]);
 
   const handlePress = async (provider: SocialProvider) => {
     if (!isSocialLoginConfigured(provider)) {
-      Alert.alert(
-        t('error'),
-        `${provider} login is not configured yet. Add OAuth keys to .env (see SOCIAL_LOGIN_SETUP.md).`,
-      );
+      Alert.alert(t('error'), getSocialLoginSetupHint(provider));
       return;
     }
     try {
       setLoadingProvider(provider);
       if (provider === 'google') {
-        await promptGoogle();
+        const result = await promptGoogle();
+        if (!result || result.type !== 'success') {
+          setLoadingProvider(null);
+        }
         return;
       }
       if (provider === 'facebook') {
-        await promptFacebook();
-        return;
-      }
-      if (provider === 'instagram') {
-        onSuccess(await signInWithInstagram());
-        setLoadingProvider(null);
+        const result = await promptFacebook();
+        if (!result || result.type !== 'success') {
+          setLoadingProvider(null);
+        }
         return;
       }
       if (provider === 'tiktok') {
@@ -104,25 +125,29 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
     }
   };
 
-  const anyConfigured = PROVIDERS.some((p) => isSocialLoginConfigured(p.id));
+  const configuredProviders = PROVIDERS.filter((p) => isSocialLoginConfigured(p.id));
 
   return (
     <View style={tw`mt-4`}>
       <Text style={tw`text-center text-gray-500 mb-3`}>{t('orContinueWith') || 'Or continue with'}</Text>
-      {!anyConfigured ? (
+      {configuredProviders.length === 0 ? (
         <Text style={tw`text-center text-xs text-gray-400 mb-2`}>
-          {t('socialLoginSetupHint') || 'Social login requires OAuth keys in app config.'}
+          {t('socialLoginSetupHint') || 'Add OAuth keys to .env — see SOCIAL_LOGIN_SETUP.md'}
         </Text>
       ) : null}
       {PROVIDERS.map((p) => {
+        const configured = isSocialLoginConfigured(p.id);
         const busy = loadingProvider === p.id || disabled;
-        const ready = p.id === 'google' ? !!googleRequest : p.id === 'facebook' ? !!fbRequest : true;
+        const ready =
+          p.id === 'google' ? !!googleRequest : p.id === 'facebook' ? !!fbRequest : configured;
         return (
           <TouchableOpacity
             key={p.id}
             onPress={() => handlePress(p.id)}
-            disabled={busy || !ready}
-            style={tw`flex-row items-center justify-center border border-gray-200 rounded-full py-3 mb-2 bg-white`}
+            disabled={busy || !ready || !configured}
+            style={tw`flex-row items-center justify-center border border-gray-200 rounded-full py-3 mb-2 ${
+              configured ? 'bg-white' : 'bg-gray-50 opacity-60'
+            }`}
           >
             {busy ? (
               <ActivityIndicator size="small" color="#3B82F6" />

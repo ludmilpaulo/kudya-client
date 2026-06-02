@@ -16,6 +16,11 @@
       "prebuildCommand": "npx expo prebuild --platform android --clean"
     },
     "production": {
+      "env": {
+        "EXPO_PUBLIC_BASE_API": "https://kudya-api.onrender.com",
+        "EXPO_PUBLIC_FACEBOOK_APP_ID": "557245288279218",
+        "EAS_BUILD_NO_EXPO_GO_WARNING": "true"
+      },
       "android": {
         "buildType": "app-bundle"
       },
@@ -28,8 +33,8 @@
   "submit": {
     "production": {
       "android": {
-        "serviceAccountKeyPath": "./google-play-service-account.json",
-        "track": "internal",
+        "serviceAccountKeyPath": "../credentials/google-play-service-account.json",
+        "track": "production",
         "releaseStatus": "completed"
       },
       "ios": {

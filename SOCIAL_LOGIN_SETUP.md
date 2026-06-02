@@ -1,74 +1,96 @@
-# Social login setup (Kudya customer app)
+# Social login + biometrics (Kudya customer app)
 
-Sign-in uses **Google**, **Facebook**, **Instagram**, and **TikTok** via `expo-auth-session`, then exchanges tokens with the backend at `POST /api/auth/social/`.
+## Quick start
 
-## 1. Mobile environment variables
+1. Copy `.env.example` → `.env` and fill OAuth client IDs.
+2. On the **backend** (`www_kudya_shop/.env`), set matching secrets (see below).
+3. Restart Expo: `npx expo start --clear`
+4. Sign in once with email/social, then enable **Face ID / biometrics** when prompted.
 
-Copy `.env.example` to `.env` and fill in values from each provider console.
+## Redirect URI (all providers)
 
-| Variable | Used for |
-|----------|----------|
-| `EXPO_PUBLIC_BASE_API` | API host (e.g. `https://www.kudya.store`) |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Google iOS OAuth client |
-| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | Google Android OAuth client |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Google web client (Expo Go / dev) |
-| `EXPO_PUBLIC_FACEBOOK_APP_ID` | Meta / Facebook Login |
-| `EXPO_PUBLIC_INSTAGRAM_APP_ID` | Instagram Basic Display / Graph |
-| `EXPO_PUBLIC_TIKTOK_CLIENT_KEY` | TikTok Login Kit |
-
-Redirect URI (register in each provider):
+Register this in Google, Meta (Facebook), and TikTok developer consoles:
 
 ```
 kudya://oauth
 ```
 
-Expo prints the exact URI in dev: `npx expo start` → check logs for `makeRedirectUri`.
+Run `npx expo start` and check the console for the exact redirect URI if using Expo Go.
 
-## 2. Backend environment (`www_kudya_shop`)
+---
 
-On the server `.env`:
+## Google Cloud Console
 
-```
-GOOGLE_OAUTH_CLIENT_IDS=ios-id.apps.googleusercontent.com,android-id.apps.googleusercontent.com
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Create OAuth 2.0 Client IDs:
+   - **iOS** — bundle id: `com.ludmil.kudyaclient`
+   - **Android** — package: `com.ludmil.kudyaclient` + SHA-1 from EAS credentials
+   - **Web** — for Expo Go dev; authorized redirect: `https://auth.expo.io/@ludmil/kudya`
+3. Copy client IDs to:
+   - Mobile: `EXPO_PUBLIC_GOOGLE_*_CLIENT_ID`
+   - Backend: `GOOGLE_OAUTH_CLIENT_IDS=ios-id,android-id,web-id`
+
+---
+
+## Meta (Facebook Login)
+
+1. [developers.facebook.com](https://developers.facebook.com/) → Create app → **Consumer** → add **Facebook Login**
+2. Settings → Basic → copy **App ID** and **App Secret**
+3. Facebook Login → Settings → Valid OAuth Redirect URIs: `kudya://oauth`
+4. Mobile: `EXPO_PUBLIC_FACEBOOK_APP_ID`
+5. Backend: `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`
+
+---
+
+## TikTok Login Kit
+
+1. [developers.tiktok.com](https://developers.tiktok.com/) → Manage apps → Create app
+2. Add **Login Kit** product
+3. Redirect URI: `kudya://oauth`
+4. Mobile: `EXPO_PUBLIC_TIKTOK_CLIENT_KEY`
+5. Backend: `TIKTOK_CLIENT_KEY` and `TIKTOK_CLIENT_SECRET` (token exchange runs on the API, not in the app)
+
+---
+
+## Backend env (`www_kudya_shop`)
+
+```env
+GOOGLE_OAUTH_CLIENT_IDS=
 FACEBOOK_APP_ID=
 FACEBOOK_APP_SECRET=
-INSTAGRAM_APP_ID=
-INSTAGRAM_APP_SECRET=
 TIKTOK_CLIENT_KEY=
+TIKTOK_CLIENT_SECRET=
 ```
 
-Run migration once:
+Deploy these on Render as environment variables. Run migration if needed:
 
 ```bash
 python manage.py migrate contas
 ```
 
-## 3. Provider consoles (summary)
+---
 
-- **Google**: Cloud Console → OAuth 2.0 → iOS + Android clients; add redirect `kudya://oauth` for web client if needed.
-- **Facebook**: developers.facebook.com → Facebook Login; add OAuth redirect `kudya://oauth`; same app id for mobile.
-- **Instagram**: Meta app with Instagram product; redirect `kudya://oauth`.
-- **TikTok**: developers.tiktok.com → Login Kit; redirect `kudya://oauth`.
+## EAS production builds
 
-## 4. EAS builds
+Add the same `EXPO_PUBLIC_*` variables in [expo.dev](https://expo.dev) → project **kudya** → Secrets, or in `eas.json` production env.
 
-Add the same `EXPO_PUBLIC_*` variables as **EAS secrets** for production builds.
+---
 
-## 5. Production API
+## Biometrics (Face ID / fingerprint)
 
-`/api/auth/social/` must be deployed on your API host. Until the super-app backend is live on production, point `EXPO_PUBLIC_BASE_API` to a staging server that has the route.
+- Uses device **Face ID**, **Touch ID**, or **Android biometrics** via `expo-local-authentication`.
+- After first successful login, the app offers to save a **refresh token** in the OS secure keychain (`expo-secure-store`).
+- No custom camera face recognition — platform biometrics only (recommended for security).
 
-## 6. Django auth contract
+iOS: `NSFaceIDUsageDescription` is set in `app.config.ts`.
 
-All mobile login paths use the same JWT API:
+---
+
+## API endpoints
 
 | Endpoint | Purpose |
 |----------|---------|
 | `POST /api/auth/login/` | Email/username + password |
-| `POST /api/auth/social/` | OAuth token exchange |
-| `POST /api/auth/refresh/` | Refresh access token |
-| `GET /api/auth/me/` | Profile (`Authorization: Bearer <access>`) |
-
-Response fields: `access`, `refresh`, `token` (alias of access), `api_token` (legacy DRF key), `user_id`, `is_customer`, `is_driver`.
-
-Legacy endpoints that send `access_token` in the JSON body accept **either** the JWT access string or the legacy `api_token`.
+| `POST /api/auth/social/` | Google / Facebook / TikTok token exchange |
+| `POST /api/auth/refresh/` | Refresh JWT (used by biometric login) |
+| `POST /customer/signup/` | Email registration (returns JWT) |
