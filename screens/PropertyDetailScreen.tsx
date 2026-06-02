@@ -13,6 +13,7 @@ import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
 import { useUserRegion } from "../hooks/useUserRegion";
 import { MaterialIcons } from "@expo/vector-icons";
 import tw from "twrnc";
+import { useTranslation } from "../hooks/useTranslation";
 
 type Property = {
   id: number;
@@ -34,6 +35,7 @@ type Property = {
 export default function PropertyDetailScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const { region: regionCode } = useUserRegion();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,7 +63,7 @@ export default function PropertyDetailScreen() {
   if (!property) {
     return (
       <View style={tw`flex-1 items-center justify-center`}>
-        <Text style={tw`text-gray-600`}>Property not found</Text>
+        <Text style={tw`text-gray-600`}>{t("propertyNotFound")}</Text>
       </View>
     );
   }
@@ -93,36 +95,44 @@ export default function PropertyDetailScreen() {
           </Text>
 
           <View style={tw`flex-row gap-4 mt-4`}>
-            {property.bedrooms > 0 && <Text style={tw`text-gray-600`}>{property.bedrooms} bed</Text>}
-            {property.bathrooms > 0 && <Text style={tw`text-gray-600`}>{property.bathrooms} bath</Text>}
+            {property.bedrooms > 0 && (
+              <Text style={tw`text-gray-600`}>
+                {property.bedrooms} {t("bedShort")}
+              </Text>
+            )}
+            {property.bathrooms > 0 && (
+              <Text style={tw`text-gray-600`}>
+                {property.bathrooms} {t("bathShort")}
+              </Text>
+            )}
             {property.area_sqm && <Text style={tw`text-gray-600`}>{property.area_sqm} m²</Text>}
           </View>
 
           <Text style={tw`text-2xl font-bold text-teal-600 mt-4`}>
             {formatCurrency(parseFloat(property.price), currencyCode)}
             <Text style={tw`text-base font-normal text-gray-500`}>
-              {property.listing_type === "rent_daily" && " per day"}
-              {property.listing_type === "rent_monthly" && " per month"}
+              {property.listing_type === "rent_daily" && ` ${t("perDay")}`}
+              {property.listing_type === "rent_monthly" && ` ${t("perMonth")}`}
             </Text>
           </Text>
 
           {property.address && (
             <Text style={tw`mt-4 text-gray-600`}>
-              <Text style={tw`font-semibold`}>Address: </Text>
+              <Text style={tw`font-semibold`}>{t("addressLabel")}: </Text>
               {property.address}
             </Text>
           )}
 
           {property.description ? (
             <View style={tw`mt-6`}>
-              <Text style={tw`font-semibold text-teal-900 mb-2`}>Description</Text>
+              <Text style={tw`font-semibold text-teal-900 mb-2`}>{t("descriptionLabel")}</Text>
               <Text style={tw`text-gray-600`}>{property.description}</Text>
             </View>
           ) : null}
 
           {property.amenities?.length > 0 ? (
             <View style={tw`mt-6`}>
-              <Text style={tw`font-semibold text-teal-900 mb-2`}>Amenities</Text>
+              <Text style={tw`font-semibold text-teal-900 mb-2`}>{t("amenitiesLabel")}</Text>
               <View style={tw`flex-row flex-wrap gap-2`}>
                 {property.amenities.map((a) => (
                   <View key={a} style={tw`px-3 py-1 bg-teal-50 rounded-lg`}>

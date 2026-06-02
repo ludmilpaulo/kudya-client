@@ -1,19 +1,48 @@
 import * as Localization from 'expo-localization';
-import translations, { SupportedLocale, TranslationKey, supportedLocales } from './translations';
+import translations, {
+  SupportedLocale,
+  TranslationKey,
+  supportedLocales,
+} from './translations';
 
-// Detect language
-const locales = Localization.getLocales();
-let languageCode: SupportedLocale = 'en';
+export { supportedLocales, type SupportedLocale, type TranslationKey };
+export { default as translations } from './translations';
 
-if (
-  Array.isArray(locales) &&
-  locales.length > 0 &&
-  typeof locales[0].languageCode === 'string' &&
-  supportedLocales.includes(locales[0].languageCode as SupportedLocale)
-) {
-  languageCode = locales[0].languageCode as SupportedLocale;
+export const LANGUAGE_STORAGE_KEY = '@kudya/language';
+
+const FALLBACK_LOCALE: SupportedLocale = 'en';
+
+let languageCode: SupportedLocale = detectDeviceLanguage();
+
+export function detectDeviceLanguage(): SupportedLocale {
+  const locales = Localization.getLocales();
+  const code = locales?.[0]?.languageCode;
+  if (code && supportedLocales.includes(code as SupportedLocale)) {
+    return code as SupportedLocale;
+  }
+  return FALLBACK_LOCALE;
 }
 
-export function t(key: TranslationKey): string {
-  return translations[languageCode][key] || translations['en'][key] || key;
+export function getLanguage(): SupportedLocale {
+  return languageCode;
 }
+
+export function setLanguage(code: SupportedLocale): void {
+  if (supportedLocales.includes(code)) {
+    languageCode = code;
+  }
+}
+
+export function t(key: TranslationKey, locale?: SupportedLocale): string {
+  const lang = locale ?? languageCode;
+  const table = translations[lang] as Record<string, string>;
+  const en = translations.en as Record<string, string>;
+  return table?.[key] ?? en?.[key] ?? key;
+}
+
+export const localeLabels: Record<SupportedLocale, string> = {
+  en: 'English',
+  pt: 'Português',
+  fr: 'Français',
+  es: 'Español',
+};

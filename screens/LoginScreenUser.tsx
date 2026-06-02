@@ -29,6 +29,7 @@ import BiometricLoginButton from "../components/BiometricLoginButton";
 import type { SocialAuthResult } from "../services/socialAuth";
 import { AuthSessionPayload } from "../services/authTypes";
 import { useBiometricEnrollmentPrompt } from "../hooks/useBiometricEnrollmentPrompt";
+import LanguagePicker from "../components/LanguagePicker";
 
 type NavigationProp = StackNavigationProp<RootStackParamList, "UserLogin">;
 
@@ -142,6 +143,7 @@ const LoginScreenUser = () => {
               resizeMode="contain"
             />
           </View>
+          <LanguagePicker compact />
           <Text style={tw`text-xl font-bold text-center mb-4`}>
             {t("loginTitle")}
           </Text>

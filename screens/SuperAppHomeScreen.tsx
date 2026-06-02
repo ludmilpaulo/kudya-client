@@ -48,7 +48,8 @@ const ROUTE_MAP: Record<string, keyof RootStackParamList> = {
   Wallet: 'Wallet',
   Doctors: 'Doctors',
   Services: 'MainTabs',
-  Properties: 'MainTabs',
+  Properties: 'Properties',
+  property: 'Properties',
   Accommodation: 'Accommodation',
   MainTabs: 'MainTabs',
   ComingSoon: 'ComingSoon',
@@ -81,6 +82,10 @@ export default function SuperAppHomeScreen() {
   const onModulePress = (mod: PlatformModule) => {
     if (mod.key === 'food') {
       navigation.navigate('Categories');
+      return;
+    }
+    if (mod.key === 'property' || mod.route === 'Properties') {
+      navigation.navigate('Properties');
       return;
     }
     const route = ROUTE_MAP[mod.route] ?? ROUTE_MAP[mod.key] ?? 'ComingSoon';

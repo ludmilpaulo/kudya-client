@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import tw from "twrnc";
+import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "../hooks/useTranslation";
 import { FontAwesome5, Feather } from "@expo/vector-icons";
+import LanguagePicker from "../components/LanguagePicker";
 
 // Dummy user info (replace with Redux/auth state)
 const user = {
@@ -13,9 +15,18 @@ const user = {
 
 const ProfileScreen: React.FC = () => {
   const { t } = useTranslation();
+  const navigation = useNavigation<any>();
 
   return (
     <ScrollView style={tw`flex-1 bg-white`}>
+      <TouchableOpacity
+        style={tw`mx-8 mt-6 bg-blue-600 py-3 rounded-full items-center`}
+        onPress={() => navigation.navigate("UserLogin")}
+      >
+        <Text style={tw`text-white font-semibold text-base`}>
+          {t("login") || "Sign in"}
+        </Text>
+      </TouchableOpacity>
       <View style={tw`items-center mt-10`}>
         <Image
           source={{ uri: user.avatar }}
@@ -25,6 +36,7 @@ const ProfileScreen: React.FC = () => {
         <Text style={tw`text-sm text-gray-500 mb-6`}>{user.email}</Text>
       </View>
       <View style={tw`px-8`}>
+        <LanguagePicker />
         <TouchableOpacity
           style={tw`flex-row items-center p-4 bg-gray-100 rounded-xl mb-3`}
         >

@@ -8,6 +8,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import ErrorBoundary from './components/ErrorBoundary';
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './navigation/AppNavigator';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 const SafeErrorBoundary = ErrorBoundary as React.ComponentType<{ children: React.ReactNode }>;
 const SafeGestureHandlerRootView = GestureHandlerRootView as React.ComponentType<{
@@ -27,11 +28,13 @@ export default function AppContent() {
     <SafeGestureHandlerRootView style={{ flex: 1 }}>
       <SafeProvider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <SafeErrorBoundary>
-            <SafeNavigationContainer>
-              <AppNavigator />
-            </SafeNavigationContainer>
-          </SafeErrorBoundary>
+          <LanguageProvider>
+            <SafeErrorBoundary>
+              <SafeNavigationContainer>
+                <AppNavigator />
+              </SafeNavigationContainer>
+            </SafeErrorBoundary>
+          </LanguageProvider>
         </PersistGate>
       </SafeProvider>
     </SafeGestureHandlerRootView>

@@ -35,6 +35,9 @@ yarn-error.*
 .env
 .env*.local
 
+# demo / browser automation artifacts
+demo/.playwright-profile/
+
 # release artifacts
 *.aab
 *.apk

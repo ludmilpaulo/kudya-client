@@ -16,6 +16,7 @@ import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
 import { useUserRegion } from "../hooks/useUserRegion";
 import { MaterialIcons } from "@expo/vector-icons";
 import tw from "twrnc";
+import { useTranslation } from "../hooks/useTranslation";
 
 type ListingType = "rent_daily" | "rent_monthly" | "buy";
 type Property = {
@@ -32,15 +33,16 @@ type Property = {
   image_urls: string[];
 };
 
-const LISTING_OPTIONS: { value: ListingType; label: string }[] = [
-  { value: "rent_daily", label: "Per Day" },
-  { value: "rent_monthly", label: "Per Month" },
-  { value: "buy", label: "For Sale" },
-];
-
 export default function PropertiesScreen() {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const { region: regionCode } = useUserRegion();
+
+  const LISTING_OPTIONS: { value: ListingType; labelKey: "listingPerDay" | "listingPerMonth" | "listingForSale" }[] = [
+    { value: "rent_daily", labelKey: "listingPerDay" },
+    { value: "rent_monthly", labelKey: "listingPerMonth" },
+    { value: "buy", labelKey: "listingForSale" },
+  ];
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [listingType, setListingType] = useState<ListingType | "">("");
@@ -91,15 +93,23 @@ export default function PropertiesScreen() {
         </Text>
         <Text style={tw`text-sm text-gray-500`}>{item.city}</Text>
         <View style={tw`flex-row gap-2 mt-2`}>
-          {item.bedrooms > 0 && <Text style={tw`text-sm text-gray-600`}>{item.bedrooms} bed</Text>}
-          {item.bathrooms > 0 && <Text style={tw`text-sm text-gray-600`}>{item.bathrooms} bath</Text>}
+          {item.bedrooms > 0 && (
+            <Text style={tw`text-sm text-gray-600`}>
+              {item.bedrooms} {t("bedShort")}
+            </Text>
+          )}
+          {item.bathrooms > 0 && (
+            <Text style={tw`text-sm text-gray-600`}>
+              {item.bathrooms} {t("bathShort")}
+            </Text>
+          )}
           {item.area_sqm && <Text style={tw`text-sm text-gray-600`}>{item.area_sqm} m²</Text>}
         </View>
         <Text style={tw`mt-2 font-bold text-teal-600`}>
           {formatCurrency(parseFloat(item.price), currencyCode)}
           <Text style={tw`text-xs font-normal text-gray-500`}>
-            {item.listing_type === "rent_daily" && " / day"}
-            {item.listing_type === "rent_monthly" && " / month"}
+            {item.listing_type === "rent_daily" && ` / ${t("perDay")}`}
+            {item.listing_type === "rent_monthly" && ` / ${t("perMonth")}`}
           </Text>
         </Text>
       </View>
@@ -109,8 +119,8 @@ export default function PropertiesScreen() {
   return (
     <View style={tw`flex-1 bg-slate-50`}>
       <View style={tw`bg-teal-600 px-4 pt-12 pb-4`}>
-        <Text style={tw`text-2xl font-bold text-white`}>Properties</Text>
-        <Text style={tw`text-teal-100 mt-1`}>Rent or buy</Text>
+        <Text style={tw`text-2xl font-bold text-white`}>{t("Properties")}</Text>
+        <Text style={tw`text-teal-100 mt-1`}>{t("rentOrBuy")}</Text>
 
         <View style={tw`flex-row gap-2 mt-4`}>
           {LISTING_OPTIONS.map((opt) => (
@@ -128,7 +138,7 @@ export default function PropertiesScreen() {
                   listingType === opt.value ? tw`text-teal-600` : tw`text-white`,
                 ]}
               >
-                {opt.label}
+                {t(opt.labelKey)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -136,14 +146,14 @@ export default function PropertiesScreen() {
 
         <TextInput
           style={tw`mt-3 bg-white rounded-xl px-4 py-3 text-gray-800`}
-          placeholder="Search by title, city..."
+          placeholder={t("searchPropertiesPlaceholder")}
           placeholderTextColor="#94a3b8"
           value={search}
           onChangeText={setSearch}
         />
         <TextInput
           style={tw`mt-2 bg-white rounded-xl px-4 py-3 text-gray-800`}
-          placeholder="City"
+          placeholder={t("cityPlaceholder")}
           placeholderTextColor="#94a3b8"
           value={city}
           onChangeText={setCity}
@@ -153,12 +163,12 @@ export default function PropertiesScreen() {
       {loading ? (
         <View style={tw`flex-1 items-center justify-center`}>
           <ActivityIndicator size="large" color="#0d9488" />
-          <Text style={tw`text-teal-600 mt-3`}>Loading properties...</Text>
+          <Text style={tw`text-teal-600 mt-3`}>{t("loadingProperties")}</Text>
         </View>
       ) : properties.length === 0 ? (
         <View style={tw`flex-1 items-center justify-center px-8`}>
           <MaterialIcons name="home" size={80} color="#99f6e4" />
-          <Text style={tw`text-teal-600 text-center mt-4`}>No properties found</Text>
+          <Text style={tw`text-teal-600 text-center mt-4`}>{t("noPropertiesFound")}</Text>
         </View>
       ) : (
         <FlatList
