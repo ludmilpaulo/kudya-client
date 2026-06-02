@@ -196,6 +196,6 @@ export function getSocialLoginSetupHint(provider: SocialProvider): string {
   }
 }
 
-if (__DEV__) {
+if (typeof __DEV__ !== 'undefined' && __DEV__) {
   console.log('[Kudya OAuth] redirect URI:', OAUTH_REDIRECT_URI);
 }

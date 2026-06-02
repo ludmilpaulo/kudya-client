@@ -7,5 +7,10 @@ ios/
 .expo/
 dist/
 coverage/
+demo/
+aab-extract/
+*.aab
+*.apk
+*.zip
 **/*.test.ts
 **/*.test.tsx
