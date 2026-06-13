@@ -9,6 +9,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './navigation/AppNavigator';
 import { LanguageProvider } from './contexts/LanguageContext';
+import LanguageAuthSync from './components/LanguageAuthSync';
 
 const SafeErrorBoundary = ErrorBoundary as React.ComponentType<{ children: React.ReactNode }>;
 const SafeGestureHandlerRootView = GestureHandlerRootView as React.ComponentType<{
@@ -29,6 +30,7 @@ export default function AppContent() {
       <SafeProvider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <LanguageProvider>
+            <LanguageAuthSync />
             <SafeErrorBoundary>
               <SafeNavigationContainer>
                 <AppNavigator />

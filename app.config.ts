@@ -46,16 +46,21 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           android: {
             compileSdkVersion: 35,
             targetSdkVersion: 35,
+            minSdkVersion: 24,
           },
         },
       ],
     ],
-    facebookAppId,
-    facebookScheme: facebookAppId ? `fb${facebookAppId}` : undefined,
     ios: {
       ...config.ios,
       infoPlist: {
         ...config.ios?.infoPlist,
+        ...(facebookAppId
+          ? {
+              FacebookAppID: facebookAppId,
+              FacebookDisplayName: config.name ?? 'Kudya',
+            }
+          : {}),
         CFBundleURLTypes: mergedUrlTypes,
         LSApplicationQueriesSchemes: [
           'fbapi',
@@ -79,6 +84,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     extra: {
       ...config.extra,
       eas: config.extra?.eas,
+      facebookAppId,
       googleMapsApiKey:
         process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? config.extra?.googleMapsApiKey,
     },

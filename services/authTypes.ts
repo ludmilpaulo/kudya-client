@@ -1,3 +1,21 @@
+export type BusinessProfile = {
+  id: number;
+  businessName: string;
+  category:
+    | 'restaurant'
+    | 'grocery'
+    | 'property'
+    | 'stay'
+    | 'doctor'
+    | 'service_provider'
+    | 'car_rental'
+    | 'courier'
+    | 'business';
+  dashboardRoute: string;
+  isApproved: boolean;
+  isActive: boolean;
+};
+
 export type AuthSessionPayload = {
   access: string;
   refresh: string;
@@ -8,8 +26,10 @@ export type AuthSessionPayload = {
   username: string;
   is_customer: boolean;
   is_driver: boolean;
+  preferred_language?: string;
   message: string;
   user?: Record<string, unknown>;
+  business_profile?: BusinessProfile;
 };
 
 export function normalizeAuthResponse(data: Record<string, unknown>): AuthSessionPayload {
@@ -18,6 +38,19 @@ export function normalizeAuthResponse(data: Record<string, unknown>): AuthSessio
   if (!access) {
     throw new Error(String(data.detail || data.message || 'Erro desconhecido.'));
   }
+  const businessProfileRaw = data.business_profile as
+    | {
+        id?: unknown;
+        businessName?: unknown;
+        category?: unknown;
+        dashboardRoute?: unknown;
+        isApproved?: unknown;
+        isActive?: unknown;
+      }
+    | undefined;
+
+  const userRaw = data.user as { preferred_language?: string } | undefined;
+
   return {
     access,
     refresh,
@@ -28,8 +61,19 @@ export function normalizeAuthResponse(data: Record<string, unknown>): AuthSessio
     username: String(data.username || ''),
     is_customer: Boolean(data.is_customer),
     is_driver: Boolean(data.is_driver),
+    preferred_language: userRaw?.preferred_language,
     message: String(data.message || 'Login com sucesso'),
     user: data.user as Record<string, unknown> | undefined,
+    business_profile: businessProfileRaw
+      ? {
+          id: Number(businessProfileRaw.id),
+          businessName: String(businessProfileRaw.businessName || ''),
+          category: String(businessProfileRaw.category || 'business') as BusinessProfile['category'],
+          dashboardRoute: String(businessProfileRaw.dashboardRoute || ''),
+          isApproved: Boolean(businessProfileRaw.isApproved),
+          isActive: Boolean(businessProfileRaw.isActive),
+        }
+      : undefined,
   };
 }
 

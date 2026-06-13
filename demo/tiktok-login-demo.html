@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=390, height=844" />
+  <title>Kudya TikTok Login Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #FCD34D 0%, #ffcc00 45%, #3B82F6 100%);
+      margin: 0;
+      overflow: hidden;
+    }
+    .phone {
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      overflow: hidden;
+      box-shadow: none;
+      position: relative;
+      background: linear-gradient(135deg, #FCD34D 0%, #ffcc00 45%, #3B82F6 100%);
+    }
+    .screen {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity .6s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .screen.active { opacity: 1; z-index: 2; }
+    .card {
+      width: 100%;
+      max-width: 320px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.15);
+    }
+    .logo {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 16px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 42px;
+      font-weight: 800;
+    }
+    h1 { text-align: center; font-size: 22px; margin-bottom: 8px; }
+    .sub { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 20px; }
+    .input {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      background: #f3f4f6;
+      font-size: 15px;
+    }
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 8px;
+      cursor: default;
+    }
+    .btn-primary { background: #2563eb; color: #fff; }
+    .btn-social {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-social.highlight {
+      border: 2px solid #000;
+      box-shadow: 0 0 0 4px rgba(0,0,0,.08);
+    }
+    .divider { text-align: center; color: #9ca3af; font-size: 13px; margin: 16px 0 12px; }
+    .statusbar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
+      z-index: 10;
+    }
+    .caption {
+      position: absolute;
+      bottom: 18px;
+      left: 16px;
+      right: 16px;
+      background: rgba(0,0,0,.72);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.4;
+      z-index: 20;
+    }
+    .tiktok-page {
+      background: #fff;
+      color: #111;
+    }
+    .tiktok-header {
+      padding: 56px 20px 16px;
+      border-bottom: 1px solid #eee;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .tiktok-body { padding: 24px 20px; }
+    .tiktok-body p { margin-bottom: 12px; color: #444; line-height: 1.5; }
+    .perm { background: #f9fafb; border-radius: 12px; padding: 14px; margin: 16px 0; }
+    .perm li { margin-left: 18px; color: #374151; font-size: 14px; line-height: 1.6; }
+    .success-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: #10b981; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; margin: 0 auto 16px;
+    }
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .tile {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .step-label {
+      position: absolute;
+      top: 52px;
+      left: 0; right: 0;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,.55);
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone" id="phone">
+    <div class="statusbar"><span>9:41</span><span>Kudya</span><span>100%</span></div>
+
+    <div class="screen active" data-step="1">
+      <div class="step-label">Step 1 — Open Kudya app</div>
+      <div class="card" style="text-align:center;">
+        <div class="logo">K</div>
+        <h1>Kudya</h1>
+        <p class="sub">Food delivery &amp; e-commerce for Southern Africa</p>
+        <div class="home-grid">
+          <div class="tile">🍔 Order Food</div>
+          <div class="tile">🛒 Shop</div>
+          <div class="tile">📍 Track Delivery</div>
+          <div class="tile">👤 Account</div>
+        </div>
+      </div>
+      <div class="caption">User opens the Kudya mobile app (com.ludmil.kudyaclient) and navigates to Sign In.</div>
+    </div>
+
+    <div class="screen" data-step="2">
+      <div class="step-label">Step 2 — Login screen</div>
+      <div class="card">
+        <div class="logo">K</div>
+        <h1>Sign in</h1>
+        <p class="sub">Don't have an account? Register here</p>
+        <div class="input">Username or email</div>
+        <div class="input">Password</div>
+        <button class="btn btn-primary">Sign in</button>
+        <div class="divider">Or continue with</div>
+        <button class="btn btn-social">G Continue with Google</button>
+        <button class="btn btn-social">f Continue with Facebook</button>
+        <button class="btn btn-social highlight" id="tiktokBtn">♪ Continue with TikTok</button>
+      </div>
+      <div class="caption">User taps <strong>Continue with TikTok</strong> — Login Kit OAuth flow starts (redirect: kudya://oauth).</div>
+    </div>
+
+    <div class="screen tiktok-page" data-step="3">
+      <div class="step-label">Step 3 — TikTok authorization</div>
+      <div class="tiktok-header">Authorize Kudya</div>
+      <div class="tiktok-body">
+        <p>Kudya wants to access your TikTok account to sign you in.</p>
+        <div class="perm">
+          <strong>Requested scopes:</strong>
+          <ul>
+            <li>user.info.basic — profile info</li>
+            <li>user.info.stats — follower stats (optional)</li>
+          </ul>
+        </div>
+        <button class="btn btn-primary" style="background:#000;">Authorize</button>
+        <button class="btn btn-social" style="margin-top:8px;">Cancel</button>
+      </div>
+      <div class="caption">TikTok Login Kit shows the OAuth consent screen. User authorizes the app.</div>
+    </div>
+
+    <div class="screen" data-step="4">
+      <div class="step-label">Step 4 — Redirect &amp; token exchange</div>
+      <div class="card">
+        <div class="logo" style="font-size:28px;">kudya://oauth</div>
+        <h1>Redirect received</h1>
+        <p class="sub" style="text-align:left; margin-top:12px;">
+          1. App receives auth code via <code>kudya://oauth</code><br><br>
+          2. Client exchanges code for access token<br><br>
+          3. Token sent to Kudya API<br>
+          <code style="font-size:11px;">POST /api/auth/social/</code><br><br>
+          4. Backend verifies with TikTok Open API
+        </p>
+      </div>
+      <div class="caption">App handles redirect URI, exchanges the authorization code, and Kudya backend validates the TikTok token.</div>
+    </div>
+
+    <div class="screen" data-step="5">
+      <div class="step-label">Step 5 — Signed in</div>
+      <div class="card" style="text-align:center;">
+        <div class="success-icon">✓</div>
+        <h1>Welcome back!</h1>
+        <p class="sub">Signed in with TikTok as @kudya_user</p>
+        <div class="home-grid">
+          <div class="tile">🍔 Browse meals</div>
+          <div class="tile">🛒 My orders</div>
+        </div>
+      </div>
+      <div class="caption">User is authenticated and can browse, order food, and shop in Kudya. Login Kit integration complete.</div>
+    </div>
+  </div>
+
+  <script>
+    const screens = Array.from(document.querySelectorAll('.screen'));
+    let idx = 0;
+    function show(i) {
+      screens.forEach((s, n) => s.classList.toggle('active', n === i));
+    }
+    setInterval(() => {
+      idx = (idx + 1) % screens.length;
+      show(idx);
+    }, 999999);
+    window.setStep = (n) => show(Math.max(0, Math.min(screens.length - 1, n - 1)));
+    window.getStep = () => idx + 1;
+  </script>
+</body>
+</html>

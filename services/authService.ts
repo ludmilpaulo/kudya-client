@@ -4,6 +4,26 @@ import { normalizeAuthResponse, AuthSessionPayload } from "./authTypes";
 import axios, { isAxiosError } from 'axios';
 const API_URL = baseAPI;
 
+type SignupRole = "client" | "store";
+
+type SignupFile = {
+  uri: string;
+  type?: string;
+  name?: string;
+};
+
+type SignupPayload = {
+  username: string;
+  email: string;
+  password: string;
+  name?: string;
+  phone?: string;
+  address?: string;
+  logo?: SignupFile | null;
+  store_license?: SignupFile | null;
+  business_category?: string;
+};
+
 // services/authService.ts
 
 export const loginUserService = async (
@@ -44,7 +64,7 @@ export const refreshAccessToken = async (
   return { access, refresh: data.refresh, token: access };
 };
 
-export const signup = async (role: "client" | "store", signupData: Record<string, any>) => {
+export const signup = async (role: SignupRole, signupData: SignupPayload) => {
   const url = role === "client" ? `${baseAPI}/customer/signup/` : `${baseAPI}/store/fornecedor/`;
 
   let body: FormData | string | null = null;
@@ -58,12 +78,28 @@ export const signup = async (role: "client" | "store", signupData: Record<string
     });
   } else if (role === "store") {
     const formData = new FormData();
-    Object.keys(signupData).forEach((key) => {
-      const value = signupData[key];
-      if (value !== null) {
-        formData.append(key, value);
-      }
-    });
+    if (signupData.username) formData.append("username", signupData.username);
+    if (signupData.email) formData.append("email", signupData.email);
+    if (signupData.password) formData.append("password", signupData.password);
+    if (signupData.name) formData.append("name", signupData.name);
+    if (signupData.phone) formData.append("phone", signupData.phone);
+    if (signupData.address) formData.append("address", signupData.address);
+    if (signupData.business_category) formData.append("business_category", signupData.business_category);
+
+    if (signupData.logo?.uri) {
+      formData.append("logo", {
+        uri: signupData.logo.uri,
+        type: signupData.logo.type || "image/jpeg",
+        name: signupData.logo.name || "logo.jpg",
+      } as unknown as Blob);
+    }
+    if (signupData.store_license?.uri) {
+      formData.append("store_license", {
+        uri: signupData.store_license.uri,
+        type: signupData.store_license.type || "application/octet-stream",
+        name: signupData.store_license.name || "license.dat",
+      } as unknown as Blob);
+    }
 
     body = formData;
   }

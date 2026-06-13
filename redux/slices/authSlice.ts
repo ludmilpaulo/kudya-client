@@ -2,6 +2,7 @@
 
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { loginUserService } from "../../services/authService";
+import type { BusinessProfile } from "../../services/authTypes";
 
 export interface User {
   user_id: number;
@@ -9,7 +10,23 @@ export interface User {
   token?: string;
   is_customer: boolean;
   is_driver: boolean;
+  preferred_language?: string;
+  business_profile?: BusinessProfile;
 }
+
+type LoginResult = {
+  access?: string;
+  refresh?: string;
+  token: string;
+  user_id: number;
+  username: string;
+  is_customer: boolean;
+  is_driver: boolean;
+  message: string;
+  preferred_language?: string;
+  business_profile?: BusinessProfile;
+  user?: { preferred_language?: string };
+};
 
 export interface AuthState {
   user: User | null;
@@ -31,17 +48,7 @@ const initialState: AuthState = {
 
 // ---- Thunk for Login ----
 export const loginUser = createAsyncThunk<
-  // Return type:
-  {
-    access?: string;
-    refresh?: string;
-    token: string;
-    user_id: number;
-    username: string;
-    is_customer: boolean;
-    is_driver: boolean;
-    message: string;
-  },
+  LoginResult,
   // Arg type:
   { username: string; password: string },
   // ThunkAPI:
@@ -54,9 +61,11 @@ export const loginUser = createAsyncThunk<
       return rejectWithValue(data.message || "Erro desconhecido.");
     }
     return data;
-  } catch (error: any) {
-    // Error object from service is always Error
-    return rejectWithValue(error.message || "Erro desconhecido.");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return rejectWithValue(error.message || "Erro desconhecido.");
+    }
+    return rejectWithValue("Erro desconhecido.");
   }
 });
 
@@ -86,6 +95,7 @@ const authSlice = createSlice({
       is_customer: boolean;
       is_driver: boolean;
       message?: string;
+      business_profile?: BusinessProfile;
     }>) {
       const p = action.payload;
       const access = p.access || p.token;
@@ -98,9 +108,27 @@ const authSlice = createSlice({
         token: access,
         is_customer: p.is_customer,
         is_driver: p.is_driver,
+        business_profile: p.business_profile,
       };
       state.message = p.message || "Login com sucesso";
       state.error = null;
+    },
+    persistBookingSession(
+      state,
+      action: PayloadAction<{ accessToken: string; refreshToken?: string; username?: string }>,
+    ) {
+      const { accessToken, refreshToken, username } = action.payload;
+      state.token = accessToken;
+      state.refreshToken = refreshToken ?? null;
+      if (username) {
+        state.user = {
+          user_id: state.user?.user_id ?? 0,
+          username,
+          token: accessToken,
+          is_customer: true,
+          is_driver: false,
+        };
+      }
     },
   },
   extraReducers: (builder) => {
@@ -110,18 +138,23 @@ const authSlice = createSlice({
         state.error = null;
         state.message = null;
       })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<any>) => {
+      .addCase(loginUser.fulfilled, (state, action: PayloadAction<LoginResult>) => {
         state.loading = false;
         const access = action.payload?.access || action.payload?.token;
         if (action.payload && access) {
           state.token = access;
           state.refreshToken = action.payload.refresh ?? null;
+          const preferredLanguage =
+            action.payload.preferred_language ||
+            action.payload.user?.preferred_language;
           state.user = {
             user_id: action.payload.user_id,
             username: action.payload.username,
             token: access,
             is_customer: action.payload.is_customer,
             is_driver: action.payload.is_driver,
+            preferred_language: preferredLanguage,
+            business_profile: action.payload.business_profile,
           };
           state.message = action.payload.message || "Login com sucesso";
         } else {
@@ -136,7 +169,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { logoutUser, clearAuthMessage, setAuthFromSocial } = authSlice.actions;
+export const { logoutUser, clearAuthMessage, setAuthFromSocial, persistBookingSession } = authSlice.actions;
 
 export const selectUser = (state: { auth: AuthState }) => state.auth.user;
 

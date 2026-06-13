@@ -49,6 +49,14 @@ const LoginScreenUser = () => {
 
   const { maybeOfferBiometricEnrollment } = useBiometricEnrollmentPrompt();
 
+  const completeNavigation = (isCustomer: boolean, hasBusinessProfile: boolean) => {
+    if (hasBusinessProfile || !isCustomer) {
+      navigation.replace("BusinessDashboard");
+      return;
+    }
+    navigation.goBack();
+  };
+
   // Clear cart on login screen open
   useEffect(() => {
     analytics.trackScreenView('Login Screen');
@@ -59,7 +67,7 @@ const LoginScreenUser = () => {
   useEffect(() => {
     if (user && message) {
       analytics.trackLogin(user.user_id?.toString() || user.username || 'unknown', {
-        user_type: 'customer',
+        user_type: user.is_customer ? 'customer' : 'store',
         platform: 'mobile'
       });
       void maybeOfferBiometricEnrollment({
@@ -75,7 +83,7 @@ const LoginScreenUser = () => {
       });
       Alert.alert(t("success"), message);
       dispatch(clearAuthMessage());
-      navigation.goBack(); // Or navigate to home, e.g. navigation.replace("Home")
+      completeNavigation(user.is_customer, Boolean(user.business_profile));
     } else if (error) {
       analytics.trackError('Login Failed', { error });
       Alert.alert(t("error"), error);
@@ -88,13 +96,13 @@ const LoginScreenUser = () => {
     if (!result.token) return;
     dispatch(setAuthFromSocial(result));
     analytics.trackLogin(result.user_id?.toString() || result.username, {
-      user_type: "customer",
+      user_type: result.is_customer ? "customer" : "store",
       platform: "mobile",
       method: "social",
     });
     Alert.alert(t("success"), result.message || t("loginSuccess"));
     void maybeOfferBiometricEnrollment(result);
-    navigation.goBack();
+    completeNavigation(result.is_customer, Boolean(result.business_profile));
   };
 
   const handleSocialSuccess = (result: SocialAuthResult) => {
@@ -109,7 +117,7 @@ const LoginScreenUser = () => {
       method: "biometric",
     });
     Alert.alert(t("success"), result.message || t("loginSuccess"));
-    navigation.goBack();
+    completeNavigation(result.is_customer, Boolean(result.business_profile));
   };
 
   const handleSubmit = () => {

@@ -1,5 +1,5 @@
 import * as Localization from 'expo-localization'
 
 export const getDeviceLanguage = (): string => {
-  return Localization.locale.split('-')[0] // "en", "pt", etc.
+  return Localization.getLocales()[0]?.languageCode ?? 'en'
 }

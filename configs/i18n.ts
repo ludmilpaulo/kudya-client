@@ -1,11 +1,9 @@
 import * as Localization from 'expo-localization';
-import translations, {
-  SupportedLocale,
-  TranslationKey,
-  supportedLocales,
-} from './translations';
+import translations, { supportedLocales } from './translations';
+import type { SupportedLocale, TranslationKey } from './translations';
 
-export { supportedLocales, type SupportedLocale, type TranslationKey };
+export { supportedLocales };
+export type { SupportedLocale, TranslationKey };
 export { default as translations } from './translations';
 
 export const LANGUAGE_STORAGE_KEY = '@kudya/language';

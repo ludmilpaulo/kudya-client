@@ -15,6 +15,14 @@
       "android": { "buildType": "apk" },
       "prebuildCommand": "npx expo prebuild --platform android --clean"
     },
+    "local-apk": {
+      "extends": "preview",
+      "android": { "buildType": "apk" }
+    },
+    "local-aab": {
+      "extends": "production",
+      "android": { "buildType": "app-bundle" }
+    },
     "production": {
       "env": {
         "EXPO_PUBLIC_BASE_API": "https://kudya-api.onrender.com",
@@ -27,7 +35,7 @@
       "ios": {
         "resourceClass": "m-medium"
       },
-      "prebuildCommand": "npx expo prebuild --platform android --clean"
+      "prebuildCommand": "npx expo prebuild --clean"
     }
   },
   "submit": {

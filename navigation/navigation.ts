@@ -11,14 +11,19 @@ export type RootStackParamList = {
   UserLogin: undefined;
   SignupScreen: undefined;
   ForgotPassword: undefined;
+  Services: undefined;
   ServiceDetail: { serviceId: number };
   Properties: undefined;
   PropertyDetail: { propertyId: number };
   Doctors: undefined;
-  DoctorDetail: { doctorId: number };
+  DoctorDetail: {
+    doctorId: number;
+    openSection?: 'overview' | 'location' | 'availability' | 'reviews';
+  };
   BookAppointment: { doctorId: number };
   Accommodation: undefined;
   Wallet: undefined;
+  BusinessDashboard: undefined;
   ComingSoon: undefined;
   Rides: undefined;
   RideTracking: { rideId: number };

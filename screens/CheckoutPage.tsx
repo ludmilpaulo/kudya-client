@@ -120,7 +120,7 @@ const CheckoutPage: React.FC = () => {
     setLoading(true);
     setError(null);
     const formattedCartItems = allCartItems.map((item) => ({
-      meal_id: item.id,
+      product_id: item.id,
       quantity: item.quantity,
     }));
     const resId = allCartItems.map(({ store }) => store);

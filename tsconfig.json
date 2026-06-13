@@ -2,7 +2,7 @@
   "extends": "./node_modules/expo/tsconfig.base.json",
   "compilerOptions": {
     "strict": false,
-    "types": ["react-native", "react-native-vector-icons", "node", "jest"],
+    "types": ["node", "jest"],
     "baseUrl": ".",
     "paths": { "*": ["node_modules/*"] }
   },

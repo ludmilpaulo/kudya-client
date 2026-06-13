@@ -24,7 +24,7 @@ import { selectUser } from "../redux/slices/authSlice";
 import { useNavigation } from "@react-navigation/native";
 import { RootStackParamList } from "../navigation/navigation";
 import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { t } from "../configs/i18n";
 import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
 import * as Localization from "expo-localization";
@@ -243,7 +243,7 @@ const ProductDetailScreen = ({ route }: Props) => {
             style={tw`p-2 bg-gray-200 rounded-full`}
             accessibilityLabel={t("back")}
           >
-            <AntDesign name="arrowleft" size={24} />
+            <AntDesign name="arrow-left" size={24} />
           </TouchableOpacity>
           <View style={tw`flex-row`}>
             <TouchableOpacity
@@ -274,7 +274,7 @@ const ProductDetailScreen = ({ route }: Props) => {
             scrollAnimationDuration={800}
             renderItem={({ item }) => (
               <Image
-                source={{ uri: item?.images }}
+                source={{ uri: item?.image }}
                 style={tw`w-full h-full rounded-xl`}
                 placeholder={{
                   uri: "https://via.placeholder.com/400?text=Loading...",
@@ -488,7 +488,7 @@ const ProductDetailScreen = ({ route }: Props) => {
                   activeOpacity={0.93}
                 >
                   <Image
-                    source={{ uri: rel.images?.[0] || "https://via.placeholder.com/200" }}
+                    source={{ uri: rel.images?.[0]?.image || "https://via.placeholder.com/200" }}
                     style={tw`w-full h-32 rounded-lg bg-gray-200`}
                     contentFit="cover"
                   />

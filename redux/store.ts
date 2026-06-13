@@ -1,4 +1,4 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit'
+import { configureStore, combineReducers, type Middleware } from '@reduxjs/toolkit'
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { persistReducer, persistStore } from 'redux-persist'
@@ -15,6 +15,8 @@ import relatedProductsReducer from './slices/relatedProductsSlice';
 import categoryReducer from './slices/categorySlice';
 import productsByCategoryReducer from './slices/productsByCategorySlice';
 import servicesReducer from './slices/servicesSlice';
+import { ridesApi } from './api/ridesApi';
+import { doctorsApi } from './api/doctorsApi';
 
 // Combine reducer
 const rootReducer = combineReducers({
@@ -29,6 +31,8 @@ const rootReducer = combineReducers({
   categories: categoryReducer,
   productsByCategory: productsByCategoryReducer,
   services: servicesReducer,
+  [ridesApi.reducerPath]: ridesApi.reducer,
+  [doctorsApi.reducerPath]: doctorsApi.reducer,
 });
 
 // ✅ Persist config
@@ -44,7 +48,10 @@ const persistedReducer = persistReducer(rootPersistConfig, rootReducer)
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({ serializableCheck: false }),
+    getDefaultMiddleware({ serializableCheck: false }).concat(
+      ridesApi.middleware as Middleware,
+      doctorsApi.middleware as Middleware,
+    ),
 })
 
 // ✅ Types and Hooks

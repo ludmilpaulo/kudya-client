@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image, StyleSheet, ImageStyle, ViewStyle } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useDispatch } from "react-redux";
 import { Feather } from '@expo/vector-icons'
 import { signup } from "../services/authService"; // Ensure this import points to your signup service
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,6 +13,10 @@ import { useTranslation } from "../hooks/useTranslation";
 import { useBiometricEnrollmentPrompt } from "../hooks/useBiometricEnrollmentPrompt";
 import type { SocialAuthResult } from "../services/socialAuth";
 import { normalizeAuthResponse } from "../services/authTypes";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../navigation/navigation";
+import { fetchBusinessCategories, type BusinessCategory } from "../services/platformApi";
+import { useAppDispatch } from "../redux/store";
 
 interface SignupData {
   username: string;
@@ -32,12 +35,15 @@ interface SignupData {
     type: string;
     name: string;
   };
+  business_category?: string;
 }
 
+type SignupNavigation = NativeStackNavigationProp<RootStackParamList>;
+
 const SignupScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
-  const dispatch = useDispatch<any>();
-  const { t } = useTranslation();
+  const navigation = useNavigation<SignupNavigation>();
+  const dispatch = useAppDispatch();
+  const { t, languageCode } = useTranslation();
   const { maybeOfferBiometricEnrollment } = useBiometricEnrollmentPrompt();
 
   const [signupData, setSignupData] = useState<SignupData>({
@@ -48,10 +54,33 @@ const SignupScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<'client' | 'store'>('client');
+  const [businessCategories, setBusinessCategories] = useState<BusinessCategory[]>([]);
 
   useEffect(() => {
     analytics.trackScreenView('Signup Screen');
   }, []);
+
+  useEffect(() => {
+    if (role !== 'store') return;
+    let cancelled = false;
+    fetchBusinessCategories(languageCode, 'mobile')
+      .then((categories) => {
+        if (cancelled) return;
+        setBusinessCategories(categories);
+        setSignupData((prev) => ({
+          ...prev,
+          business_category: prev.business_category || categories[0]?.slug || 'business',
+        }));
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBusinessCategories([]);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [languageCode, role]);
 
   const handleInputChange = (name: string, value: string) => {
     setSignupData(prev => ({ ...prev, [name]: value }));
@@ -84,7 +113,7 @@ const SignupScreen: React.FC = () => {
     });
     void maybeOfferBiometricEnrollment(result);
     Alert.alert(t('success'), result.message || t('loginSuccess'));
-    navigation.navigate('HomeScreen');
+    navigation.navigate('MainTabs');
   };
 
   const handleSubmit = async () => {
@@ -106,13 +135,17 @@ const SignupScreen: React.FC = () => {
         });
         void maybeOfferBiometricEnrollment(authPayload);
         Alert.alert(t('success'), t('loginSuccess'));
-        navigation.navigate(role === 'store' ? 'storeDashboard' : 'HomeScreen');
+        if (role === 'store') {
+          navigation.navigate('BusinessDashboard');
+        } else {
+          navigation.navigate('MainTabs');
+        }
       } else {
         Alert.alert("Falha no Cadastro", data.message || "Por favor, tente novamente.");
       }
     } catch (error) {
       console.error("Signup error:", error);
-      analytics.trackError('Signup Failed', { role, error: error?.toString() });
+      analytics.trackError('Signup Failed', { role, error: String(error) });
       Alert.alert("Erro de Rede", "Não foi possível conectar. Por favor, tente novamente.");
     } finally {
       setLoading(false);
@@ -153,6 +186,16 @@ const SignupScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
         <View style={styles.inputContainer}>
+          <View style={styles.roleSelection}>
+            <TouchableOpacity style={getRoleButtonStyle(role === 'client')} onPress={() => setRole('client')}>
+              <Text style={styles.roleButtonText}>{t('client', 'Client')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={getRoleButtonStyle(role === 'store')} onPress={() => setRole('store')}>
+              <Text style={styles.roleButtonText}>{t('store', 'Store')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.inputContainer}>
           <TextInput
             placeholder="Nome de usuário"
             value={signupData.username}
@@ -182,6 +225,17 @@ const SignupScreen: React.FC = () => {
         </View>
         {role === 'store' && (
           <>
+            <View style={styles.roleSelection}>
+              {businessCategories.map((category) => (
+                <TouchableOpacity
+                  key={category.id}
+                  style={getRoleButtonStyle(signupData.business_category === category.slug)}
+                  onPress={() => setSignupData((prev) => ({ ...prev, business_category: category.slug }))}
+                >
+                  <Text style={styles.roleButtonText}>{category.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             <TouchableOpacity
               style={styles.fileButton}
               onPress={() => handleFileChange('logo')}
@@ -197,7 +251,7 @@ const SignupScreen: React.FC = () => {
           </>
         )}
         <TouchableOpacity onPress={handleSubmit} style={styles.signupButton} disabled={loading}>
-          <Text style={styles.signupButtonText}>{t('signUp' as never) || 'Sign up'}</Text>
+          <Text style={styles.signupButtonText}>{t('signUp', 'Sign up')}</Text>
         </TouchableOpacity>
         <SocialLoginButtons onSuccess={handleSocialSuccess} disabled={loading} />
       </MotiView>

@@ -16,11 +16,10 @@ import tw from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
-import { fetchHomeModules, PlatformModule } from '../services/platformApi';
+import { fetchHomeModules, PlatformModule, resolveMobileModuleScreen } from '../services/platformApi';
 import { useTranslation } from '../hooks/useTranslation';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
-
 const ICON_MAP: Record<string, React.ReactNode> = {
   utensils: <Feather name="coffee" size={26} color="#fff" />,
   'shopping-basket': <Feather name="shopping-bag" size={26} color="#fff" />,
@@ -39,22 +38,6 @@ function ModuleIcon({ name }: { name: string }) {
   return <View>{ICON_MAP[name] ?? <Feather name="grid" size={26} color="#fff" />}</View>;
 }
 
-const ROUTE_MAP: Record<string, keyof RootStackParamList> = {
-  Food: 'Categories',
-  Grocery: 'Grocery',
-  Rides: 'Rides',
-  SendPackage: 'SendPackage',
-  CarRental: 'CarRental',
-  Wallet: 'Wallet',
-  Doctors: 'Doctors',
-  Services: 'MainTabs',
-  Properties: 'Properties',
-  property: 'Properties',
-  Accommodation: 'Accommodation',
-  MainTabs: 'MainTabs',
-  ComingSoon: 'ComingSoon',
-};
-
 export default function SuperAppHomeScreen() {
   const navigation = useNavigation<Nav>();
   const { t, languageCode } = useTranslation();
@@ -65,7 +48,7 @@ export default function SuperAppHomeScreen() {
 
   const load = useCallback(async () => {
     try {
-      const data = await fetchHomeModules(languageCode);
+      const data = await fetchHomeModules(languageCode, 'mobile');
       setModules(data);
     } catch {
       setModules([]);
@@ -80,27 +63,16 @@ export default function SuperAppHomeScreen() {
   }, [load]);
 
   const onModulePress = (mod: PlatformModule) => {
-    if (mod.key === 'food') {
-      navigation.navigate('Categories');
-      return;
-    }
-    if (mod.key === 'property' || mod.route === 'Properties') {
-      navigation.navigate('Properties');
-      return;
-    }
-    const route = ROUTE_MAP[mod.route] ?? ROUTE_MAP[mod.key] ?? 'ComingSoon';
-    if (route === 'MainTabs') {
-      navigation.navigate('MainTabs');
-      return;
-    }
-    navigation.navigate(route as any);
+    const route = resolveMobileModuleScreen(mod.route, mod.key);
+    navigation.navigate(route);
   };
 
-  const filtered = modules.filter(
-    (m) =>
-      m.title.toLowerCase().includes(search.toLowerCase()) ||
-      m.subtitle.toLowerCase().includes(search.toLowerCase()),
-  );
+  const searchLower = search.toLowerCase();
+  const filtered = modules.filter((m) => {
+    const name = (m.name || '').toLowerCase();
+    const description = (m.description || '').toLowerCase();
+    return name.includes(searchLower) || description.includes(searchLower);
+  });
 
   return (
     <LinearGradient colors={['#0F172A', '#1E3A5F', '#2563EB']} style={tw`flex-1`}>
@@ -136,7 +108,10 @@ export default function SuperAppHomeScreen() {
             showsVerticalScrollIndicator={false}
           >
             <View style={tw`flex-row flex-wrap justify-between`}>
-              {filtered.map((mod, index) => (
+              {filtered.map((mod, index) => {
+                const gradientStart = mod.gradient?.[0] || mod.color || '#3B82F6';
+                const gradientEnd = mod.gradient?.[1] || mod.color || '#1D4ED8';
+                return (
                 <Animated.View
                   key={mod.id}
                   entering={FadeInDown.delay(index * 40).springify()}
@@ -144,20 +119,20 @@ export default function SuperAppHomeScreen() {
                 >
                   <TouchableOpacity activeOpacity={0.85} onPress={() => onModulePress(mod)}>
                     <LinearGradient
-                      colors={[mod.gradient_start, mod.gradient_end]}
+                      colors={[gradientStart, gradientEnd]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       style={tw`rounded-2xl p-4 min-h-[120px] justify-between shadow-lg`}
                     >
                       <ModuleIcon name={mod.icon} />
                       <View>
-                        <Text style={tw`text-white font-bold text-base`}>{mod.title}</Text>
-                        <Text style={tw`text-white/80 text-xs mt-0.5`}>{mod.subtitle}</Text>
+                        <Text style={tw`text-white font-bold text-base`}>{mod.name}</Text>
+                        <Text style={tw`text-white/80 text-xs mt-0.5`}>{mod.description}</Text>
                       </View>
                     </LinearGradient>
                   </TouchableOpacity>
                 </Animated.View>
-              ))}
+              );})}
             </View>
             {filtered.length === 0 && (
               <Text style={tw`text-white text-center mt-10`}>{t('noStores')}</Text>

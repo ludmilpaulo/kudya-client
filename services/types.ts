@@ -1,6 +1,6 @@
-export const baseAPI: string =
-  (typeof process !== "undefined" && (process.env?.EXPO_PUBLIC_BASE_API || process.env?.NEXT_PUBLIC_BASE_API)) ||
-  "https://kudya-api.onrender.com";
+import { resolveApiBaseUrl } from '../utils/resolveApiBaseUrl';
+
+export const baseAPI: string = resolveApiBaseUrl();
 
 
 

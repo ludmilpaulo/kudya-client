@@ -1,77 +1,94 @@
 import axios from 'axios';
 import { baseAPI } from './types';
+import type {
+  AppointmentPayload,
+  Doctor,
+  MedicalSpecialty,
+  AppointmentSlot,
+  Country,
+  DoctorFilters,
+} from './doctors/types';
+import { buildDoctorQuery } from '../utils/doctorQuery';
+import { toNumber } from '../utils/formatNumber';
 
-export interface MedicalSpecialty {
-  id: number;
-  slug: string;
-  name: string;
-  icon: string;
+export type {
+  AppointmentPayload,
+  AppointmentSlot,
+  Country,
+  Doctor,
+  DoctorConsultationType,
+  DoctorDetailSection,
+  DoctorFilters,
+  MedicalSpecialty,
+  PatientDetailsPayload,
+  PatientGender,
+} from './doctors/types';
+
+function normalizeDoctor(raw: Doctor): Doctor {
+  return {
+    ...raw,
+    rating: toNumber(raw.rating),
+    review_count: toNumber(raw.review_count),
+    consultation_fee: toNumber(raw.consultation_fee),
+    years_experience: toNumber(raw.years_experience),
+  };
 }
 
-export interface Doctor {
-  id: number;
-  name: string;
-  professional_title: string;
-  specialty: number;
-  specialty_name: string;
-  years_experience: number;
-  languages: string;
-  country: number;
-  country_name: string;
-  city: number | null;
-  city_name: string | null;
-  clinic_name: string;
-  consultation_fee: number;
-  currency: string;
-  online_consultation_enabled: boolean;
-  physical_consultation_enabled: boolean;
-  rating: number;
-  review_count: number;
-  profile_photo: string | null;
-  biography?: string;
-  availability?: DoctorAvailability[];
+function unwrapList<T>(data: T[] | { results: T[] }): T[] {
+  if (Array.isArray(data)) return data;
+  return data.results ?? [];
 }
 
-export interface DoctorAvailability {
-  id: number;
-  day_of_week: number;
-  day_name: string;
-  start_time: string;
-  end_time: string;
-  consultation_type: string;
+export async function fetchCountries(): Promise<Country[]> {
+  const { data } = await axios.get<Country[] | { results: Country[] }>(`${baseAPI}/api/countries/`);
+  return unwrapList(data).filter((c) => c.is_active !== false);
 }
-
-export interface AppointmentPayload {
-  doctor: number;
-  appointment_type: 'physical' | 'online';
-  date: string;
-  start_time: string;
-  end_time: string;
-  notes?: string;
-}
-
-const authHeaders = (token: string) => ({ Authorization: `Bearer ${token}` });
 
 export async function fetchSpecialties(): Promise<MedicalSpecialty[]> {
-  const { data } = await axios.get(`${baseAPI}/api/doctors/specialties/`);
-  return data.results ?? data;
+  const { data } = await axios.get<MedicalSpecialty[] | { results: MedicalSpecialty[] }>(
+    `${baseAPI}/api/doctors/specialties/`,
+  );
+  return unwrapList(data);
 }
 
-export async function fetchDoctors(params?: Record<string, string | number>): Promise<Doctor[]> {
-  const { data } = await axios.get(`${baseAPI}/api/doctors/`, { params });
-  return data.results ?? data;
+export async function fetchDoctors(filters: DoctorFilters = { search: '' }): Promise<Doctor[]> {
+  const qs = buildDoctorQuery(filters);
+  const { data } = await axios.get<Doctor[] | { results: Doctor[] }>(
+    qs ? `${baseAPI}/api/doctors/?${qs}` : `${baseAPI}/api/doctors/`,
+  );
+  return unwrapList(data).map(normalizeDoctor);
 }
 
 export async function fetchDoctor(id: number): Promise<Doctor> {
-  const { data } = await axios.get(`${baseAPI}/api/doctors/${id}/`);
+  const { data } = await axios.get<Doctor>(`${baseAPI}/api/doctors/${id}/`);
+  return normalizeDoctor(data);
+}
+
+export async function fetchAvailableSlots(doctorId: number, date: string): Promise<AppointmentSlot[]> {
+  const { data } = await axios.get<AppointmentSlot[]>(
+    `${baseAPI}/api/doctors/${doctorId}/available-slots/`,
+    { params: { date } },
+  );
   return data;
 }
 
-export async function bookAppointment(token: string, payload: AppointmentPayload) {
+export async function bookAppointment(payload: AppointmentPayload, token?: string | null) {
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
   const { data } = await axios.post(
-    `${baseAPI}/api/appointments/book/`,
-    payload,
-    { headers: authHeaders(token) },
+    `${baseAPI}/api/doctor-appointments/book/`,
+    {
+      slot_id: payload.slot_id,
+      appointment_type: payload.appointment_type,
+      consultation_type: payload.appointment_type === 'physical' ? 'in_person' : 'online',
+      reason: payload.reason,
+      notes: payload.reason,
+      patient: payload.patient,
+      payment_method: payload.payment_method ?? 'pay_at_clinic',
+    },
+    { headers },
   );
   return data;
 }

@@ -9,6 +9,22 @@ import {
   supportedLocales,
 } from '../configs/i18n';
 
+async function readPreferredLanguageFromAuth(): Promise<SupportedLocale | null> {
+  try {
+    const raw = await AsyncStorage.getItem('persist:root');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { auth?: string };
+    const auth = parsed.auth ? (JSON.parse(parsed.auth) as { user?: { preferred_language?: string } }) : null;
+    const pref = auth?.user?.preferred_language;
+    if (pref && supportedLocales.includes(pref as SupportedLocale)) {
+      return pref as SupportedLocale;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 type LanguageContextValue = {
   languageCode: SupportedLocale;
   setLanguage: (code: SupportedLocale) => Promise<void>;
@@ -18,7 +34,7 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
+export function LanguageProvider({ children }: { children?: React.ReactNode }) {
   const [languageCode, setLanguageCode] = useState<SupportedLocale>(getLanguage());
   const [isReady, setIsReady] = useState(false);
 
@@ -27,10 +43,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const stored = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-        const next =
-          stored && supportedLocales.includes(stored as SupportedLocale)
-            ? (stored as SupportedLocale)
-            : detectDeviceLanguage();
+        let next: SupportedLocale;
+        if (stored && supportedLocales.includes(stored as SupportedLocale)) {
+          next = stored as SupportedLocale;
+        } else {
+          const fromAccount = await readPreferredLanguageFromAuth();
+          next = fromAccount ?? detectDeviceLanguage();
+        }
         if (!cancelled) {
           applyLanguage(next);
           setLanguageCode(next);
