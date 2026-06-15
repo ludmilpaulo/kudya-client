@@ -46,9 +46,12 @@
         "releaseStatus": "completed"
       },
       "ios": {
-        "appleId": "YOUR_APPLE_ID@email.com",
-        "ascAppId": "YOUR_ASC_APP_ID",
-        "appleTeamId": "YOUR_TEAM_ID"
+        "appleId": "ludmilpaulo@gmail.com",
+        "ascAppId": "6745173375",
+        "appleTeamId": "WF3T257QTW",
+        "ascApiKeyPath": "../credentials/AuthKey_67F47B76ZR.p8",
+        "ascApiKeyId": "67F47B76ZR",
+        "ascApiKeyIssuerId": "0cf240e3-a3d1-465d-bb95-734a26332c10"
       }
     }
   }
