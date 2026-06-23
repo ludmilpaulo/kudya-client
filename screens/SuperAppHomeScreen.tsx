@@ -16,8 +16,9 @@ import tw from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
-import { fetchHomeModules, PlatformModule, resolveMobileModuleScreen } from '../services/platformApi';
+import { fetchHomeModules, PlatformModule, resolveMobileModuleScreen, FALLBACK_HOME_MODULES } from '../services/platformApi';
 import { useTranslation } from '../hooks/useTranslation';
+import NotificationBellButton from '../features/notifications/components/NotificationBellButton';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -41,17 +42,22 @@ function ModuleIcon({ name }: { name: string }) {
 export default function SuperAppHomeScreen() {
   const navigation = useNavigation<Nav>();
   const { t, languageCode } = useTranslation();
-  const [modules, setModules] = useState<PlatformModule[]>([]);
+  const [modules, setModules] = useState<PlatformModule[]>(() =>
+    FALLBACK_HOME_MODULES.filter((m) => m.isActive && m.availableOnMobile !== false),
+  );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [usingFallback, setUsingFallback] = useState(false);
   const [search, setSearch] = useState('');
 
   const load = useCallback(async () => {
     try {
       const data = await fetchHomeModules(languageCode, 'mobile');
       setModules(data);
+      setUsingFallback(false);
     } catch {
-      setModules([]);
+      setModules(FALLBACK_HOME_MODULES.filter((m) => m.isActive && m.availableOnMobile !== false));
+      setUsingFallback(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -63,6 +69,14 @@ export default function SuperAppHomeScreen() {
   }, [load]);
 
   const onModulePress = (mod: PlatformModule) => {
+    if (mod.key === 'food') {
+      navigation.navigate('Stores', { vertical: 'food' });
+      return;
+    }
+    if (mod.key === 'groceries') {
+      navigation.navigate('Grocery');
+      return;
+    }
     const route = resolveMobileModuleScreen(mod.route, mod.key);
     navigation.navigate(route);
   };
@@ -78,13 +92,18 @@ export default function SuperAppHomeScreen() {
     <LinearGradient colors={['#0F172A', '#1E3A5F', '#2563EB']} style={tw`flex-1`}>
       <SafeAreaView style={tw`flex-1`}>
         <View style={tw`px-5 pt-2 pb-4`}>
-          <Text style={tw`text-xs text-blue-200 tracking-widest uppercase`}>Kudya</Text>
-          <Text style={tw`text-3xl font-bold text-white mt-1`}>
-            {t('homeGreeting', 'What do you need today?')}
-          </Text>
-          <Text style={tw`text-sm text-blue-100 mt-1 opacity-80`}>
-            {t('appTagline', 'Your life, one app')}
-          </Text>
+          <View style={tw`flex-row items-start justify-between`}>
+            <View style={tw`flex-1 pr-3`}>
+              <Text style={tw`text-xs text-blue-200 tracking-widest uppercase`}>Kudya</Text>
+              <Text style={tw`text-3xl font-bold text-white mt-1`}>
+                {t('homeGreeting', 'What do you need today?')}
+              </Text>
+              <Text style={tw`text-sm text-blue-100 mt-1 opacity-80`}>
+                {t('appTagline', 'Your life, one app')}
+              </Text>
+            </View>
+            <NotificationBellButton />
+          </View>
           <View style={tw`mt-4 flex-row items-center bg-white/10 rounded-2xl px-4 py-3 border border-white/20`}>
             <Feather name="search" size={18} color="#93C5FD" />
             <TextInput
@@ -97,7 +116,7 @@ export default function SuperAppHomeScreen() {
           </View>
         </View>
 
-        {loading ? (
+        {loading && modules.length === 0 ? (
           <ActivityIndicator size="large" color="#fff" style={tw`mt-20`} />
         ) : (
           <ScrollView
@@ -107,6 +126,11 @@ export default function SuperAppHomeScreen() {
             }
             showsVerticalScrollIndicator={false}
           >
+            {usingFallback ? (
+              <Text style={tw`text-blue-100 text-xs text-center mb-3 opacity-80`}>
+                {t('offlineModulesHint', 'Showing default services. Pull to refresh when online.')}
+              </Text>
+            ) : null}
             <View style={tw`flex-row flex-wrap justify-between`}>
               {filtered.map((mod, index) => {
                 const gradientStart = mod.gradient?.[0] || mod.color || '#3B82F6';

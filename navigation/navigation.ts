@@ -1,8 +1,8 @@
 export type RootStackParamList = {
   MainTabs: undefined;
   Home: undefined;
-  Stores: { storeTypeId: number };
-  Products: { storeId: number; storeName: string };
+  Stores: { storeTypeId?: number; vertical?: 'food' | 'groceries' };
+  Products: { storeId: number; storeName: string; vertical?: 'food' | 'groceries' };
   Cart: undefined;
   Checkout: undefined;
   ProductDetails: { productId: number };
@@ -31,4 +31,5 @@ export type RootStackParamList = {
   CarRental: undefined;
   Grocery: undefined;
   Food: undefined;
+  Notifications: undefined;
 };

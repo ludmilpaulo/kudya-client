@@ -27,6 +27,7 @@ import RideTrackingScreen from "../screens/RideTrackingScreen";
 import SendPackageScreen from "../screens/SendPackageScreen";
 import CarRentalScreen from "../screens/CarRentalScreen";
 import GroceryScreen from "../screens/GroceryScreen";
+import NotificationsScreen from "../screens/NotificationsScreen";
 
 import SignupScreen from "../screens/SignupScreen";
 import LoginScreenUser from "../screens/LoginScreenUser";
@@ -67,6 +68,7 @@ export default function AppNavigator() {
       <Stack.Screen name="SendPackage" component={SendPackageScreen} />
       <Stack.Screen name="CarRental" component={CarRentalScreen} />
       <Stack.Screen name="Grocery" component={GroceryScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="ProductsByCategory" component={ProductsByCategoryScreen} />
     </Stack.Navigator>
   );

@@ -1,4 +1,5 @@
 import { baseAPI } from './types';
+import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
 export type ClientPlatform = 'web' | 'mobile';
 
@@ -188,7 +189,7 @@ export async function fetchHomeModules(
   const params = new URLSearchParams({ lang, platform });
   if (countryId) params.set('country', String(countryId));
   try {
-    const response = await fetch(`${baseAPI}/api/platform/home-modules/?${params.toString()}`, {
+    const response = await fetchWithTimeout(`${baseAPI}/api/platform/home-modules/?${params.toString()}`, {
       headers: withLanguageHeaders(lang),
     });
     if (!response.ok) {
@@ -208,7 +209,7 @@ export async function fetchBusinessCategories(
   platform: ClientPlatform = 'mobile',
 ): Promise<BusinessCategory[]> {
   const params = new URLSearchParams({ platform });
-  const response = await fetch(`${baseAPI}/api/platform/business-categories/?${params.toString()}`, {
+  const response = await fetchWithTimeout(`${baseAPI}/api/platform/business-categories/?${params.toString()}`, {
     headers: withLanguageHeaders(lang),
   });
   if (!response.ok) {
@@ -220,7 +221,7 @@ export async function fetchBusinessCategories(
 export async function fetchApiTranslations(lang: string, module?: string): Promise<Record<string, string>> {
   const params = new URLSearchParams({ lang });
   if (module) params.set('module', module);
-  const response = await fetch(`${baseAPI}/api/translations/?${params.toString()}`, {
+  const response = await fetchWithTimeout(`${baseAPI}/api/translations/?${params.toString()}`, {
     headers: withLanguageHeaders(lang),
   });
   if (!response.ok) {

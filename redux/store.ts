@@ -17,6 +17,7 @@ import productsByCategoryReducer from './slices/productsByCategorySlice';
 import servicesReducer from './slices/servicesSlice';
 import { ridesApi } from './api/ridesApi';
 import { doctorsApi } from './api/doctorsApi';
+import { notificationApi } from './api/notificationApi';
 
 // Combine reducer
 const rootReducer = combineReducers({
@@ -33,6 +34,7 @@ const rootReducer = combineReducers({
   services: servicesReducer,
   [ridesApi.reducerPath]: ridesApi.reducer,
   [doctorsApi.reducerPath]: doctorsApi.reducer,
+  [notificationApi.reducerPath]: notificationApi.reducer,
 });
 
 // ✅ Persist config
@@ -51,6 +53,7 @@ export const store = configureStore({
     getDefaultMiddleware({ serializableCheck: false }).concat(
       ridesApi.middleware as Middleware,
       doctorsApi.middleware as Middleware,
+      notificationApi.middleware as Middleware,
     ),
 })
 

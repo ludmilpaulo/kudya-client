@@ -13,7 +13,10 @@ import {
 import Constants from "expo-constants";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/navigation";
+import NotificationBellButton from "../features/notifications/components/NotificationBellButton";
 import { LinearGradient } from "expo-linear-gradient";
 import tw from "twrnc";
 
@@ -21,10 +24,6 @@ import StoreCard from "../components/StoreCard";
 import { useAppSelector } from "../redux/store";
 import { selectCartItems } from "../redux/slices/basketSlice";
 import { store, Category, baseAPI } from "../services/types";
-
-type RootStackParamList = {
-  CartPage: undefined;
-};
 
 type Coords = {
   latitude: number;
@@ -40,7 +39,7 @@ const HomeScreen: React.FC = () => {
   const [location, setLocation] = useState<Coords | null>(null);
   const [address, setAddress] = useState("");
   const cartItems = useAppSelector(selectCartItems);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
     (async () => {
@@ -167,9 +166,9 @@ const HomeScreen: React.FC = () => {
           <ScrollView contentContainerStyle={tw`p-4`}>
             <View style={tw`flex-row justify-between items-center mb-4`}>
               <Text style={tw`text-white text-lg font-bold`}>{address}</Text>
-              <View style={tw`flex-row`}>
-                <Ionicons name="notifications-outline" size={24} color="white" style={tw`mx-2`} />
-                <TouchableOpacity onPress={() => navigation.navigate("CartPage")} style={tw`relative`}>
+              <View style={tw`flex-row items-center`}>
+                <NotificationBellButton />
+                <TouchableOpacity onPress={() => navigation.navigate("Cart")} style={tw`relative ml-1`}>
                   <Ionicons name="cart-outline" size={24} color="white" />
                   {totalItemsInCart > 0 && (
                     <View style={tw`absolute -top-2 -right-2 bg-red-600 rounded-full w-6 h-6 justify-center items-center`}>

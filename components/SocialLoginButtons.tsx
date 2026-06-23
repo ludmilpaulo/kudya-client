@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { AntDesign, FontAwesome5 } from '@expo/vector-icons';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import tw from 'twrnc';
 import {
   useGoogleAuth,
@@ -8,6 +9,7 @@ import {
   completeGoogleAuth,
   completeFacebookAuth,
   signInWithTikTok,
+  signInWithApple,
   isSocialLoginConfigured,
   getSocialLoginSetupHint,
   SocialAuthResult,
@@ -49,8 +51,15 @@ const PROVIDERS: {
 export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
   const { t } = useTranslation();
   const [loadingProvider, setLoadingProvider] = useState<SocialProvider | null>(null);
+  const [appleAvailable, setAppleAvailable] = useState(false);
   const [googleRequest, googleResponse, promptGoogle] = useGoogleAuth();
   const [fbRequest, fbResponse, promptFacebook] = useFacebookAuth();
+
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      AppleAuthentication.isAvailableAsync().then(setAppleAvailable);
+    }
+  }, []);
 
   useEffect(() => {
     if (googleResponse?.type === 'success') {
@@ -94,6 +103,20 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
     }
   }, [fbResponse, onSuccess, t]);
 
+  const handleApplePress = async () => {
+    try {
+      setLoadingProvider('apple');
+      onSuccess(await signInWithApple());
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : t('loginFailed');
+      if (!/cancel/i.test(message)) {
+        Alert.alert(t('error'), message);
+      }
+    } finally {
+      setLoadingProvider(null);
+    }
+  };
+
   const handlePress = async (provider: SocialProvider) => {
     if (!isSocialLoginConfigured(provider)) {
       Alert.alert(t('error'), getSocialLoginSetupHint(provider));
@@ -130,10 +153,25 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
   return (
     <View style={tw`mt-4`}>
       <Text style={tw`text-center text-gray-500 mb-3`}>{t('orContinueWith') || 'Or continue with'}</Text>
-      {configuredProviders.length === 0 ? (
+      {configuredProviders.length === 0 && !appleAvailable ? (
         <Text style={tw`text-center text-xs text-gray-400 mb-2`}>
           {t('socialLoginSetupHint') || 'Add OAuth keys to .env — see SOCIAL_LOGIN_SETUP.md'}
         </Text>
+      ) : null}
+      {appleAvailable ? (
+        loadingProvider === 'apple' ? (
+          <View style={tw`items-center py-3 mb-2`}>
+            <ActivityIndicator size="small" color="#3B82F6" />
+          </View>
+        ) : (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            cornerRadius={22}
+            style={{ width: '100%', height: 44, marginBottom: 8 }}
+            onPress={handleApplePress}
+          />
+        )
       ) : null}
       {PROVIDERS.map((p) => {
         const configured = isSocialLoginConfigured(p.id);

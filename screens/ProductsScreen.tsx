@@ -33,15 +33,15 @@ const cardWidth = (width - 48) / 2;
 export default function ProductsScreen() {
   const route = useRoute<RouteProp<RootStackParamList, "Products">>();
   const navigation = useNavigation<any>();
-  const { storeId, storeName } = route.params;
+  const { storeId, storeName, vertical } = route.params;
   const dispatch = useDispatch<AppDispatch>();
   const { t } = useTranslation();
 
   useEffect(() => {
     if (typeof storeId === "number") {
-      dispatch(fetchProductsByStore(storeId));
+      dispatch(fetchProductsByStore({ storeId, vertical }));
     }
-  }, [storeId, dispatch]);
+  }, [storeId, vertical, dispatch]);
 
   const products = useSelector((state: RootState) => state.products.data) as Product[];
   const loading = useSelector((state: RootState) => state.products.loading);

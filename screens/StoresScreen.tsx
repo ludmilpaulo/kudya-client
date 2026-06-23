@@ -8,7 +8,8 @@ import tw from 'twrnc';
 
 import { RootStackParamList } from '../navigation/navigation';
 import { RootState, AppDispatch } from '../redux/store';
-import { fetchStoresByType } from '../redux/slices/storesSlice';
+import { fetchStoresByType, fetchStoresByVertical } from '../redux/slices/storesSlice';
+import type { MarketplaceVertical } from '../utils/normalizeStores';
 import StoreCard from '../components/StoreCard';
 import { getDistanceFromLatLonInKm } from '../utils/distance';
 import { useUserLocation } from '../hooks/useUserLocation';
@@ -20,7 +21,7 @@ type StoresNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Store
 export default function StoresScreen() {
   const route = useRoute<StoresRouteProp>();
   const navigation = useNavigation<StoresNavigationProp>();
-  const { storeTypeId } = route.params;
+  const { storeTypeId, vertical } = route.params;
   const dispatch = useDispatch<AppDispatch>();
 
   const stores = useSelector((state: RootState) => state.stores.data);
@@ -29,9 +30,22 @@ export default function StoresScreen() {
 
   const userLocation = useUserLocation();
 
+  const title =
+    vertical === 'food'
+      ? 'Restaurants'
+      : vertical === 'groceries'
+        ? 'Groceries'
+        : 'Nearby Stores';
+
   useEffect(() => {
-    dispatch(fetchStoresByType(storeTypeId));
-  }, [storeTypeId, dispatch]);
+    if (vertical === 'food' || vertical === 'groceries') {
+      dispatch(fetchStoresByVertical(vertical));
+      return;
+    }
+    if (storeTypeId) {
+      dispatch(fetchStoresByType(storeTypeId));
+    }
+  }, [storeTypeId, vertical, dispatch]);
 
   // Calculate store distances
   const storesWithDistance = useMemo(() => {
@@ -76,7 +90,7 @@ export default function StoresScreen() {
       end={{ x: 1, y: 1 }}
     >
       <ScrollView contentContainerStyle={tw`p-4 pb-32 flex-row flex-wrap justify-between`}>
-        <Text style={tw`text-2xl font-bold text-white mb-4 w-full`}>Nearby Stores</Text>
+        <Text style={tw`text-2xl font-bold text-white mb-4 w-full`}>{title}</Text>
 
         {loading && (
           <View style={tw`w-full py-24 items-center`}>
@@ -104,6 +118,7 @@ export default function StoresScreen() {
                 navigation.navigate('Products', {
                   storeId: store.id,
                   storeName: store.name,
+                  vertical: vertical ?? undefined,
                 })
               }
               index={idx}

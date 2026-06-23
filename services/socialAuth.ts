@@ -3,6 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { baseAPI } from './types';
 import { normalizeAuthResponse, AuthSessionPayload } from './authTypes';
 
@@ -10,7 +11,7 @@ export type SocialAuthResult = AuthSessionPayload;
 
 WebBrowser.maybeCompleteAuthSession();
 
-export type SocialProvider = 'google' | 'facebook' | 'instagram' | 'tiktok';
+export type SocialProvider = 'google' | 'facebook' | 'instagram' | 'tiktok' | 'apple';
 
 /** Native redirect for production / dev client builds. */
 export const OAUTH_REDIRECT_URI = AuthSession.makeRedirectUri({
@@ -141,6 +142,26 @@ export async function signInWithTikTok(): Promise<SocialAuthResult> {
   });
 }
 
+export async function signInWithApple(): Promise<SocialAuthResult> {
+  if (Platform.OS !== 'ios') {
+    throw new Error('Sign in with Apple is available on iOS only.');
+  }
+  const available = await AppleAuthentication.isAvailableAsync();
+  if (!available) {
+    throw new Error('Sign in with Apple is not available on this device.');
+  }
+  const credential = await AppleAuthentication.signInAsync({
+    requestedScopes: [
+      AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+      AppleAuthentication.AppleAuthenticationScope.EMAIL,
+    ],
+  });
+  if (!credential.identityToken) {
+    throw new Error('Apple sign-in cancelled.');
+  }
+  return exchangeSocialToken('apple', { id_token: credential.identityToken });
+}
+
 export async function completeGoogleAuth(
   authentication: { accessToken?: string | null; idToken?: string | null } | null,
 ): Promise<SocialAuthResult> {
@@ -164,6 +185,8 @@ export async function completeFacebookAuth(
 
 export function isSocialLoginConfigured(provider: SocialProvider): boolean {
   switch (provider) {
+    case 'apple':
+      return Platform.OS === 'ios';
     case 'google':
       return !!googleClientIdForPlatform();
     case 'facebook':
@@ -179,6 +202,8 @@ export function isSocialLoginConfigured(provider: SocialProvider): boolean {
 
 export function getSocialLoginSetupHint(provider: SocialProvider): string {
   switch (provider) {
+    case 'apple':
+      return 'Sign in with Apple requires an iOS device with Apple ID configured.';
     case 'google':
       if (Platform.OS === 'ios' && !GOOGLE_IOS) {
         return 'Set EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID in .env';
