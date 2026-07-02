@@ -1,6 +1,22 @@
-import React, { ReactNode } from "react";
+import React, { Component, ReactNode } from "react";
 import { Text, TextProps, View, StyleSheet, ScrollView } from "react-native";
-import * as Sentry from "@sentry/react-native";
+import Constants from "expo-constants";
+
+const isExpoGo =
+  Constants.executionEnvironment === "storeClient" ||
+  Constants.appOwnership === "expo";
+
+function captureSentryException(error: Error, errorInfo: React.ErrorInfo) {
+  if (isExpoGo) return;
+  try {
+    const Sentry = require("@sentry/react-native") as typeof import("@sentry/react-native");
+    Sentry.captureException(error, {
+      extra: { componentStack: errorInfo.componentStack },
+    });
+  } catch {
+    // Sentry unavailable outside dev builds
+  }
+}
 
 const RNText = Text as unknown as React.ComponentType<TextProps>;
 const RNView = View as unknown as React.ComponentType<React.ComponentProps<typeof View>>;
@@ -26,14 +42,7 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     (this as React.Component<Props, State>).setState({ errorInfo });
-    try {
-      const transformedErrorInfo = {
-        componentStack: errorInfo.componentStack,
-      };
-      Sentry.captureException(error, { extra: transformedErrorInfo });
-    } catch (_) {
-      // Sentry may not be inited; don't crash the error UI
-    }
+    captureSentryException(error, errorInfo);
   }
 
   render() {

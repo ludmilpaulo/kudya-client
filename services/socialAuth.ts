@@ -13,10 +13,11 @@ WebBrowser.maybeCompleteAuthSession();
 
 export type SocialProvider = 'google' | 'facebook' | 'instagram' | 'tiktok' | 'apple';
 
-/** Native redirect for production / dev client builds. */
+/** OAuth redirect — localhost on web (Cursor browser), kudya:// on native. */
 export const OAUTH_REDIRECT_URI = AuthSession.makeRedirectUri({
   scheme: 'kudya',
   path: 'oauth',
+  preferLocalhost: Platform.OS === 'web',
 });
 
 const GOOGLE_IOS = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '';
@@ -216,6 +217,8 @@ export function getSocialLoginSetupHint(provider: SocialProvider): string {
       return 'Set EXPO_PUBLIC_FACEBOOK_APP_ID and add kudya://oauth in Meta app settings';
     case 'tiktok':
       return 'Set EXPO_PUBLIC_TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET on the API';
+    case 'instagram':
+      return 'Set EXPO_PUBLIC_INSTAGRAM_APP_ID and add kudya://oauth (or localhost) in Meta app settings';
     default:
       return 'OAuth keys missing in app config';
   }

@@ -72,7 +72,19 @@ export const createBooking = async (payload: {
   return data;
 };
 
-export const getMyBookings = async (): Promise<any[]> => {
+export type ServiceBooking = {
+  id: number;
+  booking_number: string;
+  service_title?: string;
+  parceiro_name?: string;
+  booking_date: string;
+  booking_time: string;
+  status: string;
+  price: number;
+  currency?: string;
+};
+
+export const getMyBookings = async (): Promise<ServiceBooking[]> => {
   const { data } = await API.get(`${baseAPI}/services/bookings/`);
   return data;
 };

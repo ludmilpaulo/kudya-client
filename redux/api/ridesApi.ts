@@ -4,8 +4,10 @@ import type {
   NearbyDriverResponse,
   Ride,
   RideCategory,
+  RideChatMessage,
   RidePriceEstimate,
   RideRequestPayload,
+  RideSearchStatus,
 } from '../../services/rides/types';
 
 type RootStateWithAuth = {
@@ -39,6 +41,7 @@ export const ridesApi = createApi({
         destination_longitude: number;
         ride_category_id: number;
         country_code?: string;
+        stops?: Array<{ latitude: number; longitude: number }>;
       }
     >({
       query: (body) => ({
@@ -70,6 +73,48 @@ export const ridesApi = createApi({
       }),
       invalidatesTags: ['Rides'],
     }),
+    getRideSearchStatus: builder.query<
+      { ride: Ride; search: RideSearchStatus },
+      number
+    >({
+      query: (rideId) => `/api/rides/${rideId}/search-status/`,
+    }),
+    acceptDriverCounterOffer: builder.mutation<Ride, number>({
+      query: (rideId) => ({
+        url: `/api/rides/${rideId}/accept-counter/`,
+        method: 'POST',
+        body: {},
+      }),
+      invalidatesTags: ['Rides'],
+    }),
+    rejectDriverCounterOffer: builder.mutation<Ride, number>({
+      query: (rideId) => ({
+        url: `/api/rides/${rideId}/reject-counter/`,
+        method: 'POST',
+        body: {},
+      }),
+      invalidatesTags: ['Rides'],
+    }),
+    getRideChat: builder.query<RideChatMessage[], number>({
+      query: (rideId) => `/api/client/rides/${rideId}/chat/`,
+      providesTags: (_result, _err, rideId) => [{ type: 'Rides', id: `chat-${rideId}` }],
+    }),
+    sendRideChatMessage: builder.mutation<RideChatMessage, { rideId: number; message: string }>({
+      query: ({ rideId, message }) => ({
+        url: `/api/client/rides/${rideId}/chat/`,
+        method: 'POST',
+        body: { message },
+      }),
+      invalidatesTags: (_result, _err, { rideId }) => [{ type: 'Rides', id: `chat-${rideId}` }],
+    }),
+    cancelRide: builder.mutation<Ride, { rideId: number; reason?: string }>({
+      query: ({ rideId, reason }) => ({
+        url: `/api/rides/${rideId}/cancel/`,
+        method: 'POST',
+        body: { reason: reason ?? '' },
+      }),
+      invalidatesTags: ['Rides'],
+    }),
   }),
 });
 
@@ -78,4 +123,10 @@ export const {
   useEstimateRidePriceMutation,
   useGetNearbyDriversMutation,
   useRequestRideMutation,
+  useGetRideSearchStatusQuery,
+  useAcceptDriverCounterOfferMutation,
+  useRejectDriverCounterOfferMutation,
+  useGetRideChatQuery,
+  useSendRideChatMessageMutation,
+  useCancelRideMutation,
 } = ridesApi;

@@ -15,7 +15,7 @@ import { RootState } from "../redux/store";
 import { selectUser } from "../redux/slices/authSlice";
 
 const Tab = createBottomTabNavigator();
-const AnimatedView = Animated.View as any;
+const AnimatedView = Animated.View;
 
 const MainTabNavigator = () => {
   const dispatch = useDispatch();

@@ -73,6 +73,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     android: {
       ...config.android,
+      config: {
+        ...config.android?.config,
+        googleMaps: {
+          apiKey:
+            process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ||
+            config.android?.config?.googleMaps?.apiKey ||
+            '',
+        },
+      },
       intentFilters: [
         {
           action: 'VIEW',

@@ -1,10 +1,10 @@
-import { useNavigation } from "@react-navigation/native";
+import { useAppNavigation } from "../navigation/hooks";
 import React from "react";
 import { Text, TouchableOpacity } from "react-native";
 import tw from "twrnc";
 
-const ViewCart = ({ total, count }: { total: any; count: any }) => {
-  const navigation = useNavigation<any>();
+const ViewCart = ({ total, count }: { total: number; count: number }) => {
+  const navigation = useAppNavigation();
 
   return (
     <>

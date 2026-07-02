@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ImageBackground, TouchableOpacity, ScrollView, Image } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import { useNavigation } from "@react-navigation/native";
+import { useAppNavigation } from "../navigation/hooks";
 import tw from 'twrnc';
 
 interface store {
@@ -35,7 +35,7 @@ const Banner: React.FC<BannerProps> = ({
   stores,
   userLocation,
 }) => {
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
 
   return (
     <View style={tw`flex-1`}>

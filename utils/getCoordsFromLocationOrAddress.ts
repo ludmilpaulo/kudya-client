@@ -1,8 +1,37 @@
 import axios from "axios"
+import * as Location from "expo-location"
 
 export interface Coords {
   lat: number
   lng: number
+}
+
+export function formatGeocodedAddress(place: Location.LocationGeocodedAddress): string {
+  const parts = [
+    place.name,
+    place.streetNumber,
+    place.street,
+    place.district,
+    place.subregion,
+    place.city,
+    place.region,
+    place.postalCode,
+  ].filter((part, index, arr) => Boolean(part) && arr.indexOf(part) === index)
+  return parts.join(", ")
+}
+
+export async function reverseGeocodeLabel(
+  latitude: number,
+  longitude: number,
+): Promise<string | null> {
+  try {
+    const places = await Location.reverseGeocodeAsync({ latitude, longitude })
+    if (!places[0]) return null
+    const label = formatGeocodedAddress(places[0])
+    return label || null
+  } catch {
+    return null
+  }
 }
 
 export function parseLocationString(location: string): Coords | null {
@@ -12,11 +41,39 @@ export function parseLocationString(location: string): Coords | null {
   return { lat, lng }
 }
 
-export async function geocodeAddress(address: string): Promise<Coords | null> {
+type GeocodeOptions = {
+  near?: Coords
+  /** ISO country hint — only restricts search when restrictToCountry is true */
+  countryCode?: string
+  restrictToCountry?: boolean
+}
+
+export async function geocodeAddress(
+  address: string,
+  options?: GeocodeOptions,
+): Promise<Coords | null> {
   try {
     const url = "https://nominatim.openstreetmap.org/search"
-    const params = { q: address, format: "json", limit: 1 }
-    const resp = await axios.get(url, { params, headers: { "User-Agent": "KudyaApp/1.0" } })
+    const params: Record<string, string | number> = {
+      q: address,
+      format: "json",
+      limit: 1,
+      addressdetails: 1,
+    }
+    if (options?.countryCode && options.restrictToCountry) {
+      params.countrycodes = options.countryCode.toLowerCase()
+    }
+    if (options?.near) {
+      const delta = 0.35
+      const { lat, lng } = options.near
+      params.viewbox = `${lng - delta},${lat + delta},${lng + delta},${lat - delta}`
+      params.bounded = 0
+    }
+    const resp = await axios.get(url, {
+      params,
+      headers: { "User-Agent": "KudyaApp/1.0" },
+      timeout: 12000,
+    })
     if (resp.data?.[0]) {
       return {
         lat: parseFloat(resp.data[0].lat),
@@ -24,7 +81,7 @@ export async function geocodeAddress(address: string): Promise<Coords | null> {
       }
     }
     return null
-  } catch (e) {
+  } catch {
     return null
   }
 }

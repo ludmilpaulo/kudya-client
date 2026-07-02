@@ -43,8 +43,10 @@ async function writePersistedAuthToken(access: string) {
 }
 
 API.interceptors.request.use(async (config) => {
-  const url = (config.baseURL ?? "") + (config.url ?? "");
-  console.log("[API] Requesting:", url);
+  if (__DEV__) {
+    const url = (config.baseURL ?? "") + (config.url ?? "");
+    console.log("[API] Requesting:", url);
+  }
   config.headers['Accept-Language'] = getDeviceLanguage();
 
   const auth = await readPersistedAuth();

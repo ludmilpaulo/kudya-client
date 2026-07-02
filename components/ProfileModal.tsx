@@ -1,59 +1,99 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, Alert, Image, StyleSheet } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { logoutUser, selectUser } from '../redux/slices/authSlice';
-import { baseAPI } from '../services/types';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import * as Location from 'expo-location';
+import Geocoder from 'react-native-geocoding';
+import { selectUser } from '../redux/slices/authSlice';
+import { useAppSelector } from '../redux/store';
+import { baseAPI, RootStackParamList } from '../services/types';
+import { googleAPi } from '../configs/variable';
 import * as ImagePicker from 'expo-image-picker';
+
+/** Fields this modal reads/writes on the customer profile. */
+export type ProfileFormDetails = {
+  address?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  avatar?: string | null;
+};
+
+/** React Native's FormData accepts this file-part shape at runtime; the
+ * standard DOM `FormData` typings don't model it, so RN augments the append
+ * overloads to also accept an object shaped like this. */
+type RNFormDataFilePart = {
+  uri: string;
+  name: string;
+  type: string;
+};
+
+type ProfileUpdateSuccess = {
+  status?: string;
+};
+
+type ProfileUpdateError = {
+  non_field_errors?: string | string[];
+};
+
+function formatApiError(payload: ProfileUpdateError): string {
+  const errors = payload.non_field_errors;
+  if (Array.isArray(errors)) {
+    return errors.join('\n');
+  }
+  if (typeof errors === 'string') {
+    return errors;
+  }
+  return 'Could not update profile.';
+}
 
 type ProfileModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  userDetails: any;
-  onUpdate: (updatedDetails: any) => void;
+  userDetails: ProfileFormDetails | null;
+  onUpdate: (updatedDetails: ProfileFormDetails) => void;
 };
 
+if (googleAPi) {
+  Geocoder.init(googleAPi);
+}
+
 const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetails, onUpdate }) => {
-  const user = useSelector(selectUser);
-  const dispatch = useDispatch();
+  const user = useAppSelector(selectUser);
 
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [address, setAddress] = useState<string>(userDetails?.address || '');
-  const [firstName, setFirstName] = useState<string>(userDetails?.first_name || '');
-  const [lastName, setLastName] = useState<string>(userDetails?.last_name || '');
-  const [phone, setPhone] = useState<string>(userDetails?.phone || '');
-  const userToken = null;
-  const navigation = useNavigation<any>();
+  const [address, setAddress] = useState<string>(userDetails?.address ?? '');
+  const [firstName, setFirstName] = useState<string>(userDetails?.first_name ?? '');
+  const [lastName, setLastName] = useState<string>(userDetails?.last_name ?? '');
+  const [phone, setPhone] = useState<string>(userDetails?.phone ?? '');
+  const userToken = user?.token ?? null;
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   useEffect(() => {
-    const userLocation = async () => {
-      if (!navigator.geolocation) {
-        Alert.alert("Geolocation is not supported by your browser.");
+    const fillAddressFromCurrentLocation = async () => {
+      if (!googleAPi) {
+        // No Google Maps key configured — skip silently rather than call the
+        // geocoding API with an invalid key.
         return;
       }
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        return;
+      }
 
-          try {
-            const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_API_KEY`
-            );
-            const data = await response.json();
-            const formattedAddress = data.results[0].formatted_address;
-            setAddress(formattedAddress);
-          } catch (error) {
-            console.log(error);
-          }
-        },
-        (error) => {
-          Alert.alert("Permission to access location was denied");
+      try {
+        const location = await Location.getCurrentPositionAsync({});
+        const response = await Geocoder.from(location.coords);
+        const formattedAddress = response.results[0]?.formatted_address;
+        if (formattedAddress) {
+          setAddress(formattedAddress);
         }
-      );
+      } catch (error) {
+        console.log(error);
+      }
     };
 
-    userLocation();
+    fillAddressFromCurrentLocation();
   }, []);
 
   const handleImagePicker = async () => {
@@ -82,16 +122,25 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
   };
 
   const userUpdate = async () => {
+    if (!userToken) {
+      Alert.alert('Sessão expirada', 'Por favor, inicie sessão novamente.');
+      return;
+    }
+
     const formData = new FormData();
 
     if (imageUri) {
       const uriParts = imageUri.split('.');
       const fileType = uriParts[uriParts.length - 1];
-      formData.append('avatar', {
+      const filePart: RNFormDataFilePart = {
         uri: imageUri,
         name: `photo.${fileType}`,
         type: `image/${fileType}`,
-      } as any);
+      };
+      // RN's FormData accepts this file-part object at runtime; the DOM
+      // `FormData` typings only model string/Blob, so a Blob assertion is
+      // the accepted way to bridge the two without using `any`.
+      formData.append('avatar', filePart as unknown as Blob);
     }
 
     formData.append('access_token', userToken);
@@ -111,8 +160,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
       });
 
       if (response.ok) {
-        const data = await response.json();
-        Alert.alert(data.status);
+        const data = (await response.json()) as ProfileUpdateSuccess;
+        Alert.alert(data.status ?? 'Profile updated');
         navigation.navigate('HomeScreen');
         onUpdate({
           ...userDetails,
@@ -124,8 +173,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userDetail
         });
         onClose();
       } else {
-        const resp = await response.json();
-        Alert.alert(resp.non_field_errors);
+        const resp = (await response.json()) as ProfileUpdateError;
+        Alert.alert(formatApiError(resp));
         console.error(resp);
       }
     } catch (error) {

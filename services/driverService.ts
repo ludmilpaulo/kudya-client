@@ -1,6 +1,10 @@
 import { baseAPI } from "./types";
 
-export const fetchLatestOrder = async (accessToken: string) => {
+import type { Order } from "../configs/types";
+
+export type LatestOrderResponse = { orders: Order[] };
+
+export const fetchLatestOrder = async (accessToken: string): Promise<LatestOrderResponse> => {
   const response = await fetch(`${baseAPI}/customer/customer/order/latest/`, {
     method: 'POST',
     headers: {

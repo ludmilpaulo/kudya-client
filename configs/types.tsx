@@ -15,9 +15,16 @@ export interface store {
 
 
 
+export interface DriverSummary {
+  id?: number;
+  name?: string;
+  phone?: string;
+  avatar?: string | null;
+}
+
 export interface Meals {
-  foods: any;
-  food: any;
+  foods: unknown;
+  food: unknown;
   resImage: string;
   resName: string;
   resId: number;
@@ -46,7 +53,7 @@ export interface UserOrder {
     phone: string;
     address: string;
   };
-  driver: any; // You might want to define a proper type for the 'driver' field
+  driver: DriverSummary | null;
   order_details: {
     id: number;
     meal: {
@@ -89,7 +96,7 @@ export interface Order {
   id: number;
   customer: Customer;
   store: store;
-  driver: any; // You might want to define a proper type for the 'driver' field
+  driver: DriverSummary | null;
   order_details: OrderDetail[];
   total: number;
   status: string;

@@ -45,7 +45,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({
   };
 
   // --- Success handler ---
-  const handleSuccess = (data: any) => {
+  const handleSuccess = (data: { reference: string }) => {
     setShowPayment(false);
     Alert.alert(
       language === "pt" ? "Sucesso" : "Success",

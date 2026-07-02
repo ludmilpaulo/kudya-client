@@ -4,8 +4,8 @@ import { Feather } from '@expo/vector-icons';
 import tw from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/navigation';
-import { useGetUnreadNotificationCountQuery } from '../redux/api/notificationApi';
+import { RootStackParamList } from '../../../navigation/navigation';
+import { useGetUnreadNotificationCountQuery } from '../../../redux/api/notificationApi';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 

@@ -45,6 +45,11 @@ function isLocalhostUrl(url: string): boolean {
   return /localhost|127\.0\.0\.1/.test(url);
 }
 
+/** Android emulator alias for the host machine — not reachable from desktop browsers. */
+function isAndroidEmulatorHost(url: string): boolean {
+  return /10\.0\.2\.2/.test(url);
+}
+
 function isStaleProductionHost(url: string): boolean {
   return /pythonanywhere\.com|www\.kudya\.store/i.test(url);
 }
@@ -74,23 +79,31 @@ export function resolveApiBaseUrl(): string {
     ''
   ).trim();
 
+  // Web (including Cursor IDE browser at localhost:8081) cannot use 10.0.2.2.
+  if (Platform.OS === 'web') {
+    if (!configured || isLocalhostUrl(configured) || isAndroidEmulatorHost(configured)) {
+      return `http://localhost:${DEV_API_PORT}`;
+    }
+    if (configured && isStaleProductionHost(configured) && __DEV__) {
+      return `http://localhost:${DEV_API_PORT}`;
+    }
+    return normalizePort(configured);
+  }
+
   if (configured && isStaleProductionHost(configured) && __DEV__) {
     const devHost = getExpoDevHost();
     if (devHost) return `http://${devHost}:${DEV_API_PORT}`;
     const emulator = androidEmulatorHost();
     if (emulator) return emulator;
-    if (Platform.OS === 'web') return `http://localhost:${DEV_API_PORT}`;
     return `http://127.0.0.1:${DEV_API_PORT}`;
   }
 
   if (configured && !isLocalhostUrl(configured)) {
+    if (isAndroidEmulatorHost(configured)) {
+      const emulator = androidEmulatorHost();
+      return emulator ?? `http://127.0.0.1:${DEV_API_PORT}`;
+    }
     return normalizePort(configured);
-  }
-
-  if (Platform.OS === 'web') {
-    return configured
-      ? normalizePort(configured)
-      : `http://localhost:${DEV_API_PORT}`;
   }
 
   const devHost = getExpoDevHost();
@@ -113,5 +126,10 @@ export function resolveApiBaseUrl(): string {
     return PRODUCTION_API;
   }
 
-  return configured ? normalizePort(configured) : PRODUCTION_API;
+  const resolved = configured ? normalizePort(configured) : PRODUCTION_API;
+  if (!__DEV__ && (isLocalhostUrl(resolved) || isAndroidEmulatorHost(resolved))) {
+    return PRODUCTION_API;
+  }
+
+  return resolved;
 }

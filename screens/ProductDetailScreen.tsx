@@ -17,11 +17,11 @@ import Animated, { FadeInUp } from "react-native-reanimated";
 import tw from "twrnc";
 import { FontAwesome, Feather, AntDesign } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../redux/store";
+import { RootState, AppDispatch } from "../redux/store";
 import { baseAPI, Product, Review } from "../services/types";
 import { addItem } from "../redux/slices/basketSlice";
 import { selectUser } from "../redux/slices/authSlice";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../navigation/navigation";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system/legacy";
@@ -31,12 +31,18 @@ import * as Localization from "expo-localization";
 import { useUserRegion } from "../hooks/useUserRegion";
 import { getWishlist, removeFromWishlist, addToWishlist, fetchWishlistCount } from "../services/WishlistService";
 import { setWishlistCount } from "../redux/slices/wishlistSlice";
-import { StackScreenProps, StackNavigationProp } from "@react-navigation/stack";
+import { StackNavigationProp } from "@react-navigation/stack";
 import { fetchRelatedProducts } from "../redux/slices/relatedProductsSlice";
 
 const { width } = Dimensions.get("window");
 
-type Props = StackScreenProps<RootStackParamList, "ProductDetails">;
+// This screen is registered under multiple route names across navigators
+// ("ProductDetails" in AppNavigator, "FoodDetailsPage" in HomeNavigator), so
+// its props are scoped to only what it actually reads (`route.params.productId`)
+// rather than pinned to a single route-name literal via StackScreenProps.
+type Props = {
+  route: { params: RootStackParamList["ProductDetails"] };
+};
 
 // Helper: Find product in all Redux slices (add more slices as needed)
 function findProductInRedux(productId: number, state: RootState): Product | undefined {
@@ -49,7 +55,7 @@ function findProductInRedux(productId: number, state: RootState): Product | unde
 
 const ProductDetailScreen = ({ route }: Props) => {
   const productId = route.params.productId;
-  const dispatch = useDispatch<any>();
+  const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const reduxState = useSelector((state: RootState) => state);
 
@@ -136,15 +142,22 @@ const ProductDetailScreen = ({ route }: Props) => {
         wishlist.some((item) => item.product.id === productId)
       )
     );
-    fetch(`${API_BASE_URL}/product/products/${productId}/reviews/`)
-      .then((r) => r.json())
-      .then((data: Review[]) => {
+    fetch(`${API_BASE_URL}/store/reviews/?product=${productId}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`Reviews request failed (${r.status})`);
+        return r.json() as Promise<Review[]>;
+      })
+      .then((data) => {
         setReviews(data);
         const avg =
           data.length > 0
             ? data.reduce((sum, r) => sum + r.rating, 0) / data.length
             : 0;
         setAverageRating(parseFloat(avg.toFixed(1)));
+      })
+      .catch(() => {
+        setReviews([]);
+        setAverageRating(0);
       });
   }, [productToShow, productId, userId]);
 
@@ -167,7 +180,10 @@ const ProductDetailScreen = ({ route }: Props) => {
 
   const handleShare = async () => {
     try {
-      const universalLink = `${API_BASE_URL}/deeplink/product/${productId}`;
+      const webAppBase = (
+        process.env.EXPO_PUBLIC_WEB_APP_URL ?? "https://kudya.online"
+      ).replace(/\/$/, "");
+      const universalLink = `${webAppBase}/products/${productId}`;
       const imageUrl = productToShow?.images?.[0]?.image || null;
       const shareMessage = `🛍️ ${t("share")}\n\n${productToShow?.name}\n${universalLink}`;
       if (!imageUrl) {

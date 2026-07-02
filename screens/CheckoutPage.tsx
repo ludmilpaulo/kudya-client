@@ -1,34 +1,41 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput } from 'react-native';
-import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
+import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
+import { useAppNavigation } from '../navigation/hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, logoutUser } from '../redux/slices/authSlice';
 import { selectCartItems, clearCart } from '../redux/slices/basketSlice';
 import { fetchstoreDetails, fetchUserDetails, completeOrderRequest } from '../services/checkoutService';
-import ProfileModal from '../components/ProfileModal';
+import ProfileModal, { ProfileFormDetails } from '../components/ProfileModal';
 import AddressInput from '../components/AddressInput';
 import PaymentDetails from '../components/PaymentDetails';
 import { LinearGradient } from 'expo-linear-gradient';
-import { RootStackParamList } from '../services/types'; // Ensure the correct path
+import { RootStackParamList } from '../navigation/navigation';
 import * as Location from 'expo-location';
 import { getDistance } from 'geolib';
 import Toast from 'react-native-toast-message';
 import tw from 'twrnc';
 
-type CheckoutPageRouteProp = RouteProp<RootStackParamList, 'CheckoutPage'>;
+type CheckoutPageRouteProp = RouteProp<RootStackParamList, 'Checkout'>;
+
+type CheckoutStore = {
+  name: string;
+  logo: string;
+  location: string;
+};
 
 const CheckoutPage: React.FC = () => {
-  const [store, setstore] = useState<any | null>(null);
+  const [store, setstore] = useState<CheckoutStore | null>(null);
   const [userAddress, setUserAddress] = useState<string>("");
   const [location, setLocation] = useState<{ latitude: number; longitude: number }>({ latitude: 0, longitude: 0 });
-  const [userDetails, setUserDetails] = useState<any | null>(null);
+  const [userDetails, setUserDetails] = useState<ProfileFormDetails | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>("Entrega");
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [useCurrentLocation, setUseCurrentLocation] = useState<boolean>(true);
   const [deliveryNotes, setDeliveryNotes] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const route = useRoute<CheckoutPageRouteProp>(); // Use the typed useRoute hook
   const { storeId } = route.params;
   const dispatch = useDispatch();
@@ -117,6 +124,11 @@ const CheckoutPage: React.FC = () => {
 
 
   const completeOrder = async () => {
+    if (!user?.token) {
+      Alert.alert("Login Required", "You need to log in to complete your purchase.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     const formattedCartItems = allCartItems.map((item) => ({
@@ -219,7 +231,7 @@ const CheckoutPage: React.FC = () => {
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
           userDetails={userDetails}
-          onUpdate={(updatedDetails: any) => setUserDetails(updatedDetails)}
+          onUpdate={(updatedDetails: ProfileFormDetails) => setUserDetails(updatedDetails)}
         />
       </ScrollView>
     </LinearGradient>

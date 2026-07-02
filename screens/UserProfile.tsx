@@ -14,7 +14,8 @@ import Screen from "../components/Screen";
 import { LinearGradient } from "expo-linear-gradient";
 import { googleAPi } from "../configs/variable";
 import * as ImagePicker from "expo-image-picker";
-import { useNavigation } from "@react-navigation/native";
+import { useAppNavigation } from "../navigation/hooks";
+import { appendFormDataFile } from "../utils/formDataFile";
 import { selectUser } from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import Geocoder from "react-native-geocoding";
@@ -41,7 +42,7 @@ const UserProfile = () => {
   const [first_name, setFirst_name] = useState("");
   const [last_name, setLast_name] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const [imageInfo, setImageInfo] = useState<ImageInfoType | undefined>();
 
   const userLocation = async () => {
@@ -130,11 +131,11 @@ const UserProfile = () => {
       const blob = await response.blob();
 
       let formData = new FormData();
-      formData.append("avatar" as any, {
+      appendFormDataFile(formData, "avatar", {
         uri,
         type: blob.type,
         name: "image.jpg",
-      } as any);
+      });
       formData.append("access_token", "");
       formData.append("address", address);
       formData.append("first_name", first_name);

@@ -63,7 +63,15 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         },
       });
 
-      const formatted: Message[] = response.data.map((msg: any) => ({
+interface ChatApiMessage {
+  id: number;
+  message?: string;
+  audio?: string;
+  sender: { id: number; username: string };
+  timestamp: string;
+}
+
+      const formatted: Message[] = response.data.map((msg: ChatApiMessage) => ({
         id: msg.id.toString(),
         text: msg.message || undefined,
         audioUri: msg.audio || undefined,

@@ -5,13 +5,26 @@ import tw from 'twrnc';
 import type { RideCategory, RidePriceEstimate } from '../../services/rides/types';
 import { formatCurrency } from '../../utils/currency';
 
-const ICONS: Record<string, React.ReactNode> = {
-  car: <Feather name="navigation" size={22} color="#fff" />,
-  'car-side': <FontAwesome5 name="car-side" size={20} color="#fff" />,
-  gem: <Feather name="award" size={22} color="#fff" />,
-  users: <Feather name="users" size={22} color="#fff" />,
-  bike: <MaterialCommunityIcons name="bike" size={24} color="#fff" />,
+const ICON_NAMES: Record<string, { set: 'feather' | 'fa5' | 'mci'; name: string }> = {
+  car: { set: 'feather', name: 'navigation' },
+  'car-side': { set: 'fa5', name: 'car-side' },
+  gem: { set: 'feather', name: 'award' },
+  users: { set: 'feather', name: 'users' },
+  bike: { set: 'mci', name: 'bike' },
 };
+
+function CategoryIcon({ iconKey, selected, isDark }: { iconKey: string; selected: boolean; isDark: boolean }) {
+  const color = selected ? '#FFFFFF' : isDark ? '#94A3B8' : '#475569';
+  const spec = ICON_NAMES[iconKey] ?? ICON_NAMES.car;
+
+  if (spec.set === 'fa5') {
+    return <FontAwesome5 name={spec.name as 'car-side'} size={20} color={color} />;
+  }
+  if (spec.set === 'mci') {
+    return <MaterialCommunityIcons name={spec.name as 'bike'} size={22} color={color} />;
+  }
+  return <Feather name={spec.name as 'navigation'} size={20} color={color} />;
+}
 
 type Props = {
   categories: RideCategory[];
@@ -33,11 +46,11 @@ export default function RideCategorySelector({
   t,
 }: Props) {
   return (
-    <View style={tw`mt-4`}>
-      <Text style={tw`text-sm font-semibold mb-3 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+    <View>
+      <Text style={tw`text-sm font-semibold mb-3 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
         {t('ride.choose_ride', 'Choose your ride')}
       </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`pb-1`}>
         {categories.map((cat) => {
           const selected = cat.id === selectedId;
           const fromPrice =
@@ -49,7 +62,7 @@ export default function RideCategorySelector({
               key={cat.id}
               activeOpacity={0.85}
               onPress={() => onSelect(cat)}
-              style={tw`mr-3 w-36 rounded-2xl p-3 border ${
+              style={tw`mr-3 w-[132px] rounded-2xl p-3.5 border ${
                 selected
                   ? 'bg-blue-600 border-blue-500'
                   : isDark
@@ -58,25 +71,27 @@ export default function RideCategorySelector({
               }`}
             >
               <View
-                style={tw`w-10 h-10 rounded-xl items-center justify-center mb-2 ${
-                  selected ? 'bg-blue-500' : isDark ? 'bg-slate-700' : 'bg-slate-100'
+                style={tw`w-11 h-11 rounded-xl items-center justify-center mb-2.5 ${
+                  selected ? 'bg-blue-500/80' : isDark ? 'bg-slate-700' : 'bg-slate-100'
                 }`}
               >
-                {ICONS[cat.icon] ?? ICONS.car}
+                <CategoryIcon iconKey={cat.icon} selected={selected} isDark={isDark} />
               </View>
-              <Text style={tw`font-bold ${selected ? 'text-white' : isDark ? 'text-white' : 'text-slate-900'}`}>
+              <Text style={tw`font-bold text-sm ${selected ? 'text-white' : isDark ? 'text-white' : 'text-slate-900'}`}>
                 {cat.name}
               </Text>
               <Text
-                style={tw`text-xs mt-0.5 ${selected ? 'text-blue-100' : isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                style={tw`text-xs mt-0.5 leading-4 ${selected ? 'text-blue-100' : isDark ? 'text-slate-400' : 'text-slate-500'}`}
                 numberOfLines={2}
               >
                 {cat.description}
               </Text>
-              <Text style={tw`text-xs mt-2 ${selected ? 'text-blue-100' : isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              <Text style={tw`text-xs mt-2 ${selected ? 'text-blue-200' : isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {cat.capacity} {t('ride.seats', 'seats')}
               </Text>
-              <Text style={tw`text-sm font-semibold mt-1 ${selected ? 'text-white' : isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+              <Text
+                style={tw`text-sm font-bold mt-1.5 ${selected ? 'text-white' : isDark ? 'text-emerald-400' : 'text-emerald-600'}`}
+              >
                 {t('ride.from_price', 'From')} {fromPrice}
               </Text>
             </TouchableOpacity>
@@ -86,7 +101,7 @@ export default function RideCategorySelector({
       {estimateLoading && (
         <View style={tw`flex-row items-center mt-3`}>
           <ActivityIndicator size="small" color="#2563EB" />
-          <Text style={tw`ml-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+          <Text style={tw`ml-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             {t('ride.calculating_fare', 'Calculating fare...')}
           </Text>
         </View>

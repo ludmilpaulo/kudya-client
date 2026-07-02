@@ -4,10 +4,12 @@ import * as Location from 'expo-location';
 import tw from 'twrnc'; // ✅ Replaced tailwind-react-native-classnames
 import Banner from '../components/Banner';
 import { fetchAboutUsData } from '../services/information';
-import { baseAPI, store } from '../services/types';
+import { AboutUsData, baseAPI, store } from '../services/types';
+
+type ApiStoreRow = Omit<store, 'location'> & { location: string };
 
 const JoinScreen = () => {
-  const [headerData, setHeaderData] = useState<any | null>(null);
+  const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
   const [stores, setstores] = useState<store[]>([]);
   const [userLocation, setUserLocation] = useState({ latitude: -25.747868, longitude: 28.229271 }); // Default fallback location
   const [loading, setLoading] = useState(true);
@@ -38,9 +40,9 @@ const JoinScreen = () => {
         const storeResponse = await fetch(`${baseAPI}/customer/customer/stores/`)
           .then(response => response.json());
   
-        const approvedstores = storeResponse.stores.map((store: any) => ({
-          ...store,
-          location: parseLocation(store.location),
+        const approvedstores = (storeResponse.stores as ApiStoreRow[]).map((storeRow) => ({
+          ...storeRow,
+          location: parseLocation(storeRow.location),
         }));
   
         setHeaderData(header);

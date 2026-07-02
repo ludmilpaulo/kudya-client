@@ -9,7 +9,7 @@ export interface PaymentInitParams {
 
 export interface PaymentInitResult {
   payment_url: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export async function fetchPaymentUrl(params: PaymentInitParams): Promise<PaymentInitResult> {

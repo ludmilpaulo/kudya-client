@@ -1,4 +1,4 @@
-import { configureStore, combineReducers, type Middleware } from '@reduxjs/toolkit'
+import { configureStore, combineReducers } from '@reduxjs/toolkit'
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { persistReducer, persistStore } from 'redux-persist'
@@ -51,9 +51,9 @@ export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }).concat(
-      ridesApi.middleware as Middleware,
-      doctorsApi.middleware as Middleware,
-      notificationApi.middleware as Middleware,
+      ridesApi.middleware,
+      doctorsApi.middleware,
+      notificationApi.middleware,
     ),
 })
 

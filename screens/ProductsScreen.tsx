@@ -21,7 +21,7 @@ import * as Localization from "expo-localization";
 import { fetchProductsByStore } from "../redux/slices/productsSlice";
 import { RootState, AppDispatch } from "../redux/store";
 import { LinearGradient } from "expo-linear-gradient";
-import { Product } from "../services/types";
+import { Product, baseAPI } from "../services/types";
 import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
 import { RootStackParamList } from "../navigation/navigation";
 import { addItem, removeItem, selectCartItems } from "../redux/slices/basketSlice";
@@ -32,7 +32,7 @@ const cardWidth = (width - 48) / 2;
 
 export default function ProductsScreen() {
   const route = useRoute<RouteProp<RootStackParamList, "Products">>();
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const { storeId, storeName, vertical } = route.params;
   const dispatch = useDispatch<AppDispatch>();
   const { t } = useTranslation();
@@ -90,16 +90,19 @@ export default function ProductsScreen() {
     [products]
   );
 
+  const resolveProductImage = (imagePath: string | undefined): string => {
+    if (!imagePath) return "";
+    if (imagePath.startsWith("http")) return imagePath;
+    if (imagePath.startsWith("/media/")) return `${baseAPI}${imagePath}`;
+    return imagePath;
+  };
+
   // Carousel banners for sales (top 5)
   const promoBanners = onSaleProducts.slice(0, 5).map((product) => ({
     id: product.id,
     name: product.name,
     subtitle: product.discount_percentage > 0 ? `-${product.discount_percentage}%` : "SALE",
-    image:
-      product.images?.[0]?.image?.startsWith("/media/")
-        ? `${process.env.NEXT_PUBLIC_BASE_API}${product.images[0].image}`
-        : product.images?.[0]?.image ||
-          "https://via.placeholder.com/400x150",
+    image: resolveProductImage(product.images?.[0]?.image),
   }));
 
   // Language and currency
@@ -384,9 +387,7 @@ export default function ProductsScreen() {
                             source={
                               product.images?.[0]?.image
                                 ? {
-                                    uri: product.images[0].image.startsWith("/media/")
-                                      ? `${process.env.NEXT_PUBLIC_BASE_API}${product.images[0].image}`
-                                      : product.images[0].image
+                                    uri: resolveProductImage(product.images[0].image),
                                   }
                                 : undefined
                             }

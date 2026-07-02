@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useAppNavigation } from '../navigation/hooks';
 import { store } from '../services/types';
 
 type Location = {
@@ -14,7 +14,7 @@ type storeProps = {
 };
 
 const storeCard: React.FC<storeProps> = ({ store, location }) => {
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
 
   if (!store) {
     return null;

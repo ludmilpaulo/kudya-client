@@ -10,7 +10,7 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useAppNavigation } from "../navigation/hooks";
 import { baseAPI } from "../services/types";
 import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
 import { useUserRegion } from "../hooks/useUserRegion";
@@ -34,7 +34,7 @@ type Property = {
 };
 
 export default function PropertiesScreen() {
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const { t } = useTranslation();
   const { region: regionCode } = useUserRegion();
 

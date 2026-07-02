@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, Image, Text, ActivityIndicator } from "react-native";
 import tw from "twrnc";
-import { baseAPI } from "../services/types";
+import { baseAPI, store as StoreType } from "../services/types";
 
 // Define the category type
 interface Category {
@@ -34,8 +34,8 @@ const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
       const uniqueCategories: { [key: string]: Category } = {};
   
       // Iterate through the stores and add their primary category names to the uniqueCategories object
-      data?.stores.forEach((store:any) => {
-        const storeCategory = store?.category;
+      data?.stores.forEach((storeItem: StoreType) => {
+        const storeCategory = storeItem?.category;
   
         if (
           storeCategory &&

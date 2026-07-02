@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image, TextInput, ActivityIndicator } from "react-native";
 import tw from "twrnc";
-import { useDispatch, useSelector } from "react-redux";
 import { fetchServices } from "../redux/slices/servicesSlice";
-import { useNavigation } from "@react-navigation/native";
-import { RootState } from "../redux/store";
+import { useAppDispatch, RootState } from "../redux/store";
+import { useAppNavigation } from "../navigation/hooks";
+import { useSelector } from "react-redux";
 import { useTranslation } from "../hooks/useTranslation";
 
 export default function ServicesScreen() {
   const { t } = useTranslation();
-  const dispatch = useDispatch();
-  const navigation = useNavigation<any>();
+  const dispatch = useAppDispatch();
+  const navigation = useAppNavigation();
   const { data, loading, error } = useSelector((s: RootState) => s.services);
 
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    dispatch(fetchServices(undefined) as any);
+    dispatch(fetchServices(undefined));
   }, [dispatch]);
 
   const filtered = search.trim()

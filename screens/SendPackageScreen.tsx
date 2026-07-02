@@ -55,7 +55,7 @@ export default function SendPackageScreen() {
       Alert.alert(t('success'), t('packageRequested', 'Courier request sent'));
       navigation.goBack();
     } catch {
-      Alert.alert(t('error'), t('bookingFailed'));
+      Alert.alert(t('error'), t('packageBookingFailed'));
     } finally {
       setLoading(false);
     }

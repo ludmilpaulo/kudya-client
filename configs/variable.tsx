@@ -5,7 +5,9 @@ import { Platform } from "react-native";
 import { ForgotPasswordRequest } from "./types";
 import { baseAPI } from "../services/types";
 
-export const googleAPi = "AIzaSyBJxPi5xtT7F3oxZzlSmIuaXsIswasjkKw";
+export const googleAPi = (
+  process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
+).trim();
 
 /** @deprecated Prefer baseAPI from services/types or authService */
 export const apiUrl = baseAPI;

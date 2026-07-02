@@ -1,6 +1,6 @@
-import API from '../../services/api';
-import { baseAPI } from '../../services/types';
-import type { MarketplaceVertical } from '../../utils/normalizeStores';
+import API from '../../../services/api';
+import { baseAPI } from '../../../services/types';
+import type { MarketplaceVertical } from '../../../utils/normalizeStores';
 
 export type CheckoutOrderPayload = {
   access_token: string;

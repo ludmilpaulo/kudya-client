@@ -71,11 +71,13 @@ const HomeScreen: React.FC = () => {
         const response = await fetch(`${baseAPI}/customer/customer/stores/`);
         const json = await response.json();
 
+type ApiStoreRow = Omit<store, "location"> & { location: string };
+
         const approved = (json.stores || []).filter(
-          (r: any) => typeof r.location === "string" && r.location.includes(",") && r.is_approved
+          (r: ApiStoreRow) => typeof r.location === "string" && r.location.includes(",") && r.is_approved
         );
 
-        const parsedstores: store[] = approved.map((r: any) => {
+        const parsedstores: store[] = approved.map((r: ApiStoreRow) => {
           const [latitude, longitude] = r.location.split(",").map(Number);
           return {
             ...r,

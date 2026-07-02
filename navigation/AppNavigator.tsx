@@ -2,7 +2,7 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import BottomTabNavigator from "./TabNavigator";
 import ProductDetailScreen from "../screens/ProductDetailScreen";
-import CheckoutScreen from "../screens/CheckoutScreen";
+import CheckoutPage from "../screens/CheckoutPage";
 // Add other modal/detail screens here as needed
 
 
@@ -50,7 +50,7 @@ export default function AppNavigator() {
       <Stack.Screen name="SignupScreen" component={SignupScreen} />
     
     
-      <Stack.Screen name="Checkout" component={CheckoutScreen} />
+      <Stack.Screen name="Checkout" component={CheckoutPage} />
       <Stack.Screen name="Categories" component={CategoriesScreen} />
       <Stack.Screen name="Services" component={ServicesScreen} />
       <Stack.Screen name="ServiceDetail" component={ServiceDetailScreen} />

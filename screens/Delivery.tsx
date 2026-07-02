@@ -19,9 +19,11 @@ import ChatComponent from "../components/ChatComponent";
 import { baseAPI } from "../services/types";
 import { getDistance } from "geolib";
 import * as Location from "expo-location";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { DriverSummary, Order, OrderDetail } from "../configs/types";
+import type { LatestOrderResponse } from "../services/driverService";
+import { useAppNavigation } from "../navigation/hooks";
+import { useFocusEffect } from "@react-navigation/native";
 import { fetchLatestOrder, fetchDriverLocation } from "../services/driverService";
-const SafeMapView = MapView as any;
 
 interface LocationType {
   latitude: number;
@@ -31,21 +33,21 @@ interface LocationType {
 const calculateETA = (userLocation: LocationType, driverLocation: LocationType): number | null => {
   if (!userLocation || !driverLocation) return null;
   const distanceInMeters = getDistance(userLocation, driverLocation);
-  const averageSpeedInMetersPerSecond = 15; // approx 54 km/h
+  const averageSpeedInMetersPerSecond = 15;
   const etaInSeconds = distanceInMeters / averageSpeedInMetersPerSecond;
   return Math.ceil(etaInSeconds / 60);
 };
 
 const Delivery = () => {
   const ref = useRef<MapView | null>(null);
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const user = useSelector(selectUser);
   const [driverLocation, setDriverLocation] = useState<LocationType | null>(null);
-  const [data, setData] = useState<any>([]);
-  const [driverData, setDriverData] = useState<any>(null);
-  const [storeData, setstoreData] = useState<any>([]);
-  const [orderData, setOrderData] = useState<any>();
-  const [order_id, setOrder_id] = useState<any>();
+  const [data, setData] = useState<LatestOrderResponse | null>(null);
+  const [driverData, setDriverData] = useState<DriverSummary | null>(null);
+  const [storeData, setstoreData] = useState<Order["store"] | null>(null);
+  const [orderData, setOrderData] = useState<OrderDetail[] | undefined>();
+  const [order_id, setOrder_id] = useState<number | undefined>();
   const [userCoordinates, setUserCoordinates] = useState<LocationType | null>(null);
   const [driverLocationFetchDone, setDriverLocationFetchDone] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -231,7 +233,7 @@ const Delivery = () => {
         <ActivityIndicator size="large" color="#004AAD" />
       ) : center ? (
         <View style={[tw`relative`, { height: 350 }]}>
-          <SafeMapView ref={ref} region={center} style={tw`h-full w-full z-10`}>
+          <MapView ref={ref} region={center} style={tw`h-full w-full z-10`}>
             {driverLocation && (
               <Marker
                 coordinate={driverLocation}
@@ -245,7 +247,7 @@ const Delivery = () => {
                 />
               </Marker>
             )}
-          </SafeMapView>
+          </MapView>
         </View>
       ) : null}
 

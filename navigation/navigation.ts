@@ -4,7 +4,7 @@ export type RootStackParamList = {
   Stores: { storeTypeId?: number; vertical?: 'food' | 'groceries' };
   Products: { storeId: number; storeName: string; vertical?: 'food' | 'groceries' };
   Cart: undefined;
-  Checkout: undefined;
+  Checkout: { storeId: number };
   ProductDetails: { productId: number };
   Categories: undefined;
   ProductsByCategory: { categoryId: number; categoryName: string };
@@ -32,4 +32,15 @@ export type RootStackParamList = {
   Grocery: undefined;
   Food: undefined;
   Notifications: undefined;
+  UserProfile: undefined;
+  SuccessScreen: undefined;
+  CheckoutPage: { storeId?: number } | undefined;
+  Delivery: undefined;
+  CartPage: undefined;
+  storeMenu: { storeId?: number } | undefined;
+  FoodDetailsPage: { foodId?: number } | undefined;
+  OrderHistory: undefined;
+  Profile: undefined;
+  Activity: undefined;
+  Support: undefined;
 };

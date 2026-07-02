@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { useAppNavigation, useAppRoute } from "../navigation/hooks";
 import { baseAPI } from "../services/types";
 import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
 import { useUserRegion } from "../hooks/useUserRegion";
@@ -33,8 +33,8 @@ type Property = {
 };
 
 export default function PropertyDetailScreen() {
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useAppRoute<"PropertyDetail">();
+  const navigation = useAppNavigation();
   const { t } = useTranslation();
   const { region: regionCode } = useUserRegion();
   const [property, setProperty] = useState<Property | null>(null);

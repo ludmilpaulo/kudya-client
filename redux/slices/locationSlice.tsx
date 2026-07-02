@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-//import { RootState } from '../store';
 
 export interface LocationState {
   latitude: number | null;
@@ -27,6 +26,7 @@ const locationSlice = createSlice({
 
 export const { setUserLocation } = locationSlice.actions;
 
-export const selectUserLocation = (state: { location: any }) => state.location;
+export const selectUserLocation = (state: { location: LocationState }) =>
+  state.location;
 
 export default locationSlice.reducer;

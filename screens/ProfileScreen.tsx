@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import tw from "twrnc";
-import { useNavigation } from "@react-navigation/native";
+import { useAppNavigation } from "../navigation/hooks";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "../hooks/useTranslation";
 import { FontAwesome5, Feather } from "@expo/vector-icons";
@@ -10,7 +10,7 @@ import { logoutUser, selectAuth, selectUser } from "../redux/slices/authSlice";
 
 const ProfileScreen: React.FC = () => {
   const { t } = useTranslation();
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const { token } = useSelector(selectAuth);

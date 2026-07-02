@@ -10,7 +10,8 @@ import {
 import Screen from "../components/Screen";
 import { useDispatch } from "react-redux";
 import { loginUser } from "../redux/slices/authSlice";
-import { useNavigation } from "@react-navigation/native";
+import { AppDispatch } from "../redux/store";
+import { useAppNavigation } from "../navigation/hooks";
 import { apiUrl } from "../configs/variable";
 import Icon from "react-native-vector-icons/Ionicons";
 import tw from "twrnc";
@@ -20,8 +21,8 @@ export default function LoginScreenUser() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch<any>();
-  const navigation = useNavigation<any>();
+  const dispatch = useDispatch<AppDispatch>();
+  const navigation = useAppNavigation();
 
   const LoginUser = async () => {
     try {

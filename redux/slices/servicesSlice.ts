@@ -21,8 +21,9 @@ export const fetchServices = createAsyncThunk<
   try {
     const list = await getServices(params);
     return list;
-  } catch (e: any) {
-    return rejectWithValue(e?.message || "Failed to load services");
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Failed to load services";
+    return rejectWithValue(message);
   }
 });
 

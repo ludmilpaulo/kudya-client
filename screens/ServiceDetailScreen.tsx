@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, Image, TouchableOpacity, TextInput, Alert, ActivityIndicator } from "react-native";
 import tw from "twrnc";
-import { useRoute } from "@react-navigation/native";
+import { useAppNavigation } from "../navigation/hooks";
+import type { ServiceDetail } from "../services/servicesApi";
+import { useAppRoute } from "../navigation/hooks";
 import { useSelector } from "react-redux";
 import { getServiceById, getServiceAvailability, createBooking } from "../services/servicesApi";
 import { RootState } from "../redux/store";
@@ -9,11 +11,11 @@ import { useTranslation } from "../hooks/useTranslation";
 
 export default function ServiceDetailScreen() {
   const { t } = useTranslation();
-  const route = useRoute<any>();
+  const route = useAppRoute<"ServiceDetail">();
   const { serviceId } = route.params;
   const { user, token } = useSelector((s: RootState) => s.auth);
 
-  const [service, setService] = useState<any>(null);
+  const [service, setService] = useState<ServiceDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,9 +38,9 @@ export default function ServiceDetailScreen() {
         if (!mounted) return;
         const daySlots = avail.available_slots[selectedDate] || [];
         setSlots(daySlots);
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!mounted) return;
-        setError(e?.message || "Failed to load service");
+        setError(e instanceof Error ? e.message : "Failed to load service");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -66,8 +68,8 @@ export default function ServiceDetailScreen() {
         payment_method: "card",
       });
       Alert.alert("Booking created!");
-    } catch (e: any) {
-      Alert.alert(e?.message || "Failed to create booking");
+    } catch (e: unknown) {
+      Alert.alert(e instanceof Error ? e.message : "Failed to create booking");
     } finally {
       setBookingLoading(false);
     }

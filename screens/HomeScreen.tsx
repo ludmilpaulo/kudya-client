@@ -20,7 +20,7 @@ import tw from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
-import { t } from '../configs/i18n'; // <--- Use your new t function!
+import { useTranslation } from '../hooks/useTranslation';
 import { analytics } from '../utils/mixpanel';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -39,6 +39,7 @@ const getFallbackIcon = (name?: string) => {
 };
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const storeTypes = useSelector((state: RootState) => state.storeTypes.data);
   const loading = useSelector((state: RootState) => state.storeTypes.loading);
   const error = useSelector((state: RootState) => state.storeTypes.error);
@@ -130,7 +131,7 @@ export default function HomeScreen() {
                         </View>
                       )}
                       <Text style={tw`text-base font-semibold text-center text-gray-800`}>
-                        {type?.name ?? 'Store'}
+                        {type?.name ?? t('storeFallback', 'Store')}
                       </Text>
                     </View>
                   </BlurView>

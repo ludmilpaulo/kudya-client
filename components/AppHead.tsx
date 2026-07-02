@@ -1,10 +1,18 @@
 import React from "react";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import type { ComponentProps } from "react";
 import colors from "../configs/colors";
 import { useNavigation } from "@react-navigation/native";
 
-function AppHead({ title, icon = null }: any) {
+type IoniconName = ComponentProps<typeof Ionicons>["name"];
+
+type AppHeadProps = {
+  title: string;
+  icon?: IoniconName | null;
+};
+
+function AppHead({ title, icon = null }: AppHeadProps) {
   const navigation = useNavigation();
 
   return (

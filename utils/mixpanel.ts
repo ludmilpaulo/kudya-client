@@ -42,7 +42,7 @@ function ensureInit() {
 
 // Analytics class for tracking events (no-op when native Mixpanel unavailable, e.g. Expo Go)
 class Analytics {
-  track(eventName: string, properties?: Record<string, any>) {
+  track(eventName: string, properties?: Record<string, unknown>) {
     ensureInit();
     const mp = getMixpanel();
     if (!mp) return;
@@ -60,7 +60,7 @@ class Analytics {
     } catch (_) {}
   }
 
-  setUserProperties(properties: Record<string, any>) {
+  setUserProperties(properties: Record<string, unknown>) {
     ensureInit();
     const mp = getMixpanel();
     if (!mp) return;
@@ -70,7 +70,7 @@ class Analytics {
   }
 
   // Track user signup
-  trackSignup(userId: string, properties?: Record<string, any>) {
+  trackSignup(userId: string, properties?: Record<string, unknown>) {
     this.identify(userId);
     this.track('User Signup', properties);
     this.setUserProperties({
@@ -83,7 +83,7 @@ class Analytics {
   }
 
   // Track user login
-  trackLogin(userId: string, properties?: Record<string, any>) {
+  trackLogin(userId: string, properties?: Record<string, unknown>) {
     this.identify(userId);
     this.track('User Login', {
       user_type: 'customer',
@@ -102,7 +102,7 @@ class Analytics {
   }
 
   // Track screen views
-  trackScreenView(screenName: string, properties?: Record<string, any>) {
+  trackScreenView(screenName: string, properties?: Record<string, unknown>) {
     this.track('Screen View', {
       screen: screenName,
       ...properties,
@@ -155,7 +155,7 @@ class Analytics {
   }
 
   // Track order placed
-  trackOrderPlaced(orderId: string, orderValue: number, items: any[]) {
+  trackOrderPlaced(orderId: string, orderValue: number, items: unknown[]) {
     this.track('Order Placed', {
       order_id: orderId,
       order_value: orderValue,
@@ -237,14 +237,14 @@ class Analytics {
   }
 
   // Track error
-  trackError(error: string, errorDetails?: any) {
+  trackError(error: string, errorDetails?: unknown) {
     this.track('Error Occurred', {
       error_message: error,
       error_details: errorDetails,
     });
   }
 
-  setSuperProperties(properties: Record<string, any>) {
+  setSuperProperties(properties: Record<string, unknown>) {
     ensureInit();
     const mp = getMixpanel();
     if (!mp) return;

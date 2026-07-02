@@ -7,39 +7,42 @@ const storeMap = ({
   coordinates,
   title,
 }: {
-  coordinates: any;
-  title: any;
+  coordinates: { latitude: number; longitude: number };
+  title: string;
 }) => {
   return (
     <View style={[tw`bg-blue-300 relative`, { height: 250 }]}>
       <MapView
-        region={{
-          ...coordinates,
-          latitudeDelta: 0.005,
-          longitudeDelta: 0.005,
+        style={styles.map}
+        initialRegion={{
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
         }}
-        style={tw`h-full z-10`}
       >
-        {coordinates && (
-          <Marker
-            coordinate={{
-              ...coordinates,
-            }}
-            identifier="shop"
-            anchor={{ x: 0.5, y: 0.5 }}
-            title={title}
-          >
-            <Image
-              source={require("../assets/shop.png")}
-              style={{ height: 27, width: 27 }}
-            />
-          </Marker>
-        )}
+        <Marker coordinate={coordinates} title={title} />
       </MapView>
+      <Image
+        source={require("../assets/marker.png")}
+        style={styles.marker}
+      />
     </View>
   );
 };
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+  marker: {
+    position: "absolute",
+    width: 30,
+    height: 30,
+    bottom: 10,
+    right: 10,
+  },
+});
 
 export default storeMap;

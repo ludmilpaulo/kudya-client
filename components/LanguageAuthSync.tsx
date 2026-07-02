@@ -5,12 +5,14 @@ import { LANGUAGE_STORAGE_KEY, supportedLocales, type SupportedLocale } from '..
 import { useLanguage } from '../contexts/LanguageContext';
 import { selectUser } from '../redux/slices/authSlice';
 
-/** Applies account preferred language when the user has not chosen one manually. */
+/** Applies account preferred language after the user has completed the welcome language step. */
 export default function LanguageAuthSync() {
   const user = useSelector(selectUser);
-  const { setLanguage } = useLanguage();
+  const { setLanguage, hasChosenLanguage } = useLanguage();
 
   useEffect(() => {
+    if (!hasChosenLanguage) return;
+
     let cancelled = false;
     (async () => {
       const stored = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
@@ -24,7 +26,7 @@ export default function LanguageAuthSync() {
     return () => {
       cancelled = true;
     };
-  }, [setLanguage, user?.preferred_language]);
+  }, [setLanguage, user?.preferred_language, hasChosenLanguage]);
 
   return null;
 }

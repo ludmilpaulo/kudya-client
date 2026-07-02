@@ -7,7 +7,7 @@ import {
   Text,
   Platform
 } from "react-native";
-import { WebView } from "react-native-webview";
+import { WebView, type WebViewNavigation } from "react-native-webview";
 import tw from "twrnc";
 import { fetchPaymentUrl, PaymentInitParams } from "../services/paymentService";
 
@@ -15,7 +15,7 @@ type PaymentModalProps = {
   visible: boolean;
   onClose: () => void;
   params: PaymentInitParams;
-  onSuccess: (data: any) => void;
+  onSuccess: (data: { reference: string }) => void;
 };
 
 const PaymentModal: React.FC<PaymentModalProps> = ({
@@ -27,7 +27,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [loading, setLoading] = useState(true);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const webViewRef = useRef<any>(null);
+  const webViewRef = useRef<WebView>(null);
 
   useEffect(() => {
     if (visible) {
@@ -47,7 +47,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   }, [visible, params]);
 
   // Detect payment success via URL
-  const handleWebViewNavigationStateChange = (navState: any) => {
+  const handleWebViewNavigationStateChange = (navState: WebViewNavigation) => {
     const successKeywords = ["success", "paid", "completed"];
     if (successKeywords.some((k) => navState.url.toLowerCase().includes(k))) {
       onSuccess({ reference: navState.url });

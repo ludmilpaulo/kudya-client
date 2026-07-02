@@ -1,9 +1,13 @@
-// App.tsx — entry only. In Expo Go we show a "use dev build" screen to avoid native module crashes.
+// App.tsx — entry only. Supports Expo Go (QR) and development builds.
 
-if (typeof global !== 'undefined' && (global as any).ErrorUtils) {
-  const ErrorUtils = (global as any).ErrorUtils;
+import { initSentry, captureException } from './utils/sentry';
+initSentry();
+
+if (typeof global !== 'undefined' && (global as { ErrorUtils?: { getGlobalHandler?: () => (error: Error, isFatal?: boolean) => void; setGlobalHandler?: (handler: (error: Error, isFatal?: boolean) => void) => void } }).ErrorUtils) {
+  const ErrorUtils = (global as { ErrorUtils: { getGlobalHandler?: () => (error: Error, isFatal?: boolean) => void; setGlobalHandler?: (handler: (error: Error, isFatal?: boolean) => void) => void } }).ErrorUtils;
   const originalHandler = ErrorUtils.getGlobalHandler?.();
   ErrorUtils.setGlobalHandler?.((error: Error, isFatal?: boolean) => {
+    captureException(error);
     console.error('[Kudya] Uncaught error', isFatal ? '(fatal)' : '', error?.message, error?.stack);
     originalHandler?.(error, isFatal);
   });
@@ -16,47 +20,40 @@ import { analytics } from './utils/mixpanel';
 
 const REANIMATED_DELAY_MS = 800;
 
-// Expo Go: executionEnvironment === 'storeClient' or appOwnership === 'expo'. Don't load native modules there.
 const isExpoGo =
   Constants.executionEnvironment === 'storeClient' ||
   Constants.appOwnership === 'expo';
 
-const AppContent = React.lazy(async () => {
-  const m = await import('./AppContent').catch(() => null);
-  if (!m?.default) return { default: ExpoGoFallback };
-  return m;
-});
+const AppContent = React.lazy(() => import('./AppContent'));
 
 class NativeModuleErrorBoundary extends Component<
   { children: React.ReactNode },
-  { hasError: boolean }
+  { hasError: boolean; message: string }
 > {
-  state = { hasError: false };
-  static getDerivedStateFromError = () => ({ hasError: true });
-  componentDidCatch() {}
-  render() {
-    if (this.state.hasError) return <ExpoGoFallback />;
-    return (this as React.Component<{ children: React.ReactNode }, { hasError: boolean }>).props.children;
+  state = { hasError: false, message: '' };
+  static getDerivedStateFromError = (error: Error) => ({
+    hasError: true,
+    message: error?.message ?? 'Unknown error',
+  });
+  componentDidCatch(error: Error) {
+    console.error('[Kudya] AppContent error', error);
   }
-}
-
-function ExpoGoFallback() {
-  return (
-    <View style={[styles.splash, { padding: 24 }]}>
-      <Text style={{ fontSize: 18, fontWeight: '600', color: '#111', textAlign: 'center', marginBottom: 12 }}>
-        Use a development build
-      </Text>
-      <Text style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>
-        This app uses native modules that aren't supported in Expo Go. Run in a terminal:
-      </Text>
-      <Text style={{ fontSize: 13, fontFamily: 'monospace', color: '#2563eb', marginTop: 16, textAlign: 'center' }}>
-        npx expo run:ios
-      </Text>
-      <Text style={{ fontSize: 12, color: '#888', marginTop: 24, textAlign: 'center' }}>
-        (or run:ios for simulator, run:android for Android)
-      </Text>
-    </View>
-  );
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={[styles.splash, { padding: 24 }]}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: '#111', textAlign: 'center', marginBottom: 12 }}>
+            Something went wrong
+          </Text>
+          {__DEV__ && (
+            <Text style={{ fontSize: 13, color: '#666', textAlign: 'center' }}>{this.state.message}</Text>
+          )}
+        </View>
+      );
+    }
+    return (this as React.Component<{ children: React.ReactNode }, { hasError: boolean; message: string }>).props
+      .children;
+  }
 }
 
 export default function App() {
@@ -66,8 +63,6 @@ export default function App() {
     let cancelled = false;
     const delay = isExpoGo ? 100 : REANIMATED_DELAY_MS;
     const t = setTimeout(() => {
-      if (cancelled) return;
-      // Do not require gesture-handler/reanimated here — it can throw HostFunction in Expo Go or broken dev builds.
       if (!cancelled) setNativeReady(true);
     }, delay);
     return () => {
@@ -94,17 +89,17 @@ export default function App() {
     );
   }
 
-  if (isExpoGo) return <ExpoGoFallback />;
-
   return (
     <NativeModuleErrorBoundary>
-    <Suspense fallback={
-      <View style={styles.splash}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    }>
-      <AppContent />
-    </Suspense>
+      <Suspense
+        fallback={
+          <View style={styles.splash}>
+            <ActivityIndicator size="large" color="#007AFF" />
+          </View>
+        }
+      >
+        <AppContent />
+      </Suspense>
     </NativeModuleErrorBoundary>
   );
 }

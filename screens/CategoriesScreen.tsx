@@ -16,6 +16,7 @@ import { useAppDispatch, useAppSelector } from "../redux/store";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { FontAwesome5 } from "@expo/vector-icons";
+import type { ComponentProps } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { t } from "../configs/i18n";
@@ -32,7 +33,7 @@ type Category = {
 
 type CategoriesScreenNavigationProp = StackNavigationProp<RootStackParamList, "Categories">;
 
-const iconFallback = "th-large";
+const iconFallback: ComponentProps<typeof FontAwesome5>["name"] = "th-large";
 
 const gradientColors: ReadonlyArray<[string, string]> = [
   ["#2563eb", "#60a5fa"],
@@ -176,7 +177,7 @@ const CategoriesScreen: React.FC = () => {
                   end={{ x: 1, y: 0 }}
                 >
                   <FontAwesome5
-                    name={(cat.icon as any) || iconFallback}
+                    name={(cat.icon as ComponentProps<typeof FontAwesome5>["name"]) || iconFallback}
                     size={25}
                     color="#fff"
                   />

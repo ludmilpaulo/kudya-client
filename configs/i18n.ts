@@ -7,6 +7,7 @@ export type { SupportedLocale, TranslationKey };
 export { default as translations } from './translations';
 
 export const LANGUAGE_STORAGE_KEY = '@kudya/language';
+export const LANGUAGE_CHOSEN_KEY = '@kudya/language_chosen';
 
 const FALLBACK_LOCALE: SupportedLocale = 'en';
 

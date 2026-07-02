@@ -2,15 +2,15 @@ import React, { useEffect, useState } from "react";
 import { View, Text, SafeAreaView, Image } from "react-native";
 import * as Animatable from "react-native-animatable";
 import * as Progress from "react-native-progress";
-import { useNavigation } from "@react-navigation/native";
-import {LinearGradient} from "expo-linear-gradient";
-import tw from "twrnc"; // ✅ Using `twrnc` instead of tailwind-react-native-classnames
+import { LinearGradient } from "expo-linear-gradient";
+import tw from "twrnc";
+import { useAppNavigation } from "../navigation/hooks";
 
-const AnimatableImage = Animatable.Image as any;
-const AnimatableText = Animatable.Text as any;
+const AnimatableImage = Animatable.Image;
+const AnimatableText = Animatable.Text;
 
 const SuccessScreen = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useAppNavigation();
   const [orderSent, setOrderSent] = useState(false);
 
   useEffect(() => {
@@ -18,11 +18,11 @@ const SuccessScreen = () => {
       setOrderSent(true);
       setTimeout(() => {
         navigation.navigate("Delivery");
-      }, 3000); // Redirect after 3 seconds of showing the "order sent" message
-    }, 10000); // Show "order sent" message after 10 seconds
+      }, 3000);
+    }, 10000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [navigation]);
 
   return (
     <LinearGradient
@@ -48,16 +48,6 @@ const SuccessScreen = () => {
         </AnimatableText>
 
         <Progress.Circle size={60} indeterminate={true} color="#ffffff" />
-
-        {orderSent && (
-          <AnimatableText
-            animation="fadeIn"
-            duration={500}
-            style={tw`mt-5 text-lg font-bold text-center text-white`}
-          >
-            Redirecionando...
-          </AnimatableText>
-        )}
       </SafeAreaView>
     </LinearGradient>
   );

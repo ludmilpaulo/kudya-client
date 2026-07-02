@@ -9,6 +9,7 @@ import {
   completeGoogleAuth,
   completeFacebookAuth,
   signInWithTikTok,
+  signInWithInstagram,
   signInWithApple,
   isSocialLoginConfigured,
   getSocialLoginSetupHint,
@@ -39,6 +40,12 @@ const PROVIDERS: {
     labelKey: 'continueFacebook',
     fallback: 'Continue with Facebook',
     icon: <FontAwesome5 name="facebook" size={18} color="#1877F2" />,
+  },
+  {
+    id: 'instagram',
+    labelKey: 'continueInstagram',
+    fallback: 'Continue with Instagram',
+    icon: <FontAwesome5 name="instagram" size={18} color="#E4405F" />,
   },
   {
     id: 'tiktok',
@@ -140,6 +147,11 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
       }
       if (provider === 'tiktok') {
         onSuccess(await signInWithTikTok());
+        setLoadingProvider(null);
+        return;
+      }
+      if (provider === 'instagram') {
+        onSuccess(await signInWithInstagram());
         setLoadingProvider(null);
       }
     } catch (e: unknown) {
