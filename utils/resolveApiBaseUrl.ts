@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 /** Deploy target once super-app API is live in production. */
-export const PRODUCTION_API = 'https://kudya-api.onrender.com';
+export const PRODUCTION_API = 'https://www.kudya.store';
 
 const DEV_API_PORT = process.env.EXPO_PUBLIC_API_PORT || '8000';
 
@@ -51,7 +51,7 @@ function isAndroidEmulatorHost(url: string): boolean {
 }
 
 function isStaleProductionHost(url: string): boolean {
-  return /pythonanywhere\.com|www\.kudya\.store/i.test(url);
+  return /ludmil\.pythonanywhere\.com|kudya\.pythonanywhere\.com/i.test(url);
 }
 
 function normalizePort(url: string): string {
