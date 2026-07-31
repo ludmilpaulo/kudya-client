@@ -101,14 +101,14 @@ export default function LoginScreenUser() {
 
         <Text
           style={tw`mt-4 text-center text-blue-500`}
-          onPress={() => navigation.navigate("ForgotPasswordScreen")}
+          onPress={() => navigation.navigate("ForgotPassword")}
         >
           Esqueceu a senha?
         </Text>
 
         <Text
           style={tw`mt-4 text-center text-gray-700`}
-          onPress={() => navigation.navigate("Signup")}
+          onPress={() => navigation.navigate("SignupScreen")}
         >
           Não é um membro?{" "}
           <Text style={tw`font-bold text-blue-500`}>Inscrever-se</Text>

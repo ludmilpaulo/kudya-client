@@ -100,8 +100,13 @@ export function resolveApiBaseUrl(): string {
 
   if (configured && !isLocalhostUrl(configured)) {
     if (isAndroidEmulatorHost(configured)) {
+      // 10.0.2.2 only works in the Android emulator. On a physical device,
+      // remap to the Expo Metro LAN host (same Wi‑Fi as the PC).
       const emulator = androidEmulatorHost();
-      return emulator ?? `http://127.0.0.1:${DEV_API_PORT}`;
+      if (emulator) return emulator;
+      const lanHost = getExpoDevHost();
+      if (lanHost) return `http://${lanHost}:${DEV_API_PORT}`;
+      return `http://127.0.0.1:${DEV_API_PORT}`;
     }
     return normalizePort(configured);
   }

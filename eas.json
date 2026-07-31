@@ -13,6 +13,10 @@
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
+      "env": {
+        "EXPO_PUBLIC_BASE_API": "https://www.kudya.store",
+        "EXPO_PUBLIC_USE_PRODUCTION_API": "true"
+      },
       "prebuildCommand": "npx expo prebuild --platform android --clean"
     },
     "local-apk": {
@@ -25,7 +29,8 @@
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_BASE_API": "https://kudya-api.onrender.com",
+        "EXPO_PUBLIC_BASE_API": "https://www.kudya.store",
+        "EXPO_PUBLIC_USE_PRODUCTION_API": "true",
         "EXPO_PUBLIC_FACEBOOK_APP_ID": "557245288279218",
         "EAS_BUILD_NO_EXPO_GO_WARNING": "true"
       },

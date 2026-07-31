@@ -20,7 +20,7 @@ import NotificationBellButton from "../features/notifications/components/Notific
 import { LinearGradient } from "expo-linear-gradient";
 import tw from "twrnc";
 
-import StoreCard from "../components/StoreCard";
+import StoreCard from "../components/RestaurantCard";
 import { useAppSelector } from "../redux/store";
 import { selectCartItems } from "../redux/slices/basketSlice";
 import { store, Category, baseAPI } from "../services/types";

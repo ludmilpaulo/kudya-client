@@ -23,8 +23,6 @@ import { addItem } from "../redux/slices/basketSlice";
 import { selectUser } from "../redux/slices/authSlice";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../navigation/navigation";
-import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system/legacy";
 import { t } from "../configs/i18n";
 import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
 import * as Localization from "expo-localization";
@@ -36,13 +34,17 @@ import { fetchRelatedProducts } from "../redux/slices/relatedProductsSlice";
 
 const { width } = Dimensions.get("window");
 
-// This screen is registered under multiple route names across navigators
-// ("ProductDetails" in AppNavigator, "FoodDetailsPage" in HomeNavigator), so
-// its props are scoped to only what it actually reads (`route.params.productId`)
-// rather than pinned to a single route-name literal via StackScreenProps.
-type Props = {
-  route: { params: RootStackParamList["ProductDetails"] };
-};
+type ProductDetailRoute = RouteProp<RootStackParamList, "ProductDetails" | "FoodDetailsPage">;
+
+function resolveProductId(params: ProductDetailRoute["params"] | RootStackParamList["FoodDetailsPage"]): number {
+  if (params && "productId" in params && typeof params.productId === "number") {
+    return params.productId;
+  }
+  if (params && "foodId" in params && typeof params.foodId === "number") {
+    return params.foodId;
+  }
+  return 0;
+}
 
 // Helper: Find product in all Redux slices (add more slices as needed)
 function findProductInRedux(productId: number, state: RootState): Product | undefined {
@@ -53,8 +55,9 @@ function findProductInRedux(productId: number, state: RootState): Product | unde
   );
 }
 
-const ProductDetailScreen = ({ route }: Props) => {
-  const productId = route.params.productId;
+const ProductDetailScreen = () => {
+  const route = useRoute<ProductDetailRoute>();
+  const productId = resolveProductId(route.params);
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const reduxState = useSelector((state: RootState) => state);
@@ -193,18 +196,24 @@ const ProductDetailScreen = ({ route }: Props) => {
       if (Platform.OS === "android") {
         await Share.share({ message: shareMessage, title: productToShow?.name });
       } else {
-        const localUri = `${FileSystem.cacheDirectory}product.jpg`;
-        const download = await FileSystem.downloadAsync(imageUrl, localUri);
-        const isSharingAvailable = await Sharing.isAvailableAsync();
-        if (!isSharingAvailable) {
-          Alert.alert(t("error"), t("shareFailed"));
-          return;
+        try {
+          const FileSystem = await import("expo-file-system/legacy");
+          const Sharing = await import("expo-sharing");
+          const localUri = `${FileSystem.cacheDirectory}product.jpg`;
+          const download = await FileSystem.downloadAsync(imageUrl, localUri);
+          const isSharingAvailable = await Sharing.isAvailableAsync();
+          if (!isSharingAvailable) {
+            await Share.share({ message: shareMessage, title: productToShow?.name });
+            return;
+          }
+          await Sharing.shareAsync(download.uri, {
+            dialogTitle: `${t("share")} ${productToShow?.name}`,
+            mimeType: "image/jpeg",
+            UTI: "public.jpeg",
+          });
+        } catch {
+          await Share.share({ message: shareMessage, title: productToShow?.name });
         }
-        await Sharing.shareAsync(download.uri, {
-          dialogTitle: `${t("share")} ${productToShow?.name}`,
-          mimeType: "image/jpeg",
-          UTI: "public.jpeg",
-        });
       }
     } catch (error) {
       Alert.alert(t("error"), t("shareFailed"));
@@ -329,7 +338,7 @@ const ProductDetailScreen = ({ route }: Props) => {
               </>
             ) : (
               <Text style={tw`text-xl text-green-700`}>
-                {formatCurrency(Number(productToShow.price), regionCode, language)}
+                {formatCurrency(Number(productToShow.price), currencyCode, language)}
               </Text>
             )}
           </View>

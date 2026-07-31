@@ -40,6 +40,7 @@ export type RootStackParamList = {
   storeMenu: { storeId?: number } | undefined;
   FoodDetailsPage: { foodId?: number } | undefined;
   OrderHistory: undefined;
+  HomeScreen: undefined;
   Profile: undefined;
   Activity: undefined;
   Support: undefined;

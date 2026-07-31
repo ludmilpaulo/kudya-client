@@ -264,9 +264,12 @@ const Delivery = () => {
           </TouchableOpacity>
           <ChatComponent
             user="customer"
-            userData={user}
+            userData={{
+              user_id: String(user?.user_id ?? ""),
+              username: user?.username ?? "",
+            }}
             accessToken={""}
-            orderId={order_id}
+            orderId={order_id ?? 0}
             onClose={() => setChatModalVisible(false)}
             isChatModalVisible={isChatModalVisible}
           />

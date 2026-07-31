@@ -1,4 +1,3 @@
-import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 import { refreshAccessToken } from './authService';
 import { AuthSessionPayload } from './authTypes';
@@ -13,13 +12,27 @@ export type StoredBiometricSession = {
   is_driver: boolean;
 };
 
+async function loadLocalAuthentication() {
+  try {
+    return await import('expo-local-authentication');
+  } catch {
+    return null;
+  }
+}
+
 export async function isBiometricHardwareAvailable(): Promise<boolean> {
+  const LocalAuthentication = await loadLocalAuthentication();
+  if (!LocalAuthentication) return false;
+
   const hasHardware = await LocalAuthentication.hasHardwareAsync();
   const isEnrolled = await LocalAuthentication.isEnrolledAsync();
   return hasHardware && isEnrolled;
 }
 
 export async function getBiometricLabel(): Promise<string> {
+  const LocalAuthentication = await loadLocalAuthentication();
+  if (!LocalAuthentication) return 'Biometrics';
+
   const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
   if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
     return 'Face ID';
@@ -62,8 +75,9 @@ export function sessionFromAuthPayload(payload: AuthSessionPayload): StoredBiome
 }
 
 export async function loginWithBiometrics(): Promise<AuthSessionPayload> {
+  const LocalAuthentication = await loadLocalAuthentication();
   const available = await isBiometricHardwareAvailable();
-  if (!available) {
+  if (!LocalAuthentication || !available) {
     throw new Error('Biometric authentication is not available on this device.');
   }
 
@@ -103,8 +117,9 @@ export async function offerBiometricEnrollment(
   session: StoredBiometricSession,
   promptTitle: string,
 ): Promise<boolean> {
+  const LocalAuthentication = await loadLocalAuthentication();
   const available = await isBiometricHardwareAvailable();
-  if (!available) return false;
+  if (!LocalAuthentication || !available) return false;
 
   const alreadySaved = await hasBiometricSession();
   if (alreadySaved) return false;

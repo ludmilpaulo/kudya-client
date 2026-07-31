@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import tw from 'twrnc';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useAppNavigation } from '../navigation/hooks';
 
 import { RootState } from '../redux/store';
 import { useTranslation } from '../hooks/useTranslation';

@@ -226,7 +226,7 @@ const UserProfile = () => {
 
               <TouchableOpacity
                 style={tw`flex-row items-center mt-6 p-3 bg-blue-700 rounded-lg`}
-                onPress={() => navigation.navigate("Order_History")}
+                onPress={() => navigation.navigate("OrderHistory")}
               >
                 <Icons.MaterialIcons name="history" size={24} color="white" />
                 <Text style={tw`text-white text-lg font-bold ml-2`}>Histórico de pedidos</Text>

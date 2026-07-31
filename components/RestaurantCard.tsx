@@ -56,10 +56,7 @@ const storeCard: React.FC<storeProps> = ({ store, location }) => {
     if (!isOpen()) {
       Alert.alert(`O storee ${store.name} está fechado de momento, tente mais tarde`);
     } else {
-      navigation.navigate('storeMenu' as never, {
-        store_id: store.id,
-        store_logo: store.logo,
-      } as never);
+      navigation.navigate('storeMenu', { storeId: store.id });
     }
   };
 

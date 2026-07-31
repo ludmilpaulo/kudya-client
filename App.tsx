@@ -4,7 +4,7 @@ import { initSentry, captureException } from './utils/sentry';
 initSentry();
 
 if (typeof global !== 'undefined' && (global as { ErrorUtils?: { getGlobalHandler?: () => (error: Error, isFatal?: boolean) => void; setGlobalHandler?: (handler: (error: Error, isFatal?: boolean) => void) => void } }).ErrorUtils) {
-  const ErrorUtils = (global as { ErrorUtils: { getGlobalHandler?: () => (error: Error, isFatal?: boolean) => void; setGlobalHandler?: (handler: (error: Error, isFatal?: boolean) => void) => void } }).ErrorUtils;
+  const ErrorUtils = (global as unknown as { ErrorUtils: { getGlobalHandler?: () => (error: Error, isFatal?: boolean) => void; setGlobalHandler?: (handler: (error: Error, isFatal?: boolean) => void) => void } }).ErrorUtils;
   const originalHandler = ErrorUtils.getGlobalHandler?.();
   ErrorUtils.setGlobalHandler?.((error: Error, isFatal?: boolean) => {
     captureException(error);
