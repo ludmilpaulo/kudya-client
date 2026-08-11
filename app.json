@@ -3,7 +3,7 @@
     "name": "kudya",
     "slug": "kudya",
     "scheme": "kudya",
-    "version": "1.0.9",
+    "version": "1.0.12",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +16,7 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "9",
+      "buildNumber": "12",
       "supportsTablet": true,
       "infoPlist": {
         "CFBundleDisplayName": "kudya",
@@ -41,7 +41,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 36
+      "versionCode": 39
     },
     "web": {
       "favicon": "./assets/azul.png"

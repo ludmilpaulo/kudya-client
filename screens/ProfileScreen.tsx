@@ -67,6 +67,34 @@ const ProfileScreen: React.FC = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={tw`flex-row items-center p-4 bg-gray-100 rounded-xl mb-3`}
+          onPress={() => navigation.navigate("PropertyApplications")}
+        >
+          <Feather name="home" size={20} color="#2563eb" />
+          <Text style={tw`ml-4 text-base font-semibold`}>{t("propertyApplications")}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={tw`flex-row items-center p-4 bg-gray-100 rounded-xl mb-3`}
+          onPress={() => navigation.navigate("PropertyActiveRentals")}
+        >
+          <Feather name="key" size={20} color="#2563eb" />
+          <Text style={tw`ml-4 text-base font-semibold`}>{t("activeRental")}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={tw`flex-row items-center p-4 bg-gray-100 rounded-xl mb-3`}
+          onPress={() => navigation.navigate("StayBookings")}
+        >
+          <Feather name="calendar" size={20} color="#2563eb" />
+          <Text style={tw`ml-4 text-base font-semibold`}>{t("upcomingStays")}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={tw`flex-row items-center p-4 bg-gray-100 rounded-xl mb-3`}
+          onPress={() => navigation.navigate("PropertyDocumentsVault")}
+        >
+          <Feather name="folder" size={20} color="#2563eb" />
+          <Text style={tw`ml-4 text-base font-semibold`}>{t("documents")}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={tw`flex-row items-center p-4 bg-gray-100 rounded-xl mb-3`}
         >
           <Feather name="settings" size={20} color="#2563eb" />
           <Text style={tw`ml-4 text-base font-semibold`}>{t("Settings") || "Settings"}</Text>

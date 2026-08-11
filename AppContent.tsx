@@ -11,6 +11,7 @@ import AppNavigator from './navigation/AppNavigator';
 import { LanguageProvider } from './contexts/LanguageContext';
 import LanguageAuthSync from './components/LanguageAuthSync';
 import AppLanguageGate from './components/AppLanguageGate';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const SafeErrorBoundary = ErrorBoundary as React.ComponentType<{ children: React.ReactNode }>;
 const SafeGestureHandlerRootView = GestureHandlerRootView as React.ComponentType<{
@@ -28,20 +29,22 @@ const SafeNavigationContainer = NavigationContainer as React.ComponentType<{
 export default function AppContent() {
   return (
     <SafeGestureHandlerRootView style={{ flex: 1 }}>
-      <SafeProvider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <LanguageProvider>
-            <LanguageAuthSync />
-            <AppLanguageGate>
-              <SafeErrorBoundary>
-                <SafeNavigationContainer>
-                  <AppNavigator />
-                </SafeNavigationContainer>
-              </SafeErrorBoundary>
-            </AppLanguageGate>
-          </LanguageProvider>
-        </PersistGate>
-      </SafeProvider>
+      <SafeAreaProvider>
+        <SafeProvider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <LanguageProvider>
+              <LanguageAuthSync />
+              <AppLanguageGate>
+                <SafeErrorBoundary>
+                  <SafeNavigationContainer>
+                    <AppNavigator />
+                  </SafeNavigationContainer>
+                </SafeErrorBoundary>
+              </AppLanguageGate>
+            </LanguageProvider>
+          </PersistGate>
+        </SafeProvider>
+      </SafeAreaProvider>
     </SafeGestureHandlerRootView>
   );
 }

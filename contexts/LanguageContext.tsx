@@ -9,12 +9,13 @@ import {
   setLanguage as applyLanguage,
   supportedLocales,
 } from '../configs/i18n';
+import { store } from '../redux/store';
+import { languageApi } from '../redux/api/languageApi';
 
 async function readHasChosenLanguage(): Promise<boolean> {
   const chosenFlag = await AsyncStorage.getItem(LANGUAGE_CHOSEN_KEY);
   if (chosenFlag === 'true') return true;
 
-  // Existing installs that saved a language before the welcome gate existed.
   const stored = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
   return !!stored && supportedLocales.includes(stored as SupportedLocale);
 }
@@ -45,18 +46,39 @@ export function LanguageProvider({ children }: { children?: React.ReactNode }) {
         ]);
 
         let next: SupportedLocale;
+        let resolvedChosen = chosen;
         if (chosen && stored && supportedLocales.includes(stored as SupportedLocale)) {
           next = stored as SupportedLocale;
-        } else if (chosen) {
-          next = detectDeviceLanguage();
         } else {
           next = detectDeviceLanguage();
+        }
+
+        const token = store.getState().auth.token;
+        if (token || resolvedChosen) {
+          try {
+            const pref = await store
+              .dispatch(languageApi.endpoints.getLanguagePreference.initiate())
+              .unwrap();
+            if (
+              pref.preferredLanguage &&
+              supportedLocales.includes(pref.preferredLanguage as SupportedLocale)
+            ) {
+              next = pref.preferredLanguage as SupportedLocale;
+              if (token && !resolvedChosen) {
+                await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, next);
+                await AsyncStorage.setItem(LANGUAGE_CHOSEN_KEY, 'true');
+                resolvedChosen = true;
+              }
+            }
+          } catch {
+            // Use local/device language when backend is unavailable.
+          }
         }
 
         if (!cancelled) {
           applyLanguage(next);
           setLanguageCode(next);
-          setHasChosenLanguage(chosen);
+          setHasChosenLanguage(resolvedChosen);
         }
       } finally {
         if (!cancelled) setIsReady(true);
@@ -74,6 +96,16 @@ export function LanguageProvider({ children }: { children?: React.ReactNode }) {
     if (markChosen) {
       await AsyncStorage.setItem(LANGUAGE_CHOSEN_KEY, 'true');
       setHasChosenLanguage(true);
+    }
+    try {
+      await store.dispatch(
+        languageApi.endpoints.updateLanguagePreference.initiate({
+          preferredLanguage: code,
+          systemLanguage: detectDeviceLanguage(),
+        }),
+      );
+    } catch {
+      // Preference is still persisted locally.
     }
   }, []);
 

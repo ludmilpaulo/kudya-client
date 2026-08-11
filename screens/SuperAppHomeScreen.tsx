@@ -16,7 +16,7 @@ import tw from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/navigation';
-import { fetchHomeModules, PlatformModule, resolveMobileModuleScreen, FALLBACK_HOME_MODULES } from '../services/platformApi';
+import { fetchHomeModules, PlatformModule, resolveMobileModuleScreen } from '../services/platformApi';
 import { useTranslation } from '../hooks/useTranslation';
 import NotificationBellButton from '../features/notifications/components/NotificationBellButton';
 
@@ -36,28 +36,29 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 };
 
 function ModuleIcon({ name }: { name: string }) {
+  if (name.startsWith('http://') || name.startsWith('https://')) {
+    return <Feather name="grid" size={26} color="#fff" />;
+  }
   return <View>{ICON_MAP[name] ?? <Feather name="grid" size={26} color="#fff" />}</View>;
 }
 
 export default function SuperAppHomeScreen() {
   const navigation = useNavigation<Nav>();
   const { t, languageCode } = useTranslation();
-  const [modules, setModules] = useState<PlatformModule[]>(() =>
-    FALLBACK_HOME_MODULES.filter((m) => m.isActive && m.availableOnMobile !== false),
-  );
+  const [modules, setModules] = useState<PlatformModule[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [usingFallback, setUsingFallback] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [search, setSearch] = useState('');
 
   const load = useCallback(async () => {
     try {
       const data = await fetchHomeModules(languageCode, 'mobile');
       setModules(data);
-      setUsingFallback(false);
+      setLoadError(false);
     } catch {
-      setModules(FALLBACK_HOME_MODULES.filter((m) => m.isActive && m.availableOnMobile !== false));
-      setUsingFallback(true);
+      setModules([]);
+      setLoadError(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -126,9 +127,9 @@ export default function SuperAppHomeScreen() {
             }
             showsVerticalScrollIndicator={false}
           >
-            {usingFallback ? (
+            {loadError ? (
               <Text style={tw`text-blue-100 text-xs text-center mb-3 opacity-80`}>
-                {t('offlineModulesHint', 'Showing default services. Pull to refresh when online.')}
+                {t('modulesLoadFailed', 'Could not load services. Pull to refresh.')}
               </Text>
             ) : null}
             <View style={tw`flex-row flex-wrap justify-between`}>

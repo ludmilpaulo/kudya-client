@@ -44,7 +44,8 @@ export default function ProductsScreen() {
     }
   }, [storeId, vertical, dispatch]);
 
-  const products = useSelector((state: RootState) => state.products.data) as Product[];
+  const productsRaw = useSelector((state: RootState) => state.products.data);
+  const products = (Array.isArray(productsRaw) ? productsRaw : []) as Product[];
   const loading = useSelector((state: RootState) => state.products.loading);
   const error = useSelector((state: RootState) => state.products.error);
 

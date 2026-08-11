@@ -18,6 +18,7 @@ import servicesReducer from './slices/servicesSlice';
 import { ridesApi } from './api/ridesApi';
 import { doctorsApi } from './api/doctorsApi';
 import { notificationApi } from './api/notificationApi';
+import { languageApi } from './api/languageApi';
 
 // Combine reducer
 const rootReducer = combineReducers({
@@ -35,6 +36,7 @@ const rootReducer = combineReducers({
   [ridesApi.reducerPath]: ridesApi.reducer,
   [doctorsApi.reducerPath]: doctorsApi.reducer,
   [notificationApi.reducerPath]: notificationApi.reducer,
+  [languageApi.reducerPath]: languageApi.reducer,
 });
 
 // ✅ Persist config
@@ -54,6 +56,7 @@ export const store = configureStore({
       ridesApi.middleware,
       doctorsApi.middleware,
       notificationApi.middleware,
+      languageApi.middleware,
     ),
 })
 

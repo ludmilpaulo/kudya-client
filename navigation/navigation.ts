@@ -15,6 +15,13 @@ export type RootStackParamList = {
   ServiceDetail: { serviceId: number };
   Properties: undefined;
   PropertyDetail: { propertyId: number };
+  PropertyApplicationWizard: { propertyId: number };
+  PropertyApplications: undefined;
+  PropertyApplicationDetail: { applicationId: number };
+  PropertyActiveRentals: undefined;
+  PropertyDocumentsVault: undefined;
+  StayBookings: undefined;
+  StayBookingConfirm: { bookingId: number };
   Doctors: undefined;
   DoctorDetail: {
     doctorId: number;

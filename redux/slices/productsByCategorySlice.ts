@@ -37,8 +37,19 @@ export const fetchProductsByCategory = createAsyncThunk(
     if (onSale) params.push(`on_sale=true`);
     const paramString = params.length ? `?${params.join("&")}` : "";
     const res = await fetch(`${baseAPI}/store/product/category/${categoryId}/products/${paramString}`);
-    if (!res.ok) throw new Error("Failed to fetch products");
-    return await res.json();
+    const data: unknown = await res.json();
+    if (!res.ok) {
+      const detail =
+        data && typeof data === "object" && typeof (data as { detail?: unknown }).detail === "string"
+          ? (data as { detail: string }).detail
+          : "Failed to fetch products";
+      throw new Error(detail);
+    }
+    if (Array.isArray(data)) return data as Product[];
+    if (data && typeof data === "object" && Array.isArray((data as { results?: unknown }).results)) {
+      return (data as { results: Product[] }).results;
+    }
+    return [] as Product[];
   }
 );
 
@@ -53,11 +64,12 @@ const productsByCategorySlice = createSlice({
         state.error = null;
       })
       .addCase(fetchProductsByCategory.fulfilled, (state, action) => {
-        state.data = action.payload;
+        state.data = Array.isArray(action.payload) ? action.payload : [];
         state.loading = false;
       })
       .addCase(fetchProductsByCategory.rejected, (state, action) => {
         state.error = action.error.message || "Error";
+        state.data = [];
         state.loading = false;
       });
   },

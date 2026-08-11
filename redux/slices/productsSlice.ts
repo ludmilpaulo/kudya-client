@@ -3,6 +3,7 @@ import { Product } from '../../services/types'
 import API from '../../services/api'
 import { fetchProductsByStoreV1 } from '../../features/marketplace/api/checkoutApi'
 import type { MarketplaceVertical } from '../../utils/normalizeStores'
+import { unwrapListPayload } from '../../utils/unwrapListPayload'
 
 interface ProductsState {
   data: Product[]
@@ -31,7 +32,7 @@ export const fetchProductsByStore = createAsyncThunk(
       return fetchProductsByStoreV1(storeId, vertical)
     }
     const response = await API.get(`/store/products/by_store/?store=${storeId}`)
-    return response.data
+    return unwrapListPayload<Product>(response.data)
   },
 )
 
@@ -47,11 +48,12 @@ const productsSlice = createSlice({
         state.vertical = action.meta.arg.vertical ?? null
       })
       .addCase(fetchProductsByStore.fulfilled, (state, action) => {
-        state.data = action.payload
+        state.data = Array.isArray(action.payload) ? action.payload : []
         state.loading = false
       })
       .addCase(fetchProductsByStore.rejected, (state, action) => {
         state.loading = false
+        state.data = []
         state.error = action.error.message || 'Failed to fetch products'
       })
   },

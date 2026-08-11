@@ -15,6 +15,13 @@ import ServiceDetailScreen from "../screens/ServiceDetailScreen";
 import ServicesScreen from "../screens/ServicesScreen";
 import PropertiesScreen from "../screens/PropertiesScreen";
 import PropertyDetailScreen from "../screens/PropertyDetailScreen";
+import PropertyApplicationWizardScreen from "../screens/PropertyApplicationWizardScreen";
+import PropertyApplicationsScreen from "../screens/PropertyApplicationsScreen";
+import PropertyApplicationDetailScreen from "../screens/PropertyApplicationDetailScreen";
+import PropertyActiveRentalsScreen from "../screens/PropertyActiveRentalsScreen";
+import PropertyDocumentsVaultScreen from "../screens/PropertyDocumentsVaultScreen";
+import StayBookingsScreen from "../screens/StayBookingsScreen";
+import StayBookingConfirmScreen from "../screens/StayBookingConfirmScreen";
 import DoctorsScreen from "../screens/DoctorsScreen";
 import DoctorDetailScreen from "../screens/DoctorDetailScreen";
 import BookAppointmentScreen from "../screens/BookAppointmentScreen";
@@ -56,6 +63,13 @@ export default function AppNavigator() {
       <Stack.Screen name="ServiceDetail" component={ServiceDetailScreen} />
       <Stack.Screen name="Properties" component={PropertiesScreen} />
       <Stack.Screen name="PropertyDetail" component={PropertyDetailScreen} />
+      <Stack.Screen name="PropertyApplicationWizard" component={PropertyApplicationWizardScreen} />
+      <Stack.Screen name="PropertyApplications" component={PropertyApplicationsScreen} />
+      <Stack.Screen name="PropertyApplicationDetail" component={PropertyApplicationDetailScreen} />
+      <Stack.Screen name="PropertyActiveRentals" component={PropertyActiveRentalsScreen} />
+      <Stack.Screen name="PropertyDocumentsVault" component={PropertyDocumentsVaultScreen} />
+      <Stack.Screen name="StayBookings" component={StayBookingsScreen} />
+      <Stack.Screen name="StayBookingConfirm" component={StayBookingConfirmScreen} />
       <Stack.Screen name="Doctors" component={DoctorsScreen} />
       <Stack.Screen name="DoctorDetail" component={DoctorDetailScreen} />
       <Stack.Screen name="BookAppointment" component={BookAppointmentScreen} />

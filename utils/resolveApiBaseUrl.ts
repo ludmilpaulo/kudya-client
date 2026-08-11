@@ -50,6 +50,21 @@ function isAndroidEmulatorHost(url: string): boolean {
   return /10\.0\.2\.2/.test(url);
 }
 
+/** RFC1918 / link-local hosts — often unreachable from a desktop browser tab. */
+function isPrivateLanHost(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return (
+      /^10\.\d+\.\d+\.\d+$/.test(host) ||
+      /^192\.168\.\d+\.\d+$/.test(host) ||
+      /^172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+$/.test(host) ||
+      host === '0.0.0.0'
+    );
+  } catch {
+    return false;
+  }
+}
+
 function isStaleProductionHost(url: string): boolean {
   return /ludmil\.pythonanywhere\.com|kudya\.pythonanywhere\.com/i.test(url);
 }
@@ -79,13 +94,18 @@ export function resolveApiBaseUrl(): string {
     ''
   ).trim();
 
-  // Web (including Cursor IDE browser at localhost:8081) cannot use 10.0.2.2.
+  // Web (Cursor IDE / desktop browser) must use loopback — not 10.0.2.2 or a LAN IP
+  // that only works from a phone/emulator on the same Wi‑Fi.
+  // Prefer 127.0.0.1 over "localhost" so Windows/IPv6 localhost hangs do not stall fetches.
   if (Platform.OS === 'web') {
-    if (!configured || isLocalhostUrl(configured) || isAndroidEmulatorHost(configured)) {
-      return `http://localhost:${DEV_API_PORT}`;
-    }
-    if (configured && isStaleProductionHost(configured) && __DEV__) {
-      return `http://localhost:${DEV_API_PORT}`;
+    if (
+      !configured ||
+      isLocalhostUrl(configured) ||
+      isAndroidEmulatorHost(configured) ||
+      (isPrivateLanHost(configured) && __DEV__) ||
+      (isStaleProductionHost(configured) && __DEV__)
+    ) {
+      return `http://127.0.0.1:${DEV_API_PORT}`;
     }
     return normalizePort(configured);
   }
