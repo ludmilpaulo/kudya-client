@@ -18,11 +18,21 @@ interface WalletData {
   currency: string;
 }
 
+type WalletTx = {
+  id: number;
+  amount: string;
+  currency: string;
+  description?: string;
+  transaction_type?: string;
+  created_at: string;
+};
+
 export default function WalletScreen() {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const token = useSelector((s: RootState) => s.auth.token);
   const [wallet, setWallet] = useState<WalletData | null>(null);
+  const [history, setHistory] = useState<WalletTx[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,9 +40,15 @@ export default function WalletScreen() {
       setLoading(false);
       return;
     }
-    axios
-      .get(`${baseAPI}/api/wallet/me/`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => setWallet(res.data))
+    Promise.all([
+      axios.get(`${baseAPI}/api/wallet/me/`, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(`${baseAPI}/api/wallet/history/`, { headers: { Authorization: `Bearer ${token}` } }),
+    ])
+      .then(([me, hist]) => {
+        setWallet(me.data);
+        const rows = hist.data as WalletTx[] | { results?: WalletTx[] };
+        setHistory(Array.isArray(rows) ? rows : rows.results ?? []);
+      })
       .catch(() => setWallet(null))
       .finally(() => setLoading(false));
   }, [token]);
@@ -73,12 +89,31 @@ export default function WalletScreen() {
                     {t('pending', 'Pending')}: {wallet.currency}{' '}
                     {Number(wallet.pending_balance).toFixed(2)}
                   </Text>
+                  <Text style={tw`text-blue-100 mt-4 text-xs`}>
+                    {t(
+                      'walletTopUpUnavailable',
+                      'Top-up is temporarily unavailable. Balance is view-only.',
+                    )}
+                  </Text>
                 </>
               ) : (
                 <Text style={tw`text-white/90 mt-8`}>{t('error')}</Text>
               )}
             </LinearGradient>
           </View>
+          {history.length > 0 ? (
+            <View style={tw`px-6 mt-6`}>
+              <Text style={tw`text-white font-semibold mb-3`}>{t('transactions', 'Transactions')}</Text>
+              {history.slice(0, 20).map((tx) => (
+                <View key={tx.id} style={tw`mb-2 rounded-xl bg-white/10 px-4 py-3`}>
+                  <Text style={tw`text-white`}>{tx.description || tx.transaction_type}</Text>
+                  <Text style={tw`text-blue-200 text-xs`}>
+                    {tx.amount} {tx.currency}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
         </View>
       </SafeAreaView>
     </View>

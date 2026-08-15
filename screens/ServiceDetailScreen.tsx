@@ -97,13 +97,23 @@ export default function ServiceDetailScreen() {
 
       <View style={tw`mt-6 border border-gray-300 rounded-xl p-4`}>
         <Text style={tw`font-semibold mb-2`}>Availability</Text>
-        {/* Date picker placeholder - use a library if needed */}
-        <TextInput
-          style={tw`border border-gray-300 rounded px-3 py-2 mb-3`}
-          placeholder="YYYY-MM-DD"
-          value={selectedDate}
-          onChangeText={setSelectedDate}
-        />
+        <View style={tw`flex-row flex-wrap gap-2 mb-3`}>
+          {Array.from({ length: 7 }).map((_, index) => {
+            const date = new Date();
+            date.setDate(date.getDate() + index);
+            const iso = date.toISOString().slice(0, 10);
+            const label = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+            return (
+              <TouchableOpacity
+                key={iso}
+                onPress={() => setSelectedDate(iso)}
+                style={tw`px-3 py-2 rounded border ${selectedDate === iso ? 'bg-black border-black' : 'bg-white border-gray-300'}`}
+              >
+                <Text style={selectedDate === iso ? tw`text-white text-xs` : tw`text-black text-xs`}>{label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
         <View style={tw`flex-row flex-wrap gap-2 mb-3`}>
           {slots.length === 0 && <Text style={tw`text-gray-500`}>No slots available</Text>}

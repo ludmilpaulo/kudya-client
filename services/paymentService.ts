@@ -1,3 +1,4 @@
+import { baseAPI } from "./types";
 import type { CurrencyCode, RegionCode } from "../utils/currency";
 
 export interface PaymentInitParams {
@@ -12,14 +13,19 @@ export interface PaymentInitResult {
   [key: string]: unknown;
 }
 
-export async function fetchPaymentUrl(params: PaymentInitParams): Promise<PaymentInitResult> {
-  // For demo, all regions POST to this endpoint. Customize per region if needed.
-  const res = await fetch("https://your-backend/api/pay/initiate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(params),
-  });
-  const data = await res.json();
-  if (!res.ok || !data.paymentUrl) throw new Error(data.message || "Could not initiate payment");
-  return { payment_url: data.paymentUrl };
+/**
+ * Online card/gateway checkout is not wired for production MVP.
+ * Checkout uses COD / pay-on-delivery / TPA only until a real PSP is connected.
+ */
+export async function fetchPaymentUrl(
+  _params: PaymentInitParams,
+): Promise<PaymentInitResult> {
+  throw new Error(
+    "Online payments are not available yet. Please use pay on delivery or TPA.",
+  );
+}
+
+/** Reserved for future PSP integration against Django. */
+export function paymentApiBase(): string {
+  return `${baseAPI}/api/payments`;
 }

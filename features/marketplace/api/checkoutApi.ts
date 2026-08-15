@@ -58,6 +58,13 @@ export async function validateCouponV1(couponCode: string, subtotal = 0, vertica
   return data;
 }
 
+export async function fetchCheckoutQuote(storeId: number) {
+  const { data } = await API.get(v1(`/marketplace/checkout/quote/`), {
+    params: { store_id: storeId },
+  });
+  return data as { delivery_fee: string; currency?: string };
+}
+
 export async function fetchProductsByStoreV1(storeId: number, vertical: MarketplaceVertical) {
   const { data } = await API.get(v1(`/${vertical}/products/`), {
     params: { store: storeId },

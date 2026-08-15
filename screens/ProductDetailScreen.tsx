@@ -301,9 +301,6 @@ const ProductDetailScreen = () => {
               <Image
                 source={{ uri: item?.image }}
                 style={tw`w-full h-full rounded-xl`}
-                placeholder={{
-                  uri: "https://via.placeholder.com/400?text=Loading...",
-                }}
                 contentFit="cover"
                 cachePolicy="memory-disk"
                 transition={300}
@@ -513,7 +510,11 @@ const ProductDetailScreen = () => {
                   activeOpacity={0.93}
                 >
                   <Image
-                    source={{ uri: rel.images?.[0]?.image || "https://via.placeholder.com/200" }}
+                    source={
+                      rel.images?.[0]?.image
+                        ? { uri: rel.images[0].image }
+                        : require("../assets/icon.png")
+                    }
                     style={tw`w-full h-32 rounded-lg bg-gray-200`}
                     contentFit="cover"
                   />

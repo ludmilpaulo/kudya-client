@@ -113,6 +113,10 @@ const SignupScreen: React.FC = () => {
     });
     void maybeOfferBiometricEnrollment(result);
     Alert.alert(t('success'), result.message || t('loginSuccess'));
+    if (result.needs_profile) {
+      navigation.navigate('CompleteProfile');
+      return;
+    }
     navigation.navigate('MainTabs');
   };
 

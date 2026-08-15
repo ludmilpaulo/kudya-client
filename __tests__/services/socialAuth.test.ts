@@ -22,6 +22,12 @@ jest.mock('expo-auth-session/providers/facebook', () => ({
   useAuthRequest: jest.fn(() => [null, null, jest.fn()]),
 }));
 
+jest.mock('expo-apple-authentication', () => ({
+  isAvailableAsync: jest.fn(async () => false),
+  AppleAuthenticationScope: { FULL_NAME: 0, EMAIL: 1 },
+  signInAsync: jest.fn(),
+}));
+
 function loadSocialAuth() {
   jest.resetModules();
   Object.assign(process.env, env);

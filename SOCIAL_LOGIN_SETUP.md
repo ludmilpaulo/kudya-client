@@ -72,7 +72,19 @@ python manage.py migrate contas
 
 ## EAS production builds
 
-Add the same `EXPO_PUBLIC_*` variables in [expo.dev](https://expo.dev) → project **kudya** → Secrets, or in `eas.json` production env.
+Set these as EAS Secrets (public client IDs only — never provider secrets):
+
+```
+EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+EXPO_PUBLIC_FACEBOOK_APP_ID
+EXPO_PUBLIC_TIKTOK_CLIENT_KEY
+```
+
+Use the Play / EAS production upload-key SHA-1 and SHA-256 in Google Cloud, Meta key hashes, and TikTok Android signatures — not the debug keystore.
+
+Redirect URIs: `kudya://oauth` and `https://sd-kudya.vercel.app/oauth`.
 
 ---
 

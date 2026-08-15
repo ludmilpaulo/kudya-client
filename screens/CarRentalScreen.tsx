@@ -3,12 +3,12 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import tw from 'twrnc';
-import { useNavigation } from '@react-navigation/native';
+import { useAppNavigation } from '../navigation/hooks';
 import { fetchRentalVehicles, RentalVehicle } from '../services/rentalsApi';
 import { useTranslation } from '../hooks/useTranslation';
 
 export default function CarRentalScreen() {
-  const navigation = useNavigation();
+  const navigation = useAppNavigation();
   const { t } = useTranslation();
   const [vehicles, setVehicles] = useState<RentalVehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +35,10 @@ export default function CarRentalScreen() {
           contentContainerStyle={tw`px-4 pb-8`}
           ListEmptyComponent={<Text style={tw`text-center text-slate-500 mt-16`}>{t('noVehicles', 'No vehicles available')}</Text>}
           renderItem={({ item }) => (
-            <View style={tw`bg-white rounded-2xl mb-3 p-4 border border-slate-100`}>
+            <TouchableOpacity
+              style={tw`bg-white rounded-2xl mb-3 p-4 border border-slate-100`}
+              onPress={() => navigation.navigate('CarRentalDetail', { vehicleId: item.id })}
+            >
               {item.images?.[0]?.image ? (
                 <Image source={{ uri: item.images[0].image }} style={tw`w-full h-36 rounded-xl mb-3`} />
               ) : (
@@ -47,7 +50,7 @@ export default function CarRentalScreen() {
               <Text style={tw`text-slate-500 text-sm`}>{item.seats} seats · {item.transmission} · {item.fuel_type}</Text>
               <Text style={tw`text-cyan-700 font-bold mt-2`}>{item.daily_price} {item.currency}/day</Text>
               <Text style={tw`text-slate-400 text-xs`}>{t('deposit', 'Deposit')}: {item.deposit_amount} {item.currency}</Text>
-            </View>
+            </TouchableOpacity>
           )}
         />
       )}

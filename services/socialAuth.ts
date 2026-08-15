@@ -33,6 +33,8 @@ export type SocialTokenPayload = {
   code?: string;
   redirect_uri?: string;
   code_verifier?: string;
+  first_name?: string;
+  last_name?: string;
 };
 
 export async function exchangeSocialToken(
@@ -49,6 +51,8 @@ export async function exchangeSocialToken(
       code: tokens.code ?? '',
       redirect_uri: tokens.redirect_uri ?? '',
       code_verifier: tokens.code_verifier ?? '',
+      first_name: tokens.first_name ?? '',
+      last_name: tokens.last_name ?? '',
     }),
   });
   const data = await response.json();
@@ -134,13 +138,21 @@ export async function signInWithTikTok(): Promise<SocialAuthResult> {
     authorizationEndpoint: tiktokAuthorizeEndpoint,
   });
   if (result.type !== 'success' || !result.params.code) {
-    throw new Error('TikTok sign-in cancelled.');
+    if (result.type === 'dismiss' || result.type === 'cancel') {
+      throw new Error('TikTok sign-in cancelled.');
+    }
+    throw new Error('We could not sign you in with TikTok. Please try again.');
   }
-  return exchangeSocialToken('tiktok', {
-    code: result.params.code,
-    redirect_uri: OAUTH_REDIRECT_URI,
-    code_verifier: authRequest.codeVerifier ?? '',
-  });
+  try {
+    return await exchangeSocialToken('tiktok', {
+      code: result.params.code,
+      redirect_uri: OAUTH_REDIRECT_URI,
+      code_verifier: authRequest.codeVerifier ?? '',
+    });
+  } catch (err: unknown) {
+    if (err instanceof Error && /cancel/i.test(err.message)) throw err;
+    throw new Error('We could not sign you in with TikTok. Please try again.');
+  }
 }
 
 export async function signInWithApple(): Promise<SocialAuthResult> {
@@ -151,16 +163,33 @@ export async function signInWithApple(): Promise<SocialAuthResult> {
   if (!available) {
     throw new Error('Sign in with Apple is not available on this device.');
   }
-  const credential = await AppleAuthentication.signInAsync({
-    requestedScopes: [
-      AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-      AppleAuthentication.AppleAuthenticationScope.EMAIL,
-    ],
-  });
-  if (!credential.identityToken) {
-    throw new Error('Apple sign-in cancelled.');
+  try {
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+    });
+    if (!credential.identityToken) {
+      throw new Error('We could not sign you in with Apple. Please try again.');
+    }
+    return exchangeSocialToken('apple', {
+      id_token: credential.identityToken,
+      first_name: credential.fullName?.givenName ?? '',
+      last_name: credential.fullName?.familyName ?? '',
+    });
+  } catch (err: unknown) {
+    if (
+      err &&
+      typeof err === 'object' &&
+      'code' in err &&
+      (err as { code?: string }).code === 'ERR_REQUEST_CANCELED'
+    ) {
+      throw new Error('Apple sign-in cancelled.');
+    }
+    // Never surface raw native/OAuth strings to reviewers or users.
+    throw new Error('We could not sign you in with Apple. Please try again.');
   }
-  return exchangeSocialToken('apple', { id_token: credential.identityToken });
 }
 
 export async function completeGoogleAuth(

@@ -9,8 +9,8 @@ App URL: https://developers.tiktok.com/app/7646571159442327559/pending
 | App name | Kudya |
 | Category | Food & Drink |
 | Description | See **App description (paste into portal)** below |
-| Terms of Service URL | https://kudya.online/TermsOfService |
-| Privacy Policy URL | https://kudya.online/PrivacyPolicy |
+| Terms of Service URL | https://sd-kudya.vercel.app/TermsOfService |
+| Privacy Policy URL | https://sd-kudya.vercel.app/PrivacyPolicy |
 | Platforms | Web, Android, iOS (uncheck Desktop if not needed) |
 
 ## App description (paste into portal)
@@ -21,13 +21,13 @@ Kudya is a food delivery and e-commerce app for Southern Africa. TikTok Login Ki
 
 | Field | Value |
 |-------|-------|
-| Web/Desktop URL | https://kudya.online |
+| Web/Desktop URL | https://sd-kudya.vercel.app |
 | Android package | com.ludmil.kudyaclient |
 | Google Play URL | https://play.google.com/store/apps/details?id=com.ludmil.kudyaclient |
 | App signature (MD5, no colons) | 27805C702E856C2299E6BA4366071576 |
 | SHA-256 fingerprint | D4:C1:AD:4A:76:BF:2C:60:E2:73:23:AE:38:08:53:27:0D:2E:58:83:74:75:49:70:08:31:25:28:CF:EC:66:B4 |
 | iOS bundle ID | com.ludmil.kudyaclient |
-| App Store URL | (your real App Store link when published) |
+| App Store URL | (add once live) |
 
 ## Products
 
@@ -39,19 +39,20 @@ Because **Web** is enabled, TikTok requires a **saved** web redirect URI (typing
 
 | Platform | Redirect URI |
 |----------|----------------|
-| Web | `https://kudya.online/oauth` |
-| Android / iOS | `kudya://oauth` |
+| Web | `https://sd-kudya.vercel.app/oauth` |
+| Customer Android / iOS | `kudya://oauth` |
+| Parceiro Android / iOS | `kudyaparceiro://oauth` |
 
-**Web/Desktop URL** must match the redirect domain (no `www` mismatch):
+**Web/Desktop URL** must match the redirect domain:
 
-- Use `https://kudya.online` — not `https://www.kudya.online/`
+- Use `https://sd-kudya.vercel.app` — **do not use `kudya.online`** (DNS currently fails)
 
 ### Error: "App must have web redirect uri or trusted domain"
 
 Fix (pick one):
 
-1. **Add web redirect** — Login Kit → **Web** tab → enter `https://kudya.online/oauth` → **Add a URI** → **Save**
-2. **Verify domain** — top bar **URL properties** → add/verify `kudya.online` (DNS or file verification)
+1. **Add web redirect** — Login Kit → **Web** tab → enter `https://sd-kudya.vercel.app/oauth` → **Add a URI** → **Save**
+2. **Verify domain** — top bar **URL properties** → add/verify `sd-kudya.vercel.app` (DNS or file verification)
 3. **Mobile-only** — if you only use the app (not a website), uncheck **Web** and **Desktop** under Platforms; then only `kudya://oauth` on Android/iOS tabs is required (matches `socialAuth.ts`)
 
 ## Scopes
@@ -70,14 +71,14 @@ Kudya uses TikTok Login Kit exclusively for user authentication: log in and sign
 
 **What the app does**
 
-Kudya is a food delivery and online shopping platform for Southern Africa (iOS, Android, and web at https://kudya.online). After signing up or logging in—including via TikTok—users browse restaurants and stores, place orders, and track deliveries.
+Kudya is a food delivery and online shopping platform for Southern Africa (iOS, Android, and web at https://sd-kudya.vercel.app). After signing up or logging in—including via TikTok—users browse restaurants and stores, place orders, and track deliveries.
 
 **Login and sign-up flow with TikTok**
 
 1. New or returning user opens the Kudya Login or Sign Up screen.
 2. User taps **Continue with TikTok**.
 3. TikTok authorization screen opens; user approves access.
-4. Redirect: `kudya://oauth` (mobile) or `https://kudya.online/oauth` (web).
+4. Redirect: `kudya://oauth` (mobile) or `https://sd-kudya.vercel.app/oauth` (web).
 5. Kudya backend exchanges the code for a token (`POST https://open.tiktokapis.com/v2/oauth/token/`).
 6. Backend reads basic profile fields (`GET https://open.tiktokapis.com/v2/user/info/` with fields: open_id, display_name, avatar_url).
 7. If the TikTok account is new → Kudya creates a customer account. If it already exists → Kudya logs the user in. API endpoint: `POST /api/auth/social/`.
@@ -101,18 +102,27 @@ This data is stored only to operate the user account inside Kudya. It is not use
 
 **Legal links**
 
-- Terms of Service: https://kudya.online/TermsOfService
-- Privacy Policy: https://kudya.online/PrivacyPolicy
+- Terms of Service: https://sd-kudya.vercel.app/TermsOfService
+- Privacy Policy: https://sd-kudya.vercel.app/PrivacyPolicy
+- Website: https://sd-kudya.vercel.app
 
-## Fix for previous rejection
+## Fix for previous / current rejection blockers
 
-1. **Invalid Terms of Service link** — Previously pointed to the Privacy Policy URL. Use `https://kudya.online/TermsOfService` (deploy `food_deliver/app/TermsOfService/page.tsx` first and confirm the page loads in a browser).
-2. **Insufficient review description** — Paste the full **Review Description** section above into the App review field.
+1. **Invalid / unreachable website** — `kudya.online` DNS does not resolve. Use `https://sd-kudya.vercel.app` everywhere in the TikTok portal.
+2. **Terms / Privacy** — must be `…/TermsOfService` and `…/PrivacyPolicy` on that site (both return 200).
+3. **Review description** — paste the full section above.
+4. **Demo video** — upload MP4 of Continue with TikTok → authorize → Kudya home.
+5. **Scopes** — only `user.info.basic`.
 
-## Still required manually
+## Exact rejection (2026 — Review comments)
 
-1. **Deploy Terms of Service page** — push and deploy `food_deliver` so https://kudya.online/TermsOfService returns 200 (not 404).
-2. **App icon** — upload 1024×1024 PNG (e.g. from `kudya-client/assets/icon.png`)
-3. **Demo video** — upload MP4 showing TikTok login flow (tap Continue with TikTok → authorize → land in Kudya logged in)
-4. Scroll to **Platforms** section and fill Web URL + Android/iOS details if empty
-5. Click **Save**, then **Submit for review**
+> The demo video should show the complete end-to-end flow of the integrations with TikTok (Please demonstrate with sandbox or provide a mockup demo). All selected products and scopes must be clearly demonstrated in the video. If you don't need certain products or scopes, make sure to remove them before review. You are required to use sandbox to demonstrate the integration. Demo video does not provide enough clarity and context as to show the website functions.
+
+## Still required manually in TikTok portal
+
+1. App is in **Draft** — finish URL property verification for `sd-kudya.vercel.app` (DNS TXT or signature file under **URL properties**). Until verified, Terms/Privacy show “This URL is not verified.”
+2. Confirm platforms: **Android + iOS** (leave Web/Desktop unchecked unless you will demo the website in the video). Add bundle ID `com.ludmil.kudyaclient`, App Store URL/region as required.
+3. Login Kit → Android + iOS redirect URI: `kudya://oauth` (and `kudyaparceiro://oauth` for the partner app).
+4. Switch to **Sandbox**, record demo: open Kudya → Continue with TikTok → authorize → return to Home. Upload MP4.
+5. Paste review description from this file → **Save** → **Submit for review**.
+6. Details: `docs/AUTH_REJECTION_FIX_NOTES.md` + `docs/AUTHENTICATION_RELEASE_REPORT.md`.

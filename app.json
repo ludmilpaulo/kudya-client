@@ -3,7 +3,7 @@
     "name": "kudya",
     "slug": "kudya",
     "scheme": "kudya",
-    "version": "1.0.12",
+    "version": "1.0.14",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,13 +16,15 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "12",
+      "buildNumber": "15",
       "supportsTablet": true,
+      "usesAppleSignIn": true,
       "infoPlist": {
         "CFBundleDisplayName": "kudya",
-        "NSLocationWhenInUseUsageDescription": "We use your location to autofill your delivery address.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "We use your location to autofill your delivery address even when the app is in the background.",
-        "NSPhotoLibraryUsageDescription": "We need access to your photo library so you can select images to share with us.",
+        "NSLocationWhenInUseUsageDescription": "Kudya uses your location to show nearby restaurants, services, properties, doctors, and deliveries, and to help with rides and package pickup.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Kudya uses your location to show nearby services and to support active deliveries and rides while you use the app.",
+        "NSPhotoLibraryUsageDescription": "Kudya needs photo library access so you can upload profile photos and documents.",
+        "NSCameraUsageDescription": "Kudya needs camera access so you can take profile photos and upload documents.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.ludmil.kudyaclient"
@@ -30,18 +32,20 @@
     "android": {
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyDn1X_BlFj-57ydasP6uZK_X_WTERNJb78"
+          "apiKey": ""
         }
       },
       "permissions": [
-        "LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.ludmil.kudyaclient",
-      "versionCode": 39
+      "versionCode": 40
     },
     "web": {
       "favicon": "./assets/azul.png"
@@ -50,7 +54,7 @@
       "eas": {
         "projectId": "539638c9-6055-4a41-9bc6-525aaccbc5b3"
       },
-      "googleMapsApiKey": "AIzaSyBJxPi5xtT7F3oxZzlSmIuaXsIswasjkKw"
+      "googleMapsApiKey": ""
     },
     "jsEngine": "hermes",
     "owner": "ludmil"

@@ -55,6 +55,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ],
     ios: {
       ...config.ios,
+      associatedDomains: [
+        ...((config.ios?.associatedDomains as string[] | undefined) ?? []),
+        'applinks:sd-kudya.vercel.app',
+      ],
       infoPlist: {
         ...config.ios?.infoPlist,
         ...(facebookAppId

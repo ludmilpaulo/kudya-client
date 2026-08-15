@@ -76,14 +76,17 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
           const result = await completeGoogleAuth(googleResponse.authentication);
           onSuccess(result);
         } catch (e: unknown) {
-          Alert.alert(t('error'), e instanceof Error ? e.message : t('loginFailed'));
+          const message = e instanceof Error ? e.message : '';
+          if (!/cancel/i.test(message)) {
+            Alert.alert(t('error'), t('googleSignInFailed'));
+          }
         } finally {
           setLoadingProvider(null);
         }
       })();
     } else if (googleResponse?.type === 'error') {
       setLoadingProvider(null);
-      Alert.alert(t('error'), googleResponse.error?.message || t('loginFailed'));
+      Alert.alert(t('error'), t('googleSignInFailed'));
     } else if (googleResponse?.type === 'dismiss' || googleResponse?.type === 'cancel') {
       setLoadingProvider(null);
     }
@@ -97,14 +100,17 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
           const result = await completeFacebookAuth(fbResponse.authentication);
           onSuccess(result);
         } catch (e: unknown) {
-          Alert.alert(t('error'), e instanceof Error ? e.message : t('loginFailed'));
+          const message = e instanceof Error ? e.message : '';
+          if (!/cancel/i.test(message)) {
+            Alert.alert(t('error'), t('facebookSignInFailed'));
+          }
         } finally {
           setLoadingProvider(null);
         }
       })();
     } else if (fbResponse?.type === 'error') {
       setLoadingProvider(null);
-      Alert.alert(t('error'), fbResponse.error?.message || t('loginFailed'));
+      Alert.alert(t('error'), t('facebookSignInFailed'));
     } else if (fbResponse?.type === 'dismiss' || fbResponse?.type === 'cancel') {
       setLoadingProvider(null);
     }
@@ -115,10 +121,14 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
       setLoadingProvider('apple');
       onSuccess(await signInWithApple());
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : t('loginFailed');
-      if (!/cancel/i.test(message)) {
-        Alert.alert(t('error'), message);
+      const message = e instanceof Error ? e.message : '';
+      if (/cancel/i.test(message)) {
+        return;
       }
+      Alert.alert(
+        t('error'),
+        t('appleSignInFailed') || 'We could not sign you in with Apple. Please try again.',
+      );
     } finally {
       setLoadingProvider(null);
     }
@@ -156,7 +166,18 @@ export default function SocialLoginButtons({ onSuccess, disabled }: Props) {
       }
     } catch (e: unknown) {
       setLoadingProvider(null);
-      Alert.alert(t('error'), e instanceof Error ? e.message : t('loginFailed'));
+      const message = e instanceof Error ? e.message : '';
+      if (/cancel/i.test(message)) {
+        return;
+      }
+      if (provider === 'tiktok') {
+        Alert.alert(
+          t('error'),
+          t('tiktokSignInFailed') || 'We could not sign you in with TikTok. Please try again.',
+        );
+        return;
+      }
+      Alert.alert(t('error'), message || t('loginFailed'));
     }
   };
 

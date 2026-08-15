@@ -56,10 +56,15 @@ export function LanguageProvider({ children }: { children?: React.ReactNode }) {
         const token = store.getState().auth.token;
         if (token || resolvedChosen) {
           try {
-            const pref = await store
+            const prefPromise = store
               .dispatch(languageApi.endpoints.getLanguagePreference.initiate())
               .unwrap();
+            const timeoutPromise = new Promise<null>((resolve) => {
+              setTimeout(() => resolve(null), 4000);
+            });
+            const pref = await Promise.race([prefPromise, timeoutPromise]);
             if (
+              pref &&
               pref.preferredLanguage &&
               supportedLocales.includes(pref.preferredLanguage as SupportedLocale)
             ) {

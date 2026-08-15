@@ -102,6 +102,10 @@ const LoginScreenUser = () => {
     });
     Alert.alert(t("success"), result.message || t("loginSuccess"));
     void maybeOfferBiometricEnrollment(result);
+    if (result.needs_profile) {
+      navigation.replace("CompleteProfile");
+      return;
+    }
     completeNavigation(result.is_customer, Boolean(result.business_profile));
   };
 

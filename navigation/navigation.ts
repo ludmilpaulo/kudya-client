@@ -10,6 +10,7 @@ export type RootStackParamList = {
   ProductsByCategory: { categoryId: number; categoryName: string };
   UserLogin: undefined;
   SignupScreen: undefined;
+  CompleteProfile: undefined;
   ForgotPassword: undefined;
   Services: undefined;
   ServiceDetail: { serviceId: number };
@@ -36,6 +37,7 @@ export type RootStackParamList = {
   RideTracking: { rideId: number };
   SendPackage: undefined;
   CarRental: undefined;
+  CarRentalDetail: { vehicleId: number };
   Grocery: undefined;
   Food: undefined;
   Notifications: undefined;

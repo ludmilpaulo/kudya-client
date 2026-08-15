@@ -29,16 +29,21 @@ import AccommodationScreen from "../screens/AccommodationScreen";
 import WalletScreen from "../screens/WalletScreen";
 import BusinessDashboardScreen from "../screens/BusinessDashboardScreen";
 import ComingSoonScreen from "../screens/ComingSoonScreen";
+import CarRentalScreen from "../screens/CarRentalScreen";
+import CarRentalDetailScreen from "../screens/CarRentalDetailScreen";
 import RidesScreen from "../screens/RidesScreen";
 import RideTrackingScreen from "../screens/RideTrackingScreen";
 import SendPackageScreen from "../screens/SendPackageScreen";
-import CarRentalScreen from "../screens/CarRentalScreen";
 import GroceryScreen from "../screens/GroceryScreen";
 import NotificationsScreen from "../screens/NotificationsScreen";
 
 import SignupScreen from "../screens/SignupScreen";
 import LoginScreenUser from "../screens/LoginScreenUser";
+import CompleteProfileScreen from "../screens/CompleteProfileScreen";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
+import CartScreen from "../screens/CartScreen";
+import OrderHistory from "../screens/OrderHistory";
+import UserProfile from "../screens/UserProfile";
 
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -52,11 +57,14 @@ export default function AppNavigator() {
       <Stack.Screen name="Stores" component={StoresScreen} />
        <Stack.Screen name="Products" component={ProductsScreen} />
       <Stack.Screen name="ProductDetails" component={ProductDetailScreen} />
-     <Stack.Screen name="UserLogin" component={LoginScreenUser} />
+      <Stack.Screen name="UserLogin" component={LoginScreenUser} />
+      <Stack.Screen name="CompleteProfile" component={CompleteProfileScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="SignupScreen" component={SignupScreen} />
-    
-    
+      <Stack.Screen name="Cart" component={CartScreen} />
+      <Stack.Screen name="CartPage" component={CartScreen} />
+      <Stack.Screen name="OrderHistory" component={OrderHistory} />
+      <Stack.Screen name="UserProfile" component={UserProfile} />
       <Stack.Screen name="Checkout" component={CheckoutPage} />
       <Stack.Screen name="Categories" component={CategoriesScreen} />
       <Stack.Screen name="Services" component={ServicesScreen} />
@@ -81,6 +89,7 @@ export default function AppNavigator() {
       <Stack.Screen name="RideTracking" component={RideTrackingScreen} />
       <Stack.Screen name="SendPackage" component={SendPackageScreen} />
       <Stack.Screen name="CarRental" component={CarRentalScreen} />
+      <Stack.Screen name="CarRentalDetail" component={CarRentalDetailScreen} />
       <Stack.Screen name="Grocery" component={GroceryScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="ProductsByCategory" component={ProductsByCategoryScreen} />

@@ -33,6 +33,7 @@ yarn-error.*
 
 # local env files
 .env
+.env.production
 .env*.local
 
 # demo / browser automation artifacts

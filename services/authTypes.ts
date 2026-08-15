@@ -28,6 +28,8 @@ export type AuthSessionPayload = {
   is_driver: boolean;
   preferred_language?: string;
   message: string;
+  created?: boolean;
+  needs_profile?: boolean;
   user?: Record<string, unknown>;
   business_profile?: BusinessProfile;
 };
@@ -63,6 +65,8 @@ export function normalizeAuthResponse(data: Record<string, unknown>): AuthSessio
     is_driver: Boolean(data.is_driver),
     preferred_language: userRaw?.preferred_language,
     message: String(data.message || 'Login com sucesso'),
+    created: Boolean(data.created),
+    needs_profile: Boolean(data.needs_profile),
     user: data.user as Record<string, unknown> | undefined,
     business_profile: businessProfileRaw
       ? {

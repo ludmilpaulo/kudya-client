@@ -86,6 +86,11 @@ export type ServiceBooking = {
 
 export const getMyBookings = async (): Promise<ServiceBooking[]> => {
   const { data } = await API.get(`${baseAPI}/services/bookings/`);
-  return data;
+  if (Array.isArray(data)) return data as ServiceBooking[];
+  if (data && typeof data === 'object' && 'results' in data) {
+    const results = (data as { results?: ServiceBooking[] }).results;
+    return Array.isArray(results) ? results : [];
+  }
+  return [];
 };
 

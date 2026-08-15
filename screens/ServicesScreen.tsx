@@ -6,18 +6,31 @@ import { useAppDispatch, RootState } from "../redux/store";
 import { useAppNavigation } from "../navigation/hooks";
 import { useSelector } from "react-redux";
 import { useTranslation } from "../hooks/useTranslation";
+import { getMyBookings, type ServiceBooking } from "../services/servicesApi";
 
 export default function ServicesScreen() {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigation = useAppNavigation();
   const { data, loading, error } = useSelector((s: RootState) => s.services);
+  const token = useSelector((s: RootState) => s.auth.token);
 
   const [search, setSearch] = useState("");
+  const [bookings, setBookings] = useState<ServiceBooking[]>([]);
 
   useEffect(() => {
     dispatch(fetchServices(undefined));
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!token) {
+      setBookings([]);
+      return;
+    }
+    getMyBookings()
+      .then(setBookings)
+      .catch(() => setBookings([]));
+  }, [token]);
 
   const filtered = search.trim()
     ? data.filter((s) =>
@@ -36,6 +49,24 @@ export default function ServicesScreen() {
         value={search}
         onChangeText={setSearch}
       />
+
+      {token && bookings.length > 0 ? (
+        <View style={tw`mb-4`}>
+          <Text style={tw`text-lg font-semibold text-gray-800 mb-2`}>
+            {t("myBookings", "My bookings")}
+          </Text>
+          {bookings.slice(0, 8).map((booking) => (
+            <View key={booking.id} style={tw`bg-white rounded-xl p-3 mb-2 border border-gray-100`}>
+              <Text style={tw`font-semibold text-gray-800`}>
+                {booking.service_title || booking.booking_number || `#${booking.id}`}
+              </Text>
+              <Text style={tw`text-sm text-gray-500`}>
+                {booking.status} · {booking.booking_date}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
 
       {loading && <ActivityIndicator size="large" color="#3B82F6" />}
       {!loading && error && <Text style={tw`text-red-600 text-center`}>{error}</Text>}

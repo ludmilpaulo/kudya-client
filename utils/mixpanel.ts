@@ -1,5 +1,7 @@
 // Mixpanel Analytics Configuration for React Native
-const MIXPANEL_TOKEN = 'a8cf933c3054afed7f397f71249ba506';
+const MIXPANEL_TOKEN =
+  (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_MIXPANEL_TOKEN?.trim()) ||
+  '';
 
 let mixpanel: import('mixpanel-react-native').Mixpanel | null = null;
 let mixpanelInitialized = false;
@@ -18,6 +20,7 @@ function isExpoGo(): boolean {
 
 function getMixpanel(): import('mixpanel-react-native').Mixpanel | null {
   if (mixpanel !== null) return mixpanel;
+  if (!MIXPANEL_TOKEN) return null;
   if (isExpoGo()) return null; // Skip native module in Expo Go to avoid "using JavaScript mode" warning
   try {
     const { Mixpanel } = require('mixpanel-react-native');

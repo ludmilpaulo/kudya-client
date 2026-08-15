@@ -1,34 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import axios from 'axios';
 import tw from 'twrnc';
-import { useNavigation } from '@react-navigation/native';
+import { useAppNavigation } from '../navigation/hooks';
 import { baseAPI } from '../services/types';
 import { useTranslation } from '../hooks/useTranslation';
 
-interface Listing {
+type StayListing = {
   id: number;
   title: string;
-  property_type: string;
-  city_name: string | null;
-  price_per_night: number;
-  currency: string;
-  rating: number;
-  images: { image: string }[];
-}
+  city?: { name?: string } | string;
+  city_name?: string;
+  price?: string | number;
+  currency?: string;
+};
 
 export default function AccommodationScreen() {
-  const navigation = useNavigation();
+  const navigation = useAppNavigation();
   const { t } = useTranslation();
-  const [listings, setListings] = useState<Listing[]>([]);
+  const [listings, setListings] = useState<StayListing[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios
-      .get(`${baseAPI}/api/accommodation/listings/`)
-      .then((res) => setListings(res.data.results ?? res.data))
+      .get(`${baseAPI}/api/properties/search/`, { params: { purpose: 'stay' } })
+      .then((res) => {
+        const payload = res.data as StayListing[] | { results?: StayListing[] };
+        setListings(Array.isArray(payload) ? payload : payload.results ?? []);
+      })
       .catch(() => setListings([]))
       .finally(() => setLoading(false));
   }, []);
@@ -49,24 +50,24 @@ export default function AccommodationScreen() {
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={tw`px-4 pb-8`}
           ListEmptyComponent={<Text style={tw`text-center text-slate-500 mt-16`}>{t('noListings', 'No listings yet')}</Text>}
-          renderItem={({ item }) => (
-            <View style={tw`bg-white rounded-2xl mb-3 overflow-hidden border border-slate-100`}>
-              {item.images?.[0]?.image ? (
-                <Image source={{ uri: item.images[0].image }} style={tw`w-full h-40`} />
-              ) : (
-                <View style={tw`w-full h-40 bg-slate-200 items-center justify-center`}>
-                  <Feather name="home" size={32} color="#94A3B8" />
+          renderItem={({ item }) => {
+            const cityName =
+              typeof item.city === 'object' ? item.city?.name ?? '' : String(item.city_name || item.city || '');
+            return (
+              <TouchableOpacity
+                style={tw`bg-white rounded-2xl mb-3 overflow-hidden border border-slate-100`}
+                onPress={() => navigation.navigate('PropertyDetail', { propertyId: item.id })}
+              >
+                <View style={tw`p-4`}>
+                  <Text style={tw`font-bold text-slate-900`}>{item.title}</Text>
+                  <Text style={tw`text-slate-500 text-sm`}>{cityName}</Text>
+                  <Text style={tw`font-bold text-blue-600 mt-2`}>
+                    {item.price} {item.currency} / night
+                  </Text>
                 </View>
-              )}
-              <View style={tw`p-4`}>
-                <Text style={tw`font-bold text-slate-900`}>{item.title}</Text>
-                <Text style={tw`text-slate-500 text-sm`}>{item.city_name} · {item.property_type}</Text>
-                <Text style={tw`font-bold text-blue-600 mt-2`}>
-                  {item.price_per_night} {item.currency} / night
-                </Text>
-              </View>
-            </View>
-          )}
+              </TouchableOpacity>
+            );
+          }}
         />
       )}
     </SafeAreaView>
