@@ -8,6 +8,10 @@ import { useSelector } from "react-redux";
 import { getServiceById, getServiceAvailability, createBooking } from "../services/servicesApi";
 import { RootState } from "../redux/store";
 import { useTranslation } from "../hooks/useTranslation";
+import PaymentDetails from "../components/PaymentDetails";
+import { followUpPayment } from "../utils/followUpPayment";
+import * as DocumentPicker from "expo-document-picker";
+import type { LocalProofFile } from "../services/paymentService";
 
 export default function ServiceDetailScreen() {
   const { t } = useTranslation();
@@ -25,6 +29,10 @@ export default function ServiceDetailScreen() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentPhone, setPaymentPhone] = useState("");
+  const [proofName, setProofName] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<LocalProofFile | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -58,15 +66,27 @@ export default function ServiceDetailScreen() {
     if (!selectedTime || !service) return;
     setBookingLoading(true);
     try {
-      await createBooking({
+      const booking = await createBooking({
         service: service.id,
         customer: user.user_id, // Adapt if needed
         booking_date: selectedDate,
         booking_time: selectedTime,
         duration_minutes: service.duration_minutes,
         customer_notes: note,
-        payment_method: "card",
+        payment_method: paymentMethod || "cash",
       });
+      if (token) {
+        await followUpPayment({
+          token,
+          amount: booking.price ?? service.price,
+          method: paymentMethod,
+          phone: paymentPhone,
+          proof: proofFile,
+          serviceType: "service",
+          objectId: booking.id,
+          currency: booking.currency ?? service.currency,
+        });
+      }
       Alert.alert("Booking created!");
     } catch (e: unknown) {
       Alert.alert(e instanceof Error ? e.message : "Failed to create booking");
@@ -139,6 +159,30 @@ export default function ServiceDetailScreen() {
           value={note}
           onChangeText={setNote}
           multiline
+        />
+
+        <PaymentDetails
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          phone={paymentPhone}
+          setPhone={setPaymentPhone}
+          proofName={proofName}
+          onPickProof={() => {
+            void (async () => {
+              const result = await DocumentPicker.getDocumentAsync({
+                type: ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
+                copyToCacheDirectory: true,
+              });
+              if (result.canceled || !result.assets?.[0]) return;
+              const asset = result.assets[0];
+              setProofName(asset.name);
+              setProofFile({
+                uri: asset.uri,
+                name: asset.name,
+                type: asset.mimeType || 'image/jpeg',
+              });
+            })();
+          }}
         />
 
         <TouchableOpacity

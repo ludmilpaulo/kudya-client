@@ -67,7 +67,7 @@ export const createBooking = async (payload: {
   duration_minutes: number;
   customer_notes?: string;
   payment_method?: string;
-}) => {
+}): Promise<ServiceBooking> => {
   const { data } = await API.post(`${baseAPI}/services/bookings/`, payload);
   return data;
 };

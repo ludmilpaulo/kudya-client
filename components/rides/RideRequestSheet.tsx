@@ -71,6 +71,7 @@ type Props = {
   onRequest: () => void;
   isDark: boolean;
   t: TranslateFn;
+  paymentSlot?: React.ReactNode;
 };
 
 function LocationField({
@@ -163,6 +164,7 @@ export default function RideRequestSheet({
   onRequest,
   isDark,
   t,
+  paymentSlot,
 }: Props) {
   const sheetShadow = Platform.select({
     ios: {
@@ -519,6 +521,8 @@ export default function RideRequestSheet({
             </Text>
           </View>
         ) : null}
+
+        {paymentSlot}
 
         <TouchableOpacity
           onPress={onRequest}

@@ -1,31 +1,80 @@
 import { baseAPI } from "./types";
-import type { CurrencyCode, RegionCode } from "../utils/currency";
+import type { PaymentInitializeResponse, PaymentTransaction } from "../types/payments";
 
 export interface PaymentInitParams {
-  region: RegionCode;
   amount: number;
-  email: string;
-  currency: CurrencyCode;
+  email?: string;
+  currency?: string;
+  method?: string;
+  phone?: string;
+  service_type?: string;
+  object_id?: number;
+  country?: string;
+  region?: string;
 }
 
-export interface PaymentInitResult {
-  payment_url: string;
-  [key: string]: unknown;
+export async function initializePayment(
+  token: string,
+  params: PaymentInitParams,
+): Promise<PaymentInitializeResponse> {
+  const response = await fetch(`${baseAPI}/api/payments/initialize/`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(params),
+  });
+  const body = (await response.json()) as PaymentInitializeResponse & { detail?: string };
+  if (!response.ok) {
+    throw new Error(body.detail || "Failed to start payment.");
+  }
+  return body;
 }
 
-/**
- * Online card/gateway checkout is not wired for production MVP.
- * Checkout uses COD / pay-on-delivery / TPA only until a real PSP is connected.
- */
-export async function fetchPaymentUrl(
-  _params: PaymentInitParams,
-): Promise<PaymentInitResult> {
-  throw new Error(
-    "Online payments are not available yet. Please use pay on delivery or TPA.",
-  );
+export async function verifyPayment(
+  token: string,
+  reference: string,
+): Promise<PaymentTransaction> {
+  const response = await fetch(`${baseAPI}/api/payments/verify/`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ kudya_reference: reference, reference }),
+  });
+  const body = (await response.json()) as PaymentTransaction & { detail?: string };
+  if (!response.ok) {
+    throw new Error(body.detail || "Unable to verify payment.");
+  }
+  return body;
 }
 
-/** Reserved for future PSP integration against Django. */
-export function paymentApiBase(): string {
-  return `${baseAPI}/api/payments`;
+export type LocalProofFile = {
+  uri: string;
+  name: string;
+  type: string;
+};
+
+export async function uploadPaymentProof(
+  token: string,
+  paymentId: number,
+  file: LocalProofFile,
+): Promise<void> {
+  const form = new FormData();
+  form.append("file", {
+    uri: file.uri,
+    name: file.name,
+    type: file.type,
+  } as unknown as Blob);
+  const response = await fetch(`${baseAPI}/api/payments/${paymentId}/proof/`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  if (!response.ok) {
+    const body = (await response.json()) as { detail?: string };
+    throw new Error(body.detail || "Unable to upload proof.");
+  }
 }

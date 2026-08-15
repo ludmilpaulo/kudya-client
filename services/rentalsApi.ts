@@ -22,7 +22,10 @@ export async function fetchRentalVehicles(params?: Record<string, string | numbe
   return (data.results ?? data) as RentalVehicle[];
 }
 
-export async function bookRental(token: string, payload: Record<string, unknown>) {
+export async function bookRental(
+  token: string,
+  payload: Record<string, unknown>,
+): Promise<{ id: number; total_amount: string | number; currency: string }> {
   const { data } = await axios.post(`${baseAPI}/api/rentals/bookings/book/`, payload, { headers: auth(token) });
   return data;
 }

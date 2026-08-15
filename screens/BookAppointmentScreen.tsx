@@ -46,6 +46,10 @@ import { useTranslation } from '../hooks/useTranslation';
 import { translateSpecialtyName } from '../utils/doctorSpecialtyI18n';
 
 import { calculateAge, isValidDateOfBirth } from '../utils/bookingUtils';
+import PaymentDetails from '../components/PaymentDetails';
+import { followUpPayment } from '../utils/followUpPayment';
+import * as DocumentPicker from 'expo-document-picker';
+import type { LocalProofFile } from '../services/paymentService';
 
 
 
@@ -101,6 +105,10 @@ export default function BookAppointmentScreen() {
   const [gender, setGender] = useState<PatientGender | ''>('');
 
   const [submitting, setSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentPhone, setPaymentPhone] = useState('');
+  const [proofName, setProofName] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<LocalProofFile | null>(null);
 
 
 
@@ -291,7 +299,7 @@ export default function BookAppointmentScreen() {
             gender: gender as PatientGender,
             preferred_language: languageCode,
           },
-          payment_method: 'pay_at_clinic',
+          payment_method: paymentMethod || 'pay_at_clinic',
         },
         token,
       );
@@ -303,6 +311,20 @@ export default function BookAppointmentScreen() {
             username: email.trim(),
           }),
         );
+      }
+
+      if (token && result?.id) {
+        const fee = result.consultation_fee ?? doctor?.consultation_fee ?? 0;
+        await followUpPayment({
+          token,
+          amount: fee,
+          method: paymentMethod,
+          phone: paymentPhone,
+          proof: proofFile,
+          serviceType: 'doctor',
+          objectId: Number(result.id),
+          currency: typeof result.currency === 'string' ? result.currency : doctor?.currency,
+        });
       }
 
       Alert.alert(t('success'), t('appointmentBooked', 'Appointment requested successfully'));
@@ -641,7 +663,29 @@ export default function BookAppointmentScreen() {
 
         ) : null}
 
-
+        <PaymentDetails
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          phone={paymentPhone}
+          setPhone={setPaymentPhone}
+          proofName={proofName}
+          onPickProof={() => {
+            void (async () => {
+              const result = await DocumentPicker.getDocumentAsync({
+                type: ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
+                copyToCacheDirectory: true,
+              });
+              if (result.canceled || !result.assets?.[0]) return;
+              const asset = result.assets[0];
+              setProofName(asset.name);
+              setProofFile({
+                uri: asset.uri,
+                name: asset.name,
+                type: asset.mimeType || 'image/jpeg',
+              });
+            })();
+          }}
+        />
 
         <TouchableOpacity activeOpacity={0.9} onPress={onSubmit} disabled={submitting}>
 

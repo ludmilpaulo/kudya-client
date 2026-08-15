@@ -35,6 +35,10 @@ import { fetchUserDetails } from '../services/checkoutService';
 import { baseAPI } from '../services/types';
 import RideRequestSheet from '../components/rides/RideRequestSheet';
 import type { SelectedPlace } from '../components/rides/LocationAutocomplete';
+import PaymentDetails from '../components/PaymentDetails';
+import { followUpPayment } from '../utils/followUpPayment';
+import * as DocumentPicker from 'expo-document-picker';
+import type { LocalProofFile } from '../services/paymentService';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -99,6 +103,10 @@ export default function RidesScreen() {
   const [fetchNearby, { data: nearby, isLoading: driversLoading, reset: resetNearby }] =
     useGetNearbyDriversMutation();
   const [requestRide, { isLoading: requestLoading }] = useRequestRideMutation();
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentPhone, setPaymentPhone] = useState('');
+  const [proofName, setProofName] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<LocalProofFile | null>(null);
 
   const resolvedStops = useMemo(
     () => stops.filter((stop) => stop.latitude != null && stop.longitude != null),
@@ -636,7 +644,7 @@ export default function RidesScreen() {
         destination_lat: finalDest.latitude,
         destination_lng: finalDest.longitude,
         ride_type: selectedCategory.slug,
-        payment_method: 'cash',
+        payment_method: paymentMethod || 'cash',
         country_code: countryCode,
         customer_price_offer: usePriceOffer ? parsedOffer : undefined,
         stops: resolvedStops.map((stop, index) => ({
@@ -646,6 +654,24 @@ export default function RidesScreen() {
           sort_order: index,
         })),
       }).unwrap();
+
+      if (token) {
+        const fare =
+          ride.estimated_price ||
+          estimate?.default_fare ||
+          estimate?.estimated_min_price ||
+          0;
+        await followUpPayment({
+          token,
+          amount: fare,
+          method: paymentMethod,
+          phone: paymentPhone,
+          proof: proofFile,
+          serviceType: 'ride',
+          objectId: ride.id,
+          currency: ride.currency || estimate?.currency,
+        });
+      }
 
       Alert.alert(
         t('ride.request_sent_title', 'Ride request sent'),
@@ -771,6 +797,31 @@ export default function RidesScreen() {
         onRequest={onRequest}
         isDark={isDark}
         t={t}
+        paymentSlot={
+          <PaymentDetails
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
+            phone={paymentPhone}
+            setPhone={setPaymentPhone}
+            proofName={proofName}
+            onPickProof={() => {
+              void (async () => {
+                const result = await DocumentPicker.getDocumentAsync({
+                  type: ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
+                  copyToCacheDirectory: true,
+                });
+                if (result.canceled || !result.assets?.[0]) return;
+                const asset = result.assets[0];
+                setProofName(asset.name);
+                setProofFile({
+                  uri: asset.uri,
+                  name: asset.name,
+                  type: asset.mimeType || 'image/jpeg',
+                });
+              })();
+            }}
+          />
+        }
       />
 
       <RideMapView

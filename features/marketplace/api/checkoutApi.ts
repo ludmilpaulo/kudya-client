@@ -4,9 +4,9 @@ import type { MarketplaceVertical } from '../../../utils/normalizeStores';
 
 export type CheckoutOrderPayload = {
   access_token: string;
-  store_id: number;
+  store_id: number | string;
   address?: string;
-  location?: string;
+  location?: string | { latitude: number; longitude: number };
   use_current_location?: boolean;
   delivery_fee: string;
   payment_method: string;
@@ -30,9 +30,17 @@ export async function fetchStoreForCheckout(storeId: number, vertical?: Marketpl
   return data;
 }
 
+export type CheckoutResponse = {
+  status: string;
+  error?: string;
+  order_id?: number;
+  created_orders?: number[];
+  secret_pin?: string;
+};
+
 export async function completeCheckout(payload: CheckoutOrderPayload, vertical?: MarketplaceVertical) {
   const path = vertical ? `/${vertical}/checkout/` : '/marketplace/checkout/';
-  const { data } = await API.post(v1(path), payload);
+  const { data } = await API.post<CheckoutResponse>(v1(path), payload);
   return data;
 }
 

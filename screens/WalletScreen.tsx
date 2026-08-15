@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, TextInput, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { baseAPI } from '../services/types';
 import { useTranslation } from '../hooks/useTranslation';
+import { useGetPaymentMethodsQuery } from '../redux/slices/paymentsApi';
 
 interface WalletData {
   available_balance: string;
@@ -34,8 +35,17 @@ export default function WalletScreen() {
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [history, setHistory] = useState<WalletTx[]>([]);
   const [loading, setLoading] = useState(true);
+  const [amount, setAmount] = useState('100');
+  const [phone, setPhone] = useState('');
+  const [method, setMethod] = useState('');
+  const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const { data: methods } = useGetPaymentMethodsQuery(undefined, { skip: !token });
+  const availableMethods = (methods?.methods ?? []).filter((item) => item.available);
+  const selectedMethod = method || methods?.default_method || availableMethods[0]?.code || 'card';
+  const selected = availableMethods.find((item) => item.code === selectedMethod);
 
-  useEffect(() => {
+  const loadWallet = () => {
     if (!token) {
       setLoading(false);
       return;
@@ -51,7 +61,54 @@ export default function WalletScreen() {
       })
       .catch(() => setWallet(null))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadWallet();
   }, [token]);
+
+  const handleTopUp = async () => {
+    if (!token) return;
+    const parsed = Number(amount);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      setMessage(t('invalidAmount', 'Enter a valid amount.'));
+      return;
+    }
+    setBusy(true);
+    setMessage(null);
+    try {
+      const { data } = await axios.post<{
+        authorization_url?: string | null;
+        customer_message?: string | null;
+        detail?: string;
+      }>(
+        `${baseAPI}/api/wallet/top_up/`,
+        {
+          amount: parsed,
+          currency: wallet?.currency || methods?.currency,
+          method: selectedMethod,
+          phone: phone || undefined,
+        },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const url = data.authorization_url;
+      if (url) {
+        await Linking.openURL(url);
+        setMessage(t('completePayment', 'Complete payment, then return to see your balance.'));
+      } else {
+        setMessage(data.customer_message || t('topUpStarted', 'Top-up created. Complete payment to credit your wallet.'));
+      }
+      loadWallet();
+    } catch (err) {
+      const detail =
+        axios.isAxiosError(err) && err.response?.data && typeof err.response.data === 'object'
+          ? String((err.response.data as { detail?: string }).detail || '')
+          : '';
+      setMessage(detail || t('topUpFailed', 'Top-up is unavailable until a payment provider is configured.'));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <View style={tw`flex-1 bg-slate-950`}>
@@ -89,18 +146,57 @@ export default function WalletScreen() {
                     {t('pending', 'Pending')}: {wallet.currency}{' '}
                     {Number(wallet.pending_balance).toFixed(2)}
                   </Text>
-                  <Text style={tw`text-blue-100 mt-4 text-xs`}>
-                    {t(
-                      'walletTopUpUnavailable',
-                      'Top-up is temporarily unavailable. Balance is view-only.',
-                    )}
-                  </Text>
                 </>
               ) : (
                 <Text style={tw`text-white/90 mt-8`}>{t('error')}</Text>
               )}
             </LinearGradient>
           </View>
+          {token ? (
+            <View style={tw`mt-6`}>
+              <TextInput
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="decimal-pad"
+                placeholder="100"
+                placeholderTextColor="#94A3B8"
+                style={tw`rounded-xl bg-white/10 px-4 py-3 text-white`}
+              />
+              {availableMethods.length > 0 ? (
+                <View style={tw`mt-3 flex-row flex-wrap`}>
+                  {availableMethods.map((item) => (
+                    <TouchableOpacity
+                      key={item.code}
+                      onPress={() => setMethod(item.code)}
+                      style={tw`mr-2 mb-2 rounded-full px-3 py-2 ${selectedMethod === item.code ? 'bg-blue-600' : 'bg-white/10'}`}
+                    >
+                      <Text style={tw`text-white text-xs`}>{item.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : null}
+              {selected?.requires_phone ? (
+                <TextInput
+                  value={phone}
+                  onChangeText={setPhone}
+                  keyboardType="phone-pad"
+                  placeholder="2637…"
+                  placeholderTextColor="#94A3B8"
+                  style={tw`mt-2 rounded-xl bg-white/10 px-4 py-3 text-white`}
+                />
+              ) : null}
+              <TouchableOpacity
+                onPress={() => void handleTopUp()}
+                disabled={busy}
+                style={tw`mt-3 rounded-xl bg-blue-600 py-3 items-center`}
+              >
+                <Text style={tw`text-white font-semibold`}>
+                  {busy ? t('loading', 'Loading...') : t('topUp', 'Top up')}
+                </Text>
+              </TouchableOpacity>
+              {message ? <Text style={tw`text-blue-200 mt-2 text-sm`}>{message}</Text> : null}
+            </View>
+          ) : null}
           {history.length > 0 ? (
             <View style={tw`px-6 mt-6`}>
               <Text style={tw`text-white font-semibold mb-3`}>{t('transactions', 'Transactions')}</Text>

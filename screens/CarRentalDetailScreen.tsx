@@ -8,6 +8,10 @@ import { useAppNavigation, useAppRoute } from '../navigation/hooks';
 import { RootState } from '../redux/store';
 import { useTranslation } from '../hooks/useTranslation';
 import { bookRental, fetchRentalVehicles, RentalVehicle } from '../services/rentalsApi';
+import PaymentDetails from '../components/PaymentDetails';
+import { followUpPayment } from '../utils/followUpPayment';
+import * as DocumentPicker from 'expo-document-picker';
+import type { LocalProofFile } from '../services/paymentService';
 
 export default function CarRentalDetailScreen() {
   const navigation = useAppNavigation();
@@ -20,6 +24,10 @@ export default function CarRentalDetailScreen() {
   const [endDate, setEndDate] = useState('');
   const [pickup, setPickup] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentPhone, setPaymentPhone] = useState('');
+  const [proofName, setProofName] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<LocalProofFile | null>(null);
 
   React.useEffect(() => {
     fetchRentalVehicles()
@@ -39,12 +47,22 @@ export default function CarRentalDetailScreen() {
     }
     setSubmitting(true);
     try {
-      await bookRental(token, {
+      const booking = await bookRental(token, {
         vehicle: route.params.vehicleId,
         start_date: startDate,
         end_date: endDate,
         pickup_location: pickup.trim(),
         return_location: pickup.trim(),
+      });
+      await followUpPayment({
+        token,
+        amount: booking.total_amount || vehicle?.daily_price || 0,
+        method: paymentMethod,
+        phone: paymentPhone,
+        proof: proofFile,
+        serviceType: 'car_rental',
+        objectId: booking.id,
+        currency: booking.currency || vehicle?.currency,
       });
       Alert.alert(t('success'), t('requestSubmitted', 'Rental request submitted'));
       navigation.goBack();
@@ -92,6 +110,29 @@ export default function CarRentalDetailScreen() {
             placeholder={t('pickupLocation', 'Pickup location')}
             value={pickup}
             onChangeText={setPickup}
+          />
+          <PaymentDetails
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
+            phone={paymentPhone}
+            setPhone={setPaymentPhone}
+            proofName={proofName}
+            onPickProof={() => {
+              void (async () => {
+                const result = await DocumentPicker.getDocumentAsync({
+                  type: ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
+                  copyToCacheDirectory: true,
+                });
+                if (result.canceled || !result.assets?.[0]) return;
+                const asset = result.assets[0];
+                setProofName(asset.name);
+                setProofFile({
+                  uri: asset.uri,
+                  name: asset.name,
+                  type: asset.mimeType || 'image/jpeg',
+                });
+              })();
+            }}
           />
           <TouchableOpacity
             style={tw`bg-cyan-700 rounded-xl py-4 items-center mt-6 mb-8`}

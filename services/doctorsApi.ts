@@ -72,7 +72,16 @@ export async function fetchAvailableSlots(doctorId: number, date: string): Promi
   return data;
 }
 
-export async function bookAppointment(payload: AppointmentPayload, token?: string | null) {
+export async function bookAppointment(
+  payload: AppointmentPayload,
+  token?: string | null,
+): Promise<{
+  id: number;
+  access_token?: string;
+  refresh_token?: string;
+  consultation_fee?: string | number;
+  currency?: string;
+}> {
   const headers: Record<string, string> = {};
   if (token) {
     headers.Authorization = `Bearer ${token}`;

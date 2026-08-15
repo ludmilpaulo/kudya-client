@@ -18,6 +18,10 @@ import { RootState } from '../redux/store';
 import { useTranslation } from '../hooks/useTranslation';
 import { geocodeAddress } from '../utils/getCoordsFromLocationOrAddress';
 import { estimatePackage, requestPackage } from '../services/deliveriesApi';
+import PaymentDetails from '../components/PaymentDetails';
+import { followUpPayment } from '../utils/followUpPayment';
+import * as DocumentPicker from 'expo-document-picker';
+import type { LocalProofFile } from '../services/paymentService';
 
 const PACKAGE_TYPES = ['envelope', 'small', 'medium', 'large', 'fragile', 'document'] as const;
 
@@ -41,6 +45,10 @@ export default function SendPackageScreen() {
   const [price, setPrice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentPhone, setPaymentPhone] = useState('');
+  const [proofName, setProofName] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<LocalProofFile | null>(null);
 
   const useCurrentLocationAsPickup = async () => {
     setLocating(true);
@@ -137,7 +145,7 @@ export default function SendPackageScreen() {
     }
     setLoading(true);
     try {
-      await requestPackage(token, {
+      const parcel = await requestPackage(token, {
         package_type: packageType,
         urgency: 'standard',
         pickup_address: pickupAddress.trim(),
@@ -145,6 +153,16 @@ export default function SendPackageScreen() {
         ...active,
         recipient_name: recipientName.trim(),
         recipient_phone: recipientPhone.trim(),
+      });
+      await followUpPayment({
+        token,
+        amount: parcel.price || price || 0,
+        method: paymentMethod,
+        phone: paymentPhone,
+        proof: proofFile,
+        serviceType: 'package',
+        objectId: parcel.id,
+        currency: parcel.currency,
       });
       Alert.alert(t('success'), t('packageRequested', 'Courier request sent'));
       navigation.goBack();
@@ -224,6 +242,29 @@ export default function SendPackageScreen() {
             {t('estimatedPrice', 'Estimated')}: {price}
           </Text>
         )}
+        <PaymentDetails
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          phone={paymentPhone}
+          setPhone={setPaymentPhone}
+          proofName={proofName}
+          onPickProof={() => {
+            void (async () => {
+              const result = await DocumentPicker.getDocumentAsync({
+                type: ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
+                copyToCacheDirectory: true,
+              });
+              if (result.canceled || !result.assets?.[0]) return;
+              const asset = result.assets[0];
+              setProofName(asset.name);
+              setProofFile({
+                uri: asset.uri,
+                name: asset.name,
+                type: asset.mimeType || 'image/jpeg',
+              });
+            })();
+          }}
+        />
         <TouchableOpacity
           style={tw`bg-slate-200 rounded-xl py-3 items-center mb-2`}
           onPress={onEstimate}

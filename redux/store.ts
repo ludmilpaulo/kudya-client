@@ -19,6 +19,7 @@ import { ridesApi } from './api/ridesApi';
 import { doctorsApi } from './api/doctorsApi';
 import { notificationApi } from './api/notificationApi';
 import { languageApi } from './api/languageApi';
+import { paymentsApi } from './slices/paymentsApi';
 
 // Combine reducer
 const rootReducer = combineReducers({
@@ -37,6 +38,7 @@ const rootReducer = combineReducers({
   [doctorsApi.reducerPath]: doctorsApi.reducer,
   [notificationApi.reducerPath]: notificationApi.reducer,
   [languageApi.reducerPath]: languageApi.reducer,
+  [paymentsApi.reducerPath]: paymentsApi.reducer,
 });
 
 // ✅ Persist config
@@ -57,6 +59,7 @@ export const store = configureStore({
       doctorsApi.middleware,
       notificationApi.middleware,
       languageApi.middleware,
+      paymentsApi.middleware,
     ),
 })
 

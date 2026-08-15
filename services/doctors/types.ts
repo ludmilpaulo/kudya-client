@@ -95,5 +95,5 @@ export type AppointmentPayload = {
   appointment_type: DoctorConsultationType;
   reason: string;
   patient: PatientDetailsPayload;
-  payment_method?: 'pay_now' | 'pay_at_clinic' | 'wallet' | 'mobile_money' | 'card';
+  payment_method?: string;
 };

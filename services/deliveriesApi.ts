@@ -8,7 +8,10 @@ export async function estimatePackage(payload: Record<string, unknown>) {
   return data;
 }
 
-export async function requestPackage(token: string, payload: Record<string, unknown>) {
+export async function requestPackage(
+  token: string,
+  payload: Record<string, unknown>,
+): Promise<{ id: number; price: string | number; currency?: string }> {
   const { data } = await axios.post(`${baseAPI}/api/deliveries/request/`, payload, { headers: auth(token) });
   return data;
 }

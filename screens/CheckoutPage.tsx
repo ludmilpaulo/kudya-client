@@ -13,8 +13,10 @@ import PaymentDetails from '../components/PaymentDetails';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RootStackParamList } from '../navigation/navigation';
 import * as Location from 'expo-location';
+import * as DocumentPicker from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
 import tw from 'twrnc';
+import { initializePayment, uploadPaymentProof } from '../services/paymentService';
 
 type CheckoutPageRouteProp = RouteProp<RootStackParamList, 'Checkout'>;
 
@@ -29,7 +31,10 @@ const CheckoutPage: React.FC = () => {
   const [userAddress, setUserAddress] = useState('');
   const [location, setLocation] = useState<{ latitude: number; longitude: number }>({ latitude: 0, longitude: 0 });
   const [userDetails, setUserDetails] = useState<ProfileFormDetails | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState('Entrega');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentPhone, setPaymentPhone] = useState('');
+  const [proofUri, setProofUri] = useState<string | null>(null);
+  const [proofName, setProofName] = useState<string | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [useCurrentLocation, setUseCurrentLocation] = useState(true);
   const [deliveryNotes, setDeliveryNotes] = useState('');
@@ -92,6 +97,17 @@ const CheckoutPage: React.FC = () => {
     void fetchData();
   }, [storeId, user?.user_id, dispatch]);
 
+  const pickProof = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
+      copyToCacheDirectory: true,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+    setProofUri(asset.uri);
+    setProofName(asset.name);
+  };
+
   const completeOrder = async () => {
     if (!user?.token) {
       Alert.alert('Login Required', 'You need to log in to complete your purchase.');
@@ -118,6 +134,38 @@ const CheckoutPage: React.FC = () => {
         location,
       });
       if (responseData.status === 'success') {
+        const orderId =
+          typeof responseData.order_id === 'number'
+            ? responseData.order_id
+            : Array.isArray(responseData.created_orders)
+              ? Number(responseData.created_orders[0])
+              : undefined;
+        if (paymentMethod && paymentMethod !== 'cash' && user.token) {
+          try {
+            const pay = await initializePayment(user.token, {
+              amount: finalPrice,
+              method: paymentMethod,
+              phone: paymentPhone || undefined,
+              service_type: 'order',
+              object_id: orderId,
+            });
+            if (proofUri && pay.requires_action === 'upload_proof' && pay.payment_id) {
+              await uploadPaymentProof(user.token, pay.payment_id, {
+                uri: proofUri,
+                name: proofName || 'proof.jpg',
+                type: 'image/jpeg',
+              });
+            }
+            if (pay.customer_message) {
+              Alert.alert('Pagamento', pay.customer_message);
+            }
+          } catch {
+            Alert.alert(
+              'Pedido criado',
+              'Complete o pagamento a partir dos seus pedidos se for pedido.',
+            );
+          }
+        }
         dispatch(clearCart(parseInt(orderStoreId, 10)));
         Alert.alert('Pedido Realizado com Sucesso!');
         navigation.navigate('SuccessScreen');
@@ -153,7 +201,14 @@ const CheckoutPage: React.FC = () => {
             userAddress={userAddress}
             setUserAddress={setUserAddress}
           />
-          <PaymentDetails paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} />
+          <PaymentDetails
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
+            phone={paymentPhone}
+            setPhone={setPaymentPhone}
+            proofName={proofName}
+            onPickProof={() => void pickProof()}
+          />
 
           <TextInput
             style={tw`w-full p-2 border border-gray-300 rounded mt-4`}

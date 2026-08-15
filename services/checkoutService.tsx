@@ -6,6 +6,7 @@ import {
   fetchStoreForCheckout,
   validateCouponV1,
   fetchProductsByStoreV1,
+  type CheckoutOrderPayload,
 } from '../features/marketplace/api/checkoutApi';
 
 export {
@@ -36,8 +37,8 @@ export const fetchstoreDetails = async (storeId: number) => {
   return fetchStoreForCheckout(storeId);
 };
 
-export const completeOrderRequest = async (orderData: Record<string, unknown>) => {
-  return completeCheckout(orderData as Parameters<typeof completeCheckout>[0]);
+export const completeOrderRequest = async (orderData: CheckoutOrderPayload) => {
+  return completeCheckout(orderData);
 };
 
 export const validateCouponRequest = async (couponCode: string, subtotal = 0) => {

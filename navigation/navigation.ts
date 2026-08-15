@@ -41,6 +41,7 @@ export type RootStackParamList = {
   Grocery: undefined;
   Food: undefined;
   Notifications: undefined;
+  Wishlist: undefined;
   UserProfile: undefined;
   SuccessScreen: undefined;
   CheckoutPage: { storeId?: number } | undefined;
