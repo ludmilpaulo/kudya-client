@@ -46,13 +46,16 @@
   "submit": {
     "production": {
       "android": {
-        "track": "production",
+        "track": "internal",
         "releaseStatus": "completed"
       },
       "ios": {
         "appleId": "ludmilpaulo@gmail.com",
         "ascAppId": "6745173375",
-        "appleTeamId": "WF3T257QTW"
+        "appleTeamId": "WF3T257QTW",
+        "ascApiKeyPath": "../credentials/AuthKey_67F47B76ZR.p8",
+        "ascApiKeyId": "67F47B76ZR",
+        "ascApiKeyIssuerId": "0cf240e3-a3d1-465d-bb95-734a26332c10"
       }
     }
   }
