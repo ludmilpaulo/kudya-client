@@ -12,6 +12,9 @@ import { RootState } from '../redux/store';
 import { baseAPI } from '../services/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { useGetPaymentMethodsQuery } from '../redux/slices/paymentsApi';
+import { createTransfer } from '../services/financialService';
+
+type Tab = 'balance' | 'send';
 
 interface WalletData {
   available_balance: string;
@@ -40,6 +43,9 @@ export default function WalletScreen() {
   const [method, setMethod] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState<Tab>('balance');
+  const [recipientPhone, setRecipientPhone] = useState('');
+  const [pin, setPin] = useState('');
   const { data: methods } = useGetPaymentMethodsQuery(undefined, { skip: !token });
   const availableMethods = (methods?.methods ?? []).filter((item) => item.available);
   const selectedMethod = method || methods?.default_method || availableMethods[0]?.code || 'card';
@@ -71,7 +77,7 @@ export default function WalletScreen() {
     if (!token) return;
     const parsed = Number(amount);
     if (!Number.isFinite(parsed) || parsed <= 0) {
-      setMessage(t('invalidAmount', 'Enter a valid amount.'));
+      setMessage(t('invalidAmount'));
       return;
     }
     setBusy(true);
@@ -94,9 +100,9 @@ export default function WalletScreen() {
       const url = data.authorization_url;
       if (url) {
         await Linking.openURL(url);
-        setMessage(t('completePayment', 'Complete payment, then return to see your balance.'));
+        setMessage(t('completePayment'));
       } else {
-        setMessage(data.customer_message || t('topUpStarted', 'Top-up created. Complete payment to credit your wallet.'));
+        setMessage(data.customer_message || t('topUpStarted'));
       }
       loadWallet();
     } catch (err) {
@@ -104,7 +110,40 @@ export default function WalletScreen() {
         axios.isAxiosError(err) && err.response?.data && typeof err.response.data === 'object'
           ? String((err.response.data as { detail?: string }).detail || '')
           : '';
-      setMessage(detail || t('topUpFailed', 'Top-up is unavailable until a payment provider is configured.'));
+      setMessage(detail || t('topUpFailed'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleSend = async () => {
+    if (!token) return;
+    const parsed = Number(amount);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      setMessage(t('invalidAmount'));
+      return;
+    }
+    setBusy(true);
+    setMessage(null);
+    try {
+      await createTransfer(
+        {
+          amount: parsed,
+          currency: wallet?.currency || 'ZAR',
+          recipient_phone: recipientPhone,
+          pin: pin || undefined,
+          idempotency_key: `mobile-transfer-${Date.now()}`,
+        },
+        token,
+      );
+      setMessage(t('transferSuccess'));
+      loadWallet();
+    } catch (err) {
+      const detail =
+        axios.isAxiosError(err) && err.response?.data && typeof err.response.data === 'object'
+          ? String((err.response.data as { detail?: string }).detail || '')
+          : '';
+      setMessage(detail || t('failed'));
     } finally {
       setBusy(false);
     }
@@ -120,9 +159,18 @@ export default function WalletScreen() {
 
         <View style={tw`px-6 pt-2`}>
           <Text style={tw`text-blue-300 text-sm font-semibold uppercase tracking-wider`}>
-            {t('walletTitle', 'Kudya Wallet')}
+            {t('walletTitle')}
           </Text>
-          <Text style={tw`text-slate-400 mt-1`}>{t('walletSubtitle', 'Your balance & payouts')}</Text>
+          <Text style={tw`text-slate-400 mt-1`}>{t('walletSubtitle')}</Text>
+
+          <View style={tw`mt-4 flex-row`}>
+            <TouchableOpacity onPress={() => setTab('balance')} style={tw`mr-2 rounded-full px-4 py-2 ${tab === 'balance' ? 'bg-blue-600' : 'bg-white/10'}`}>
+              <Text style={tw`text-white text-sm`}>{t('topUp')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setTab('send')} style={tw`rounded-full px-4 py-2 ${tab === 'send' ? 'bg-blue-600' : 'bg-white/10'}`}>
+              <Text style={tw`text-white text-sm`}>{t('sendMoney')}</Text>
+            </TouchableOpacity>
+          </View>
 
           <View style={tw`mt-8 rounded-3xl overflow-hidden`}>
             <LinearGradient colors={['#2563EB', '#1D4ED8']} style={tw`p-6`}>
@@ -138,12 +186,12 @@ export default function WalletScreen() {
                 <Text style={tw`text-white/90 mt-8 text-base`}>{t('loginRequired')}</Text>
               ) : wallet ? (
                 <>
-                  <Text style={tw`text-blue-100 mt-6 text-sm`}>{t('availableBalance', 'Available balance')}</Text>
+                  <Text style={tw`text-blue-100 mt-6 text-sm`}>{t('availableBalance')}</Text>
                   <Text style={tw`text-4xl font-bold text-white mt-1`}>
                     {wallet.currency} {Number(wallet.available_balance).toFixed(2)}
                   </Text>
                   <Text style={tw`text-blue-200 mt-4 text-sm`}>
-                    {t('pending', 'Pending')}: {wallet.currency}{' '}
+                    {t('pending')}: {wallet.currency}{' '}
                     {Number(wallet.pending_balance).toFixed(2)}
                   </Text>
                 </>
@@ -152,7 +200,7 @@ export default function WalletScreen() {
               )}
             </LinearGradient>
           </View>
-          {token ? (
+          {token && tab === 'balance' ? (
             <View style={tw`mt-6`}>
               <TextInput
                 value={amount}
@@ -191,15 +239,51 @@ export default function WalletScreen() {
                 style={tw`mt-3 rounded-xl bg-blue-600 py-3 items-center`}
               >
                 <Text style={tw`text-white font-semibold`}>
-                  {busy ? t('loading', 'Loading...') : t('topUp', 'Top up')}
+                  {busy ? t('loading', 'Loading...') : t('topUp')}
                 </Text>
+              </TouchableOpacity>
+              {message ? <Text style={tw`text-blue-200 mt-2 text-sm`}>{message}</Text> : null}
+            </View>
+          ) : null}
+          {token && tab === 'send' ? (
+            <View style={tw`mt-6`}>
+              <TextInput
+                value={recipientPhone}
+                onChangeText={setRecipientPhone}
+                keyboardType="phone-pad"
+                placeholder={t('recipientPhone')}
+                placeholderTextColor="#94A3B8"
+                style={tw`rounded-xl bg-white/10 px-4 py-3 text-white`}
+              />
+              <TextInput
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="decimal-pad"
+                placeholder="100"
+                placeholderTextColor="#94A3B8"
+                style={tw`mt-2 rounded-xl bg-white/10 px-4 py-3 text-white`}
+              />
+              <TextInput
+                value={pin}
+                onChangeText={setPin}
+                secureTextEntry
+                placeholder={t('walletPin')}
+                placeholderTextColor="#94A3B8"
+                style={tw`mt-2 rounded-xl bg-white/10 px-4 py-3 text-white`}
+              />
+              <TouchableOpacity
+                onPress={() => void handleSend()}
+                disabled={busy}
+                style={tw`mt-3 rounded-xl bg-blue-600 py-3 items-center`}
+              >
+                <Text style={tw`text-white font-semibold`}>{t('sendMoney')}</Text>
               </TouchableOpacity>
               {message ? <Text style={tw`text-blue-200 mt-2 text-sm`}>{message}</Text> : null}
             </View>
           ) : null}
           {history.length > 0 ? (
             <View style={tw`px-6 mt-6`}>
-              <Text style={tw`text-white font-semibold mb-3`}>{t('transactions', 'Transactions')}</Text>
+              <Text style={tw`text-white font-semibold mb-3`}>{t('transactions')}</Text>
               {history.slice(0, 20).map((tx) => (
                 <View key={tx.id} style={tw`mb-2 rounded-xl bg-white/10 px-4 py-3`}>
                   <Text style={tw`text-white`}>{tx.description || tx.transaction_type}</Text>

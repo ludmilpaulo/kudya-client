@@ -3,6 +3,7 @@ import { t as localT } from '../configs/i18n';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useApiTranslations } from './useApiTranslations';
 import { propertyApplicationTranslations } from "../configs/propertyApplicationTranslations";
+import { financialT } from '../configs/financialTranslations';
 
 export type TranslationParams = Record<string, string | number>;
 
@@ -26,6 +27,7 @@ export function useTranslation() {
       ...translations[languageCode],
       ...propertyApplicationTranslations[languageCode],
     } as Record<string, string>;
+    const financialValue = financialT(languageCode, key);
     const en = {
       ...translations.en,
       ...propertyApplicationTranslations.en,
@@ -38,7 +40,9 @@ export function useTranslation() {
     const apiValue = apiTranslations[key];
 
     let value: string | undefined;
-    if (apiValue) {
+    if (financialValue && financialValue !== key) {
+      value = financialValue;
+    } else if (apiValue) {
       if (
         languageCode !== 'en' &&
         localValue &&

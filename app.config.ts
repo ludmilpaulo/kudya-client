@@ -55,10 +55,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ],
     ios: {
       ...config.ios,
-      associatedDomains: [
-        ...((config.ios?.associatedDomains as string[] | undefined) ?? []),
-        'applinks:sd-kudya.vercel.app',
-      ],
+      // Existing App Store profile Q5U8KFWS75 lacks Associated Domains.
+      // Keep Universal Links in source via EAS_ENABLE_ASSOCIATED_DOMAINS=true after Apple capability is added.
+      associatedDomains:
+        process.env.EAS_ENABLE_ASSOCIATED_DOMAINS === 'true'
+          ? [
+              ...((config.ios?.associatedDomains as string[] | undefined) ?? []),
+              'applinks:sd-kudya.vercel.app',
+            ]
+          : ((config.ios?.associatedDomains as string[] | undefined) ?? []),
       infoPlist: {
         ...config.ios?.infoPlist,
         ...(facebookAppId

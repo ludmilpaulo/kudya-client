@@ -2,6 +2,10 @@ node_modules/
 android/
 ios/
 .git/
+.env
+.env.*
+!.env.example
+!.env.production.example
 *.md
 !README.md
 .expo/
