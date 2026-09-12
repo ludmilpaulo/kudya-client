@@ -4,6 +4,14 @@ type RawStore = Record<string, unknown>;
 
 export type MarketplaceVertical = 'food' | 'groceries';
 
+function nestedId(value: unknown): number {
+  if (typeof value === 'number') return value;
+  if (value && typeof value === 'object' && 'id' in value) {
+    return Number((value as { id: number }).id) || 0;
+  }
+  return 0;
+}
+
 export function normalizeV1Stores(data: unknown): Store[] {
   const rows = Array.isArray(data)
     ? data
@@ -11,8 +19,8 @@ export function normalizeV1Stores(data: unknown): Store[] {
 
   return rows.map((raw) => ({
     id: Number(raw.id),
-    store_type: typeof raw.store_type === 'number' ? raw.store_type : 0,
-    category: typeof raw.category === 'number' ? raw.category : 0,
+    store_type: nestedId(raw.store_type),
+    category: nestedId(raw.category),
     name: String(raw.name ?? ''),
     phone: String(raw.phone ?? ''),
     address: String(raw.address ?? ''),
