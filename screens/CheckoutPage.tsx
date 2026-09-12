@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert, ScrollVi
 import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { useAppNavigation } from '../navigation/hooks';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectUser, logoutUser } from '../redux/slices/authSlice';
+import { selectUser } from '../redux/slices/authSlice';
 import { selectCartItems, clearCart } from '../redux/slices/basketSlice';
 import { fetchstoreDetails, fetchUserDetails, completeOrderRequest } from '../services/checkoutService';
 import { fetchCheckoutQuote } from '../features/marketplace/api/checkoutApi';
@@ -77,11 +77,13 @@ const CheckoutPage: React.FC = () => {
       }
       if (user?.user_id) {
         try {
-          const details = await fetchUserDetails(user.user_id, '');
+          const details = await fetchUserDetails(user.user_id, user.token || '');
           setUserDetails(details);
-          if (!details.avatar) setIsProfileModalOpen(true);
+          if (!details?.avatar) setIsProfileModalOpen(true);
         } catch {
-          dispatch(logoutUser());
+          // The profile prefill is optional for checkout. A failure here must
+          // not end the session — doing so would clear the token and block
+          // order placement.
         }
       }
       try {
@@ -167,13 +169,21 @@ const CheckoutPage: React.FC = () => {
           }
         }
         dispatch(clearCart(parseInt(orderStoreId, 10)));
+        // Toast works on web too (Alert.alert is a no-op on React Native Web),
+        // so the customer always gets confirmation feedback.
+        Toast.show({ type: 'success', text1: 'Pedido Realizado com Sucesso!' });
         Alert.alert('Pedido Realizado com Sucesso!');
         navigation.navigate('SuccessScreen');
       } else {
-        Alert.alert('Erro', responseData.error || responseData.status);
+        const errorMessage = responseData.error || responseData.status || 'Erro ao criar o pedido.';
+        setError(errorMessage);
+        Toast.show({ type: 'error', text1: 'Erro', text2: errorMessage });
+        Alert.alert('Erro', errorMessage);
       }
     } catch {
-      setError('An error occurred while completing the order.');
+      const message = 'An error occurred while completing the order.';
+      setError(message);
+      Toast.show({ type: 'error', text1: 'Erro', text2: message });
     } finally {
       setLoading(false);
     }
