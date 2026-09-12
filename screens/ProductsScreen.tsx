@@ -126,6 +126,28 @@ export default function ProductsScreen() {
   const handleAddToCart = (product: Product) => {
     setActiveCartProductId(product.id);
     setSelectedSize(null);
+
+    // Products without sizes (e.g. groceries/pharmacy) are added immediately,
+    // mirroring handleSelectSize for sized products. Without this the item is
+    // never dispatched to the cart, so the quantity stepper stays disabled and
+    // the "Go to Cart" button never appears (checkout becomes unreachable).
+    const hasSizes = product.sizes && product.sizes.length > 0;
+    if (!hasSizes) {
+      dispatch(
+        addItem({
+          id: product.id,
+          name: product.name,
+          price:
+            product.on_sale && product.discount_percentage > 0
+              ? product.price - (product.price * product.discount_percentage) / 100
+              : product.price,
+          image: product.images?.[0]?.image,
+          size: "",
+          store: storeId,
+          quantity: 1,
+        })
+      );
+    }
   };
 
   // Size select
