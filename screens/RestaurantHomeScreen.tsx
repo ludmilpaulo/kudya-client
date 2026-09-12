@@ -201,7 +201,11 @@ type ApiStoreRow = Omit<store, "location"> & { location: string };
                   style={tw`items-center mx-2`}
                 >
                   <Image
-                    source={{ uri: category.image || "https://ludmil.pythonanywhere.com/media/logo/azul.png" }}
+                    source={
+                      category.image
+                        ? { uri: category.image }
+                        : require("../assets/azul.png")
+                    }
                     style={tw`w-16 h-16 rounded-full`}
                   />
                   <Text style={tw`mt-2 text-white text-sm`}>{category.name}</Text>
