@@ -38,7 +38,12 @@ export type RootStackParamList = {
   SendPackage: undefined;
   CarRental: undefined;
   CarRentalDetail: { vehicleId: number };
-  Grocery: undefined;
+  Grocery:
+    | {
+        categorySlug?: string;
+        section?: 'home' | 'categories' | 'favourites' | 'deals' | 'popular';
+      }
+    | undefined;
   Food: undefined;
   Notifications: undefined;
   Wishlist: undefined;

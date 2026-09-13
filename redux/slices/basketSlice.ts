@@ -23,7 +23,7 @@ const basketSlice = createSlice({
         (item) => item.id === id && item.size === size
       );
       if (existingItem) {
-        existingItem.quantity += action.payload.quantity || 1;
+        existingItem.quantity = Number((existingItem.quantity + (action.payload.quantity || 1)).toFixed(3));
       } else {
         state.items.push({
           ...action.payload,

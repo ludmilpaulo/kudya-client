@@ -17,6 +17,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   if (googleIosScheme) urlSchemes.push(googleIosScheme)
 
   const existingUrlTypes = config.ios?.infoPlist?.CFBundleURLTypes ?? []
+  const existingDomains = (config.ios?.associatedDomains as string[] | undefined) ?? []
+  const associatedDomains =
+    process.env.EAS_ENABLE_ASSOCIATED_DOMAINS === 'true'
+      ? [...existingDomains, 'applinks:sd-kudya.vercel.app']
+      : existingDomains
+
   const mergedUrlTypes = [
     ...(Array.isArray(existingUrlTypes) ? existingUrlTypes : []),
     {
@@ -55,15 +61,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ],
     ios: {
       ...config.ios,
+      usesAppleSignIn: true,
       // Existing App Store profile Q5U8KFWS75 lacks Associated Domains.
       // Keep Universal Links in source via EAS_ENABLE_ASSOCIATED_DOMAINS=true after Apple capability is added.
-      associatedDomains:
-        process.env.EAS_ENABLE_ASSOCIATED_DOMAINS === 'true'
-          ? [
-              ...((config.ios?.associatedDomains as string[] | undefined) ?? []),
-              'applinks:sd-kudya.vercel.app',
-            ]
-          : ((config.ios?.associatedDomains as string[] | undefined) ?? []),
+      ...(associatedDomains.length ? { associatedDomains } : {}),
       infoPlist: {
         ...config.ios?.infoPlist,
         ...(facebookAppId

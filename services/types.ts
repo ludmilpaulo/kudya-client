@@ -213,8 +213,8 @@ export interface CartItem {
   image?: string;
   size: string;
   quantity: number;
-  store: number;  
-     // storeId
+  store: number;
+  selling_unit?: string;
 }
 
 export interface WishlistItem {
