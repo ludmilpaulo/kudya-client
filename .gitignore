@@ -34,7 +34,9 @@ yarn-error.*
 
 # local env files
 .env
-.env.production
+.env.*
+!.env.example
+!.env*.example
 .env*.local
 
 # demo / browser automation artifacts
