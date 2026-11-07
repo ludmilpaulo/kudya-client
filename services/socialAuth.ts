@@ -27,6 +27,33 @@ const FACEBOOK_APP_ID = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? '';
 const INSTAGRAM_APP_ID = process.env.EXPO_PUBLIC_INSTAGRAM_APP_ID ?? '';
 const TIKTOK_CLIENT_KEY = process.env.EXPO_PUBLIC_TIKTOK_CLIENT_KEY ?? '';
 
+type SocialPublicConfig = {
+  google_web_client_id?: string;
+  facebook_app_id?: string;
+  tiktok_client_key?: string;
+};
+
+let runtimeConfig: SocialPublicConfig = {};
+let configPromise: Promise<SocialPublicConfig> | null = null;
+
+export async function loadSocialPublicConfig(): Promise<SocialPublicConfig> {
+  if (configPromise) return configPromise;
+  configPromise = (async () => {
+    try {
+      const response = await fetch(`${baseAPI}/api/auth/social/config/`, {
+        headers: { Accept: 'application/json' },
+      });
+      if (!response.ok) return runtimeConfig;
+      const data = (await response.json()) as SocialPublicConfig;
+      runtimeConfig = data;
+      return data;
+    } catch {
+      return runtimeConfig;
+    }
+  })();
+  return configPromise;
+}
+
 export type SocialTokenPayload = {
   access_token?: string;
   id_token?: string;
@@ -65,7 +92,7 @@ export async function exchangeSocialToken(
 function googleClientIdForPlatform(): string {
   if (Platform.OS === 'ios') return GOOGLE_IOS;
   if (Platform.OS === 'android') return GOOGLE_ANDROID;
-  return GOOGLE_WEB;
+  return GOOGLE_WEB || runtimeConfig.google_web_client_id || '';
 }
 
 /** Google sign-in (use from component with useGoogleAuth hook). */
@@ -73,7 +100,7 @@ export function useGoogleAuth() {
   return Google.useAuthRequest({
     iosClientId: GOOGLE_IOS,
     androidClientId: GOOGLE_ANDROID,
-    webClientId: GOOGLE_WEB,
+    webClientId: GOOGLE_WEB || runtimeConfig.google_web_client_id || undefined,
     redirectUri: OAUTH_REDIRECT_URI,
   });
 }
@@ -81,7 +108,7 @@ export function useGoogleAuth() {
 /** Facebook sign-in. */
 export function useFacebookAuth() {
   return Facebook.useAuthRequest({
-    clientId: FACEBOOK_APP_ID,
+    clientId: FACEBOOK_APP_ID || runtimeConfig.facebook_app_id || '',
     redirectUri: OAUTH_REDIRECT_URI,
     scopes: ['public_profile', 'email'],
     responseType: AuthSession.ResponseType.Token,
@@ -123,16 +150,17 @@ export async function signInWithInstagram(): Promise<SocialAuthResult> {
 const tiktokAuthorizeEndpoint = 'https://www.tiktok.com/v2/auth/authorize/';
 
 export async function signInWithTikTok(): Promise<SocialAuthResult> {
-  if (!TIKTOK_CLIENT_KEY) {
+  const tiktokKey = TIKTOK_CLIENT_KEY || runtimeConfig.tiktok_client_key || '';
+  if (!tiktokKey) {
     throw new Error('TikTok client key not configured (EXPO_PUBLIC_TIKTOK_CLIENT_KEY).');
   }
   const authRequest = new AuthSession.AuthRequest({
-    clientId: TIKTOK_CLIENT_KEY,
+    clientId: tiktokKey,
     redirectUri: OAUTH_REDIRECT_URI,
     scopes: ['user.info.basic'],
     responseType: AuthSession.ResponseType.Code,
     usePKCE: true,
-    extraParams: { client_key: TIKTOK_CLIENT_KEY },
+    extraParams: { client_key: tiktokKey },
   });
   const result = await authRequest.promptAsync({
     authorizationEndpoint: tiktokAuthorizeEndpoint,
@@ -220,11 +248,11 @@ export function isSocialLoginConfigured(provider: SocialProvider): boolean {
     case 'google':
       return !!googleClientIdForPlatform();
     case 'facebook':
-      return !!FACEBOOK_APP_ID;
+      return !!(FACEBOOK_APP_ID || runtimeConfig.facebook_app_id);
     case 'instagram':
       return !!INSTAGRAM_APP_ID;
     case 'tiktok':
-      return !!TIKTOK_CLIENT_KEY;
+      return !!(TIKTOK_CLIENT_KEY || runtimeConfig.tiktok_client_key);
     default:
       return false;
   }

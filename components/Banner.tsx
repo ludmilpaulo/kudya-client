@@ -23,7 +23,7 @@ interface BannerProps {
   userLocation: {
     latitude: number;
     longitude: number;
-  };
+  } | null;
 }
 
 const Banner: React.FC<BannerProps> = ({
@@ -70,6 +70,7 @@ const Banner: React.FC<BannerProps> = ({
         />
       </ScrollView>
 
+      {userLocation ? (
       <MapView
         style={tw`flex-1`}
         provider={PROVIDER_GOOGLE}
@@ -82,6 +83,7 @@ const Banner: React.FC<BannerProps> = ({
       >
         {stores.map((store, index) => (
           <Marker
+            key={String(index)}
             coordinate={store.location}
             title={store.name}
           >
@@ -93,6 +95,7 @@ const Banner: React.FC<BannerProps> = ({
           </Marker>
         ))}
       </MapView>
+      ) : null}
     </View>
   );
 };

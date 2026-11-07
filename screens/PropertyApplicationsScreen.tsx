@@ -16,15 +16,18 @@ export default function PropertyApplicationsScreen() {
   const [applications, setApplications] = useState<PropertyApplicationListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) { setApplications([]); setLoading(false); setRefreshing(false); return; }
+    setLoadFailed(false);
     try {
       const res = await fetch(`${baseAPI}/properties/applications/`, { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } });
-      const data: unknown = await res.json().catch(() => []);
-      setApplications(Array.isArray(data) ? data as PropertyApplicationListItem[] : []);
+      const data: unknown = await res.json().catch(() => null);
+      if (!res.ok || !Array.isArray(data)) throw new Error("Failed to load applications");
+      setApplications(data as PropertyApplicationListItem[]);
     } catch {
-      setApplications([]);
+      setLoadFailed(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -47,7 +50,19 @@ export default function PropertyApplicationsScreen() {
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={tw`p-4 pb-10 ${applications.length === 0 ? "flex-grow justify-center" : ""}`}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void load(); }} tintColor="#f59e0b" />}
-        ListEmptyComponent={<View style={tw`items-center px-8`}><MaterialIcons name="home-work" size={72} color="#cbd5e1" /><Text style={tw`text-slate-600 text-center mt-4`}>{t("noApplications")}</Text></View>}
+        ListEmptyComponent={
+          !token ? (
+            <View style={tw`items-center px-8`}><MaterialIcons name="lock-outline" size={72} color="#cbd5e1" /><Text style={tw`text-slate-600 text-center mt-4`}>{t("loginRequired")}</Text></View>
+          ) : loadFailed ? (
+            <View style={tw`items-center px-8`}>
+              <MaterialIcons name="error-outline" size={72} color="#cbd5e1" />
+              <Text style={tw`text-slate-600 text-center mt-4`}>{t("error")}</Text>
+              <TouchableOpacity onPress={() => { setLoading(true); void load(); }} style={tw`mt-4 bg-amber-500 rounded-xl px-5 py-2`}><Text style={tw`text-white font-bold`}>{t("retry")}</Text></TouchableOpacity>
+            </View>
+          ) : (
+            <View style={tw`items-center px-8`}><MaterialIcons name="home-work" size={72} color="#cbd5e1" /><Text style={tw`text-slate-600 text-center mt-4`}>{t("noApplications")}</Text></View>
+          )
+        }
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => navigation.navigate("PropertyApplicationDetail", { applicationId: item.id })} style={tw`bg-white border border-slate-200 rounded-2xl p-4 mb-3`}>
             <View style={tw`flex-row justify-between gap-3`}><Text style={tw`font-bold text-slate-900 flex-1`} numberOfLines={1}>{item.property_title}</Text><Text style={tw`text-xs font-bold uppercase text-amber-700`}>{item.status.replace(/_/g, " ")}</Text></View>

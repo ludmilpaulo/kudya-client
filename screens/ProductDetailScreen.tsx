@@ -19,6 +19,7 @@ import { FontAwesome, Feather, AntDesign } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../redux/store";
 import { baseAPI, Product, Review } from "../services/types";
+import { productImageUrl } from "../utils/productImage";
 import { addItem } from "../redux/slices/basketSlice";
 import { selectUser } from "../redux/slices/authSlice";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -95,6 +96,12 @@ const ProductDetailScreen = () => {
 
   // Use product from Redux or fallback
   const productToShow: Product | undefined = product || fetchedProduct || undefined;
+  const stockCount = Number(productToShow?.stock ?? 0) || 0;
+  const isOutOfStock = stockCount <= 0;
+  const firstImage = productImageUrl(productToShow?.images);
+  const carouselImages = (productToShow?.images ?? [])
+    .map((entry) => productImageUrl([entry]))
+    .filter(Boolean);
 
   // Cart state: check if this product+size is already in cart
   const cartItems = useSelector((state: RootState) => state.basket.items);
@@ -187,7 +194,7 @@ const ProductDetailScreen = () => {
         process.env.EXPO_PUBLIC_WEB_APP_URL ?? "https://kudya.online"
       ).replace(/\/$/, "");
       const universalLink = `${webAppBase}/products/${productId}`;
-      const imageUrl = productToShow?.images?.[0]?.image || null;
+      const imageUrl = firstImage || null;
       const shareMessage = `🛍️ ${t("share")}\n\n${productToShow?.name}\n${universalLink}`;
       if (!imageUrl) {
         await Share.share({ message: shareMessage, title: productToShow?.name });
@@ -227,7 +234,7 @@ const ProductDetailScreen = () => {
       Alert.alert(t("selectSize"), t("selectSize"));
       return;
     }
-    if (productToShow.stock === 0) {
+    if (isOutOfStock) {
       Alert.alert(t("outOfStock"), t("outOfStock"));
       return;
     }
@@ -241,8 +248,8 @@ const ProductDetailScreen = () => {
         name: productToShow.name,
         size: selectedSize || "",
         price,
-        image: productToShow.images?.[0]?.image || "",
-        store: productToShow.store_id,
+        image: firstImage,
+        store: productToShow.store ?? productToShow.store_id,
         quantity,
       })
     );
@@ -292,14 +299,14 @@ const ProductDetailScreen = () => {
           <Carousel
             width={width}
             height={width}
-            data={productToShow.images || []}
+            data={carouselImages}
             autoPlay
             autoPlayInterval={5000}
             loop
             scrollAnimationDuration={800}
             renderItem={({ item }) => (
               <Image
-                source={{ uri: item?.image }}
+                source={{ uri: item }}
                 style={tw`w-full h-full rounded-xl`}
                 contentFit="cover"
                 cachePolicy="memory-disk"
@@ -341,16 +348,16 @@ const ProductDetailScreen = () => {
           </View>
           <Text
             style={tw`text-sm mt-1 ${
-              productToShow.stock <= 3 ? "text-red-500" : "text-green-600"
+              stockCount <= 3 ? "text-red-500" : "text-green-600"
             }`}
           >
-            {productToShow.stock === 0
+            {isOutOfStock
               ? t("outOfStock")
-              : productToShow.stock === 1
+              : stockCount === 1
               ? t("lastOne")
-              : productToShow.stock <= 3
+              : stockCount <= 3
               ? t("lowStock")
-              : `${productToShow.stock} ${t("inStock")}`}
+              : `${stockCount} ${t("inStock")}`}
           </Text>
           {/* Sizes */}
           {Array.isArray(productToShow.sizes) && productToShow.sizes.length > 0 && (
@@ -399,12 +406,12 @@ const ProductDetailScreen = () => {
               </Text>
               <TouchableOpacity
                 onPress={() => {
-                  if (quantity < (productToShow.stock || 1)) {
+                  if (quantity < stockCount) {
                     setQuantity((q) => q + 1);
                   } else {
                     Alert.alert(
                       t("stockLimitReached"),
-                      `${t("only")} ${productToShow.stock} ${t("itemsAvailable")}.`
+                      `${t("only")} ${stockCount} ${t("itemsAvailable")}.`
                     );
                   }
                 }}
@@ -419,16 +426,16 @@ const ProductDetailScreen = () => {
           <Animated.View entering={FadeInUp.delay(300)}>
             <TouchableOpacity
              onPress={() => {
-                  if (productToShow.stock === 0) return;
+                  if (isOutOfStock) return;
                   if (isInCart) {
                     navigation.navigate("Cart"); // Make sure "Cart" matches your stack name
                   } else {
                     handleAddToCart();
                   }
                 }}
-              disabled={productToShow.stock === 0}
+              disabled={isOutOfStock}
               style={tw`mt-6 py-4 rounded-xl shadow-lg ${
-                productToShow.stock === 0
+                isOutOfStock
                   ? "bg-gray-400"
                   : isInCart
                   ? "bg-blue-600"
@@ -437,7 +444,7 @@ const ProductDetailScreen = () => {
               accessibilityLabel={t("addToCart")}
             >
               <Text style={tw`text-white text-center font-bold text-lg`}>
-                {productToShow.stock === 0
+                {isOutOfStock
                   ? t("outOfStock")
                   : isInCart
                   ? t("goToCart")
@@ -511,8 +518,8 @@ const ProductDetailScreen = () => {
                 >
                   <Image
                     source={
-                      rel.images?.[0]?.image
-                        ? { uri: rel.images[0].image }
+                      productImageUrl(rel.images)
+                        ? { uri: productImageUrl(rel.images) }
                         : require("../assets/icon.png")
                     }
                     style={tw`w-full h-32 rounded-lg bg-gray-200`}

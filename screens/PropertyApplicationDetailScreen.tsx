@@ -23,6 +23,7 @@ export default function PropertyApplicationDetailScreen() {
   const [timeline, setTimeline] = useState<ApplicationTimelineStep[]>([]);
   const [lease, setLease] = useState<Lease | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [signatureName, setSignatureName] = useState("");
   const [signing, setSigning] = useState(false);
   const [directionsCoords, setDirectionsCoords] = useState<MapCoords | null>(null);
@@ -62,7 +63,11 @@ export default function PropertyApplicationDetailScreen() {
   }, []);
 
   const load = useCallback(async () => {
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    setLoadFailed(false);
     try {
       const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
       const [applicationRes, timelineRes, leaseRes] = await Promise.all([
@@ -77,6 +82,7 @@ export default function PropertyApplicationDetailScreen() {
         applicationRes.ok && applicationData && typeof applicationData === "object"
           ? (applicationData as PropertyApplication)
           : null;
+      if (!applicationRes.ok && applicationRes.status !== 404) throw new Error("Failed to load application");
       setApplication(next);
       setTimeline(timelineData && typeof timelineData === "object" && "timeline" in timelineData && Array.isArray((timelineData as { timeline: unknown }).timeline)
         ? (timelineData as { timeline: ApplicationTimelineStep[] }).timeline : []);
@@ -89,6 +95,8 @@ export default function PropertyApplicationDetailScreen() {
       } else {
         setDirectionsCoords(null);
       }
+    } catch {
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -117,6 +125,15 @@ export default function PropertyApplicationDetailScreen() {
   };
 
   if (loading) return <View style={tw`flex-1 bg-slate-100 items-center justify-center`}><ActivityIndicator size="large" color="#f59e0b" /></View>;
+  if (!token) return <View style={tw`flex-1 bg-slate-100 items-center justify-center px-8`}><Text style={tw`text-slate-600 text-center`}>{t("loginRequired")}</Text></View>;
+  if (loadFailed && !application) {
+    return (
+      <View style={tw`flex-1 bg-slate-100 items-center justify-center px-8`}>
+        <Text style={tw`text-slate-600 text-center`}>{t("error")}</Text>
+        <TouchableOpacity onPress={() => { setLoading(true); void load(); }} style={tw`mt-4 bg-amber-500 rounded-xl px-5 py-2`}><Text style={tw`text-white font-bold`}>{t("retry")}</Text></TouchableOpacity>
+      </View>
+    );
+  }
   if (!application) return <View style={tw`flex-1 bg-slate-100 items-center justify-center px-8`}><Text style={tw`text-slate-600 text-center`}>{t("propertyNotFound")}</Text></View>;
 
   const requirementLabel = (requirement: PropertyApplication["requirements"][number]) =>

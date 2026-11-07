@@ -14,7 +14,8 @@ import MapView, { Marker } from "react-native-maps";
 import { useSelector } from "react-redux";
 import { useAppNavigation, useAppRoute } from "../navigation/hooks";
 import { baseAPI } from "../services/types";
-import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
+import { formatCurrency, getCurrencyForCountry, type CurrencyCode } from "../utils/currency";
+import { formatStayNightPrice } from "../utils/stayPrice";
 import { useUserRegion } from "../hooks/useUserRegion";
 import { MaterialIcons } from "@expo/vector-icons";
 import tw from "twrnc";
@@ -66,6 +67,7 @@ type Property = {
   price: string;
   price_label?: string;
   currency?: string;
+  stay_settings_summary?: { price_per_night?: string | number } | null;
   bedrooms: number;
   bathrooms: number;
   area_sqm: number | null;
@@ -73,6 +75,10 @@ type Property = {
   amenity_details?: AmenityDetail[];
   image_urls: string[];
   is_favorited?: boolean;
+  country_policy?: {
+    launch_status?: string;
+    legal_notice?: string;
+  } | null;
   latitude?: number | null;
   longitude?: number | null;
   can_get_directions?: boolean;
@@ -106,7 +112,7 @@ export function stripTags(value: string): string {
 export default function PropertyDetailScreen() {
   const route = useAppRoute<"PropertyDetail">();
   const navigation = useAppNavigation();
-  const { t } = useTranslation();
+  const { t, languageCode } = useTranslation();
   const { region: regionCode } = useUserRegion();
   const token = useSelector((state: RootState) => state.auth.token);
   const [property, setProperty] = useState<Property | null>(null);
@@ -125,7 +131,10 @@ export default function PropertyDetailScreen() {
       setProperty(null);
       return;
     }
-    const headers: Record<string, string> = { Accept: "application/json" };
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "Accept-Language": languageCode,
+    };
     if (token) headers.Authorization = `Bearer ${token}`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
@@ -153,9 +162,7 @@ export default function PropertyDetailScreen() {
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [propertyId, token]);
-
-  const currencyCode = getCurrencyForCountry(regionCode);
+  }, [propertyId, token, languageCode]);
 
   const toggleFavorite = async () => {
     if (!property) return;
@@ -272,6 +279,9 @@ export default function PropertyDetailScreen() {
       : purpose === "stay"
         ? t("forStay", "Stay")
         : t("forRent");
+  const listingCurrency = (property.currency || "").trim().toUpperCase();
+  const currencyCode: CurrencyCode = (listingCurrency || getCurrencyForCountry(regionCode)) as CurrencyCode;
+  const stayPrice = property.stay_settings_summary?.price_per_night ?? property.price;
   const priceSuffix =
     purpose === "stay" || property.listing_type === "rent_daily"
       ? ` ${t("perNight", "per night")}`
@@ -330,6 +340,17 @@ export default function PropertyDetailScreen() {
             {property.property_type_display || t("Properties")}
           </Text>
           <Text style={tw`text-2xl font-bold text-slate-900 mt-1`}>{property.title}</Text>
+          {property.country_policy && property.country_policy.launch_status !== "ready" ? (
+            <View style={tw`mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2`}>
+              <Text style={tw`text-amber-950 text-sm`}>
+                {property.country_policy.legal_notice ||
+                  t(
+                    "propertyTestMarketNotice",
+                    "This market is still in test. Lease templates, deposits, and payments are not legally approved.",
+                  )}
+              </Text>
+            </View>
+          ) : null}
           <View style={tw`flex-row items-center mt-1`}>
             {flagUrl ? (
               <Image source={{ uri: flagUrl }} style={tw`w-5 h-3 rounded-sm mr-1.5`} />
@@ -364,10 +385,14 @@ export default function PropertyDetailScreen() {
           </View>
 
           <Text style={tw`text-3xl font-bold text-slate-900 mt-4`}>
-            {formatCurrency(parseFloat(property.price), currencyCode)}
-            <Text style={tw`text-base font-normal text-slate-500`}>
-              {priceSuffix}
-            </Text>
+            {purpose === "stay"
+              ? formatStayNightPrice(stayPrice, property.currency, t("night", "night"))
+              : formatCurrency(parseFloat(property.price), currencyCode)}
+            {purpose === "stay" ? null : (
+              <Text style={tw`text-base font-normal text-slate-500`}>
+                {priceSuffix}
+              </Text>
+            )}
           </Text>
 
           {property.description ? (

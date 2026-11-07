@@ -6,6 +6,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { useAppSelector } from "../redux/store";
 import { selectUser } from "../redux/slices/authSlice";
 import { getWishlist, type WishlistItem } from "../services/WishlistService";
+import { productImageUrl } from "../utils/productImage";
 
 const WishlistScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -77,7 +78,7 @@ const WishlistScreen: React.FC = () => {
               style={tw`flex-row bg-gray-100 rounded-xl p-3 mb-4 items-center`}
             >
               <Image
-                source={{ uri: item.product?.images?.[0]?.image ?? "" }}
+                source={{ uri: productImageUrl(item.product?.images) }}
                 style={tw`w-16 h-16 rounded-lg`}
               />
               <View style={tw`flex-1 ml-4`}>

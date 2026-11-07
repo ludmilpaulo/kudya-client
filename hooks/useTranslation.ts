@@ -4,6 +4,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useApiTranslations } from './useApiTranslations';
 import { propertyApplicationTranslations } from "../configs/propertyApplicationTranslations";
 import { financialT } from '../configs/financialTranslations';
+import { groceryT } from '../configs/groceryTranslations';
 
 export type TranslationParams = Record<string, string | number>;
 
@@ -27,6 +28,7 @@ export function useTranslation() {
       ...translations[languageCode],
       ...propertyApplicationTranslations[languageCode],
     } as Record<string, string>;
+    const groceryValue = groceryT(languageCode, key);
     const financialValue = financialT(languageCode, key);
     const en = {
       ...translations.en,
@@ -42,6 +44,8 @@ export function useTranslation() {
     let value: string | undefined;
     if (financialValue && financialValue !== key) {
       value = financialValue;
+    } else if (groceryValue) {
+      value = groceryValue;
     } else if (apiValue) {
       if (
         languageCode !== 'en' &&

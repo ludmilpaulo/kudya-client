@@ -10,6 +10,7 @@ export const fetchLatestOrder = async (accessToken: string): Promise<LatestOrder
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     },
     body: JSON.stringify({
       access_token: accessToken,
@@ -29,6 +30,7 @@ export const fetchDriverLocation = async (accessToken: string) => {
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     },
     body: JSON.stringify({
       access_token: accessToken,

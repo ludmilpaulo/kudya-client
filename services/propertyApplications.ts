@@ -16,7 +16,7 @@ export type PropertyApplicationListItem = {
 export type ApplicationDocument = {
   id: number;
   document_type: string;
-  status: "pending" | "verified" | "rejected";
+  status: "required" | "uploaded" | "under_review" | "verified" | "rejected" | "expired";
   original_filename: string;
   rejection_reason: string;
   uploaded_at: string;

@@ -15,21 +15,15 @@ import { FontAwesome } from "@expo/vector-icons";
 import * as Localization from "expo-localization";
 import { analytics } from "../utils/mixpanel";
 
-// Use the CartItem type you defined and imported from your services/types
-export interface CartItem {
-  id: number;         // productId
-  name: string;
-  price: number;
-  image?: string;
-  size: string;
-  quantity: number;
-  store: number;      // storeId
-}
+import { CartItem } from "../services/types";
+import { useGroceryCartQuote } from "../hooks/useGroceryCartQuote";
 
 type NavigationProp = StackNavigationProp<RootStackParamList, "Cart">;
 
 export default function CartScreen() {
   const items: CartItem[] = useSelector((state: RootState) => state.basket.items);
+  const { subtotal } = useGroceryCartQuote(items);
+  const total = subtotal;
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<NavigationProp>();
   const user = useSelector(selectUser);
@@ -39,9 +33,6 @@ export default function CartScreen() {
   const language = (localeObj?.languageCode || "en").toLowerCase();
   const regionCode = localeObj?.regionCode || "ZA";
   const currencyCode = getCurrencyForCountry(regionCode);
-
-  // Calculate total
-  const total = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   // Simple translation util
   const t = (en: string, pt: string) => (language.startsWith("pt") ? pt : en);
@@ -95,8 +86,10 @@ export default function CartScreen() {
           price: item.price,
           image: item.image,
           size: item.size,
-          store: item.store,      // REQUIRED for your reducer!
-          quantity: 1,
+          store: item.store,
+          quantity: item.allows_fractional ? 0.5 : 1,
+          selling_unit: item.selling_unit,
+          allows_fractional: item.allows_fractional,
         })
       );
     } else if (item.quantity === 1) {

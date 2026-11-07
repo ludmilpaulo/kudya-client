@@ -36,6 +36,8 @@ export type CheckoutResponse = {
   order_id?: number;
   created_orders?: number[];
   secret_pin?: string;
+  total?: string;
+  delivery_fee?: string;
 };
 
 export async function completeCheckout(payload: CheckoutOrderPayload, vertical?: MarketplaceVertical) {

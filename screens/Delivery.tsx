@@ -52,6 +52,9 @@ const Delivery = () => {
   const [driverLocationFetchDone, setDriverLocationFetchDone] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [isChatModalVisible, setChatModalVisible] = useState(false);
+  const [secretPin, setSecretPin] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const accessToken = String(user?.token ?? "");
 
   useFocusEffect(
     useCallback(() => {
@@ -88,8 +91,10 @@ const Delivery = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!accessToken) return;
       try {
-        const responseJson = await fetchLatestOrder("");
+        setLoadError(null);
+        const responseJson = await fetchLatestOrder(accessToken);
         const order = responseJson?.orders?.[0];
 
         if (!order) {
@@ -110,18 +115,22 @@ const Delivery = () => {
         setstoreData(order.store);
         setOrderData(order.order_details);
         setOrder_id(order.id);
+        setSecretPin(order.secret_pin ?? null);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching latest order:", error);
+        setLoadError("Não foi possível carregar o seu pedido. Verifique a ligação e tente novamente.");
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, [order_id]);
+  }, [order_id, accessToken]);
 
   const getDriverLocation = async () => {
+    if (!accessToken) return;
     try {
-      const locationData = await fetchDriverLocation("");
+      const locationData = await fetchDriverLocation(accessToken);
       const driverLocationString = locationData?.order_locations?.[0]?.driver_location;
 
       if (!driverLocationString) {
@@ -226,6 +235,13 @@ const Delivery = () => {
           <Text style={tw`mt-3 text-gray-500`}>
             Seu pedido no {storeData?.name} está a caminho
           </Text>
+          {secretPin ? (
+            <View style={tw`mt-4 p-3 rounded-md bg-blue-50`}>
+              <Text style={tw`text-gray-600`}>PIN de entrega — diga-o ao motorista quando receber o pedido:</Text>
+              <Text style={tw`text-3xl font-bold tracking-widest text-blue-800`}>{secretPin}</Text>
+            </View>
+          ) : null}
+          {loadError ? <Text style={tw`mt-3 text-red-600`}>{loadError}</Text> : null}
         </View>
       </SafeAreaView>
 
@@ -268,7 +284,7 @@ const Delivery = () => {
               user_id: String(user?.user_id ?? ""),
               username: user?.username ?? "",
             }}
-            accessToken={""}
+            accessToken={accessToken}
             orderId={order_id ?? 0}
             onClose={() => setChatModalVisible(false)}
             isChatModalVisible={isChatModalVisible}

@@ -1,74 +1,51 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, Image, Text, ActivityIndicator } from "react-native";
 import tw from "twrnc";
-import { baseAPI, store as StoreType } from "../services/types";
+import { fetchstoreCategory } from "../services/apiService";
 
-// Define the category type
 interface Category {
   id: number;
   name: string;
-  image: string;
-  // Add other category properties if needed
+  image: string | null;
 }
 
 interface CategoriesProps {
-  onSelectCategory: (category: string) => void;
+  onSelectCategory: (categoryId: number, categoryName: string) => void;
 }
-
-// ... (imports and interfaces)
 
 const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchCategories();
+    let cancelled = false;
+    fetchstoreCategory()
+      .then((rows) => {
+        if (cancelled) return;
+        setCategories(
+          rows.map((row) => ({
+            id: row.id,
+            name: row.name,
+            image: row.image ?? null,
+          })),
+        );
+        setError(null);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCategories([]);
+          setError("Could not load categories");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(`${baseAPI}/customer/customer/stores/`);
-      const data = await response.json();
-  
-      // Initialize an object to track unique categories based on their names
-      const uniqueCategories: { [key: string]: Category } = {};
-  
-      // Iterate through the stores and add their primary category names to the uniqueCategories object
-      data?.stores.forEach((storeItem: StoreType) => {
-        const storeCategory = storeItem?.category;
-  
-        if (
-          storeCategory &&
-          typeof storeCategory === 'object' &&
-          'name' in storeCategory &&
-          typeof storeCategory.name === 'string' &&
-          typeof storeCategory.image === 'string'
-        ) {
-          const categoryName = storeCategory.name;
-  
-          // Add the category to the uniqueCategories object using its name as the key
-          uniqueCategories[categoryName] = {
-            id: Object.keys(uniqueCategories).length, // Use the current length as a unique identifier
-            name: categoryName,
-            image: storeCategory.image || 'defaultImageUrl',
-          };
-        }
-      });
-  
-      // Convert the values of uniqueCategories object to an array
-      const categoriesArray: Category[] = Object.values(uniqueCategories);
-  
-      console.log("Categories Array", categoriesArray);
-  
-      setCategories(categoriesArray);
-      setLoading(false); // Set loading to false once categories are set
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-    }
-  };
-  
-  
-  
   if (loading) {
     return (
       <ActivityIndicator
@@ -78,7 +55,14 @@ const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
       />
     );
   }
-  
+
+  if (error) {
+    return <Text style={tw`text-red-600 px-4`}>{error}</Text>;
+  }
+
+  if (categories.length === 0) {
+    return <Text style={tw`text-slate-500 px-4`}>No categories yet</Text>;
+  }
 
   return (
     <ScrollView
@@ -89,13 +73,19 @@ const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
       horizontal
       showsHorizontalScrollIndicator={false}
     >
-      {categories.map((category, index) => (
+      {categories.map((category) => (
         <TouchableOpacity
-        key={category.id}
-        style={tw`relative mr-2`}
-        onPress={() => onSelectCategory(category.name)}
-      >
-          <Image source={{ uri: category.image }} style={tw`h-20 w-20 rounded`} />
+          key={category.id}
+          style={tw`relative mr-2`}
+          onPress={() => onSelectCategory(category.id, category.name)}
+        >
+          {category.image ? (
+            <Image source={{ uri: category.image }} style={tw`h-20 w-20 rounded`} />
+          ) : (
+            <Text style={tw`h-20 w-20 text-center pt-6 bg-slate-200 rounded font-bold`}>
+              {category.name.slice(0, 2).toUpperCase()}
+            </Text>
+          )}
           <Text style={tw`text-black font-bold`}>{category.name}</Text>
         </TouchableOpacity>
       ))}
@@ -104,4 +94,3 @@ const Categories: React.FC<CategoriesProps> = ({ onSelectCategory }) => {
 };
 
 export default Categories;
-

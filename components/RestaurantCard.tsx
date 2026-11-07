@@ -10,7 +10,7 @@ type Location = {
 
 type storeProps = {
   store: store;
-  location: Location;
+  location: Location | null;
 };
 
 const storeCard: React.FC<storeProps> = ({ store, location }) => {
@@ -21,6 +21,12 @@ const storeCard: React.FC<storeProps> = ({ store, location }) => {
   }
 
   const isOpen = () => {
+    if (typeof store.is_open === 'boolean') {
+      return store.is_open;
+    }
+    if (!store.opening_hours?.length) {
+      return true;
+    }
     const today = new Date();
     const currentDay = today.toLocaleString('pt-BR', { weekday: 'long' }).toLowerCase();
     const currentTime = today.getHours() * 60 + today.getMinutes();

@@ -23,6 +23,12 @@ export type LocationCity = {
   longitude: number | null;
 };
 
+export type LocationDistrict = {
+  id: number;
+  name: string;
+  city_id: number;
+};
+
 export type NamedRef = {
   id: number | null;
   name: string;
@@ -105,6 +111,19 @@ export async function fetchCities(regionId: number): Promise<LocationCity[]> {
       region_id: typeof row.region_id === "number" ? row.region_id : null,
       latitude: typeof row.latitude === "number" ? row.latitude : null,
       longitude: typeof row.longitude === "number" ? row.longitude : null,
+    };
+  });
+}
+
+export async function fetchDistricts(cityId: number): Promise<LocationDistrict[]> {
+  const data = await locationsFetch(`/cities/${cityId}/districts/`);
+  if (!Array.isArray(data)) return [];
+  return data.map((item) => {
+    const row = asRecord(item);
+    return {
+      id: Number(row.id) || 0,
+      name: typeof row.name === "string" ? row.name : "",
+      city_id: Number(row.city_id) || cityId,
     };
   });
 }

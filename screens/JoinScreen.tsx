@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import * as Location from 'expo-location';
-import tw from 'twrnc'; // ✅ Replaced tailwind-react-native-classnames
+import tw from 'twrnc';
 import Banner from '../components/Banner';
 import { fetchAboutUsData } from '../services/information';
 import { AboutUsData, baseAPI, store } from '../services/types';
@@ -11,52 +11,54 @@ type ApiStoreRow = Omit<store, 'location'> & { location: string };
 const JoinScreen = () => {
   const [headerData, setHeaderData] = useState<AboutUsData | null>(null);
   const [stores, setstores] = useState<store[]>([]);
-  const [userLocation, setUserLocation] = useState({ latitude: -25.747868, longitude: 28.229271 }); // Default fallback location
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLocationAndData = async () => {
-      let fallbackLocation = { latitude: -25.747868, longitude: 28.229271 };
-  
       try {
-        let { status } = await Location.requestForegroundPermissionsAsync();
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        let coords: { latitude: number; longitude: number } | null = null;
         if (status === 'granted') {
-          try {
-            const location = await Location.getCurrentPositionAsync({});
-            fallbackLocation = {
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
-            };
-          } catch (locError) {
-            console.warn("Could not get GPS location, using fallback.");
-          }
+          const location = await Location.getCurrentPositionAsync({});
+          coords = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          };
+          setUserLocation(coords);
         } else {
-          console.warn("Location permission denied, using fallback.");
+          setUserLocation(null);
         }
-  
-        setUserLocation(fallbackLocation);
-  
+
         const header = await fetchAboutUsData();
-        const storeResponse = await fetch(`${baseAPI}/customer/customer/stores/`)
-          .then(response => response.json());
-  
-        const approvedstores = (storeResponse.stores as ApiStoreRow[]).map((storeRow) => ({
+        const params = new URLSearchParams();
+        if (coords) {
+          params.set('latitude', String(coords.latitude));
+          params.set('longitude', String(coords.longitude));
+          params.set('radius', '25');
+        }
+        params.set('page_size', '24');
+        const storeResponse = await fetch(`${baseAPI}/customer/customer/stores/?${params.toString()}`).then(
+          (response) => response.json(),
+        );
+
+        const approvedstores = ((storeResponse.stores || []) as ApiStoreRow[]).map((storeRow) => ({
           ...storeRow,
           location: parseLocation(storeRow.location),
         }));
-  
+
         setHeaderData(header);
         setstores(approvedstores);
-      } catch (error) {
-        console.error("Error fetching data:", error);
+      } catch {
+        setHeaderData(null);
+        setstores([]);
       } finally {
         setLoading(false);
       }
     };
-  
-    fetchLocationAndData();
+
+    void fetchLocationAndData();
   }, []);
-  
 
   return (
     <View style={tw`flex-1 bg-gray-100`}>
@@ -64,7 +66,7 @@ const JoinScreen = () => {
         <View style={tw`flex-1 justify-center items-center`}>
           <ActivityIndicator size="large" color="#4f46e5" />
         </View>
-      ) : headerData && (
+      ) : headerData ? (
         <Banner
           title={headerData.title}
           backgroundImage={headerData.backgroundImage}
@@ -74,6 +76,8 @@ const JoinScreen = () => {
           stores={stores}
           userLocation={userLocation}
         />
+      ) : (
+        <Text style={tw`text-center mt-16 text-slate-500`}>Unable to load</Text>
       )}
     </View>
   );

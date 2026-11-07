@@ -87,6 +87,8 @@ export interface store {
   };
   barnner: boolean;
   is_approved: boolean;
+  /** Server-computed from opening hours in the store's timezone. */
+  is_open?: boolean;
   location: {
     latitude: number;
     longitude: number;
@@ -189,16 +191,18 @@ export interface ProductImage {
 export interface Product {
   id: number;
   store_id: number;
+  store?: number;
   name: string;
   category?: string;
   description?: string;
   price: number;
-  stock: number;
+  /** DRF serializes the decimal stock as a string ("12.000"); compare with Number(stock). */
+  stock: number | string;
   on_sale: boolean;
   bulk_sale: boolean;
   discount_percentage: number;
   season?: string;
-  images?: ProductImage[];
+  images?: Array<ProductImage | string>;
   gender?: string;
   sizes?: string[];
 
@@ -215,6 +219,7 @@ export interface CartItem {
   quantity: number;
   store: number;
   selling_unit?: string;
+  allows_fractional?: boolean;
 }
 
 export interface WishlistItem {

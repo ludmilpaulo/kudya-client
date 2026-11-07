@@ -23,11 +23,13 @@ const basketSlice = createSlice({
         (item) => item.id === id && item.size === size
       );
       if (existingItem) {
-        existingItem.quantity = Number((existingItem.quantity + (action.payload.quantity || 1)).toFixed(3));
+        existingItem.quantity += action.payload.quantity || (existingItem.allows_fractional ? 0.5 : 1);
+        existingItem.quantity = Number(existingItem.quantity.toFixed(3));
       } else {
+        const fractional = Boolean(action.payload.allows_fractional);
         state.items.push({
           ...action.payload,
-          quantity: action.payload.quantity || 1,
+          quantity: action.payload.quantity || (fractional ? 0.5 : 1),
         });
       }
     },
@@ -36,8 +38,9 @@ const basketSlice = createSlice({
         (item) => item.id === action.payload.id && item.size === action.payload.size
       );
       if (index !== -1) {
-        if (state.items[index].quantity > 1) {
-          state.items[index].quantity -= 1;
+        const step = state.items[index].allows_fractional ? 0.5 : 1;
+        if (state.items[index].quantity > step) {
+          state.items[index].quantity = Number((state.items[index].quantity - step).toFixed(3));
         } else {
           state.items.splice(index, 1);
         }

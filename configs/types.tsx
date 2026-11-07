@@ -101,6 +101,7 @@ export interface Order {
   total: number;
   status: string;
   address: string;
+  secret_pin?: string | null;
 }
 
 

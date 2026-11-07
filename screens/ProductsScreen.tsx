@@ -22,7 +22,8 @@ import * as Localization from "expo-localization";
 import { fetchProductsByStore } from "../redux/slices/productsSlice";
 import { RootState, AppDispatch } from "../redux/store";
 import { LinearGradient } from "expo-linear-gradient";
-import { Product, baseAPI } from "../services/types";
+import { Product } from "../services/types";
+import { productImageUrl } from "../utils/productImage";
 import { formatCurrency, getCurrencyForCountry } from "../utils/currency";
 import { RootStackParamList } from "../navigation/navigation";
 import { addItem, removeItem, selectCartItems } from "../redux/slices/basketSlice";
@@ -92,11 +93,11 @@ export default function ProductsScreen() {
     [products]
   );
 
-  const resolveProductImage = (imagePath: string | undefined): string => {
-    if (!imagePath) return "";
-    if (imagePath.startsWith("http")) return imagePath;
-    if (imagePath.startsWith("/media/")) return `${baseAPI}${imagePath}`;
-    return imagePath;
+  const unitPrice = (product: Product) => {
+    const base = Number(product.price) || 0;
+    return product.on_sale && product.discount_percentage > 0
+      ? base - (base * product.discount_percentage) / 100
+      : base;
   };
 
   // Carousel banners for sales (top 5)
@@ -104,7 +105,7 @@ export default function ProductsScreen() {
     id: product.id,
     name: product.name,
     subtitle: product.discount_percentage > 0 ? `-${product.discount_percentage}%` : "SALE",
-    image: resolveProductImage(product.images?.[0]?.image),
+    image: productImageUrl(product.images),
   }));
 
   // Language and currency
@@ -126,6 +127,19 @@ export default function ProductsScreen() {
   const handleAddToCart = (product: Product) => {
     setActiveCartProductId(product.id);
     setSelectedSize(null);
+    if (!product.sizes || product.sizes.length === 0) {
+      dispatch(
+        addItem({
+          id: product.id,
+          name: product.name,
+          price: unitPrice(product),
+          image: productImageUrl(product.images),
+          size: "",
+          store: storeId,
+          quantity: 1,
+        })
+      );
+    }
   };
 
   // Size select
@@ -139,11 +153,8 @@ export default function ProductsScreen() {
           addItem({
             id: product.id,
             name: product.name,
-            price:
-              product.on_sale && product.discount_percentage > 0
-                ? product.price - (product.price * product.discount_percentage) / 100
-                : product.price,
-            image: product.images?.[0]?.image,
+            price: unitPrice(product),
+            image: productImageUrl(product.images),
             size,
             store: storeId,
             quantity: 1,
@@ -160,12 +171,13 @@ export default function ProductsScreen() {
     size: string | null
   ) => {
     const cartItem = getCartItem(product.id, size);
+    const stockCount = Number(product.stock) || 0;
 
     if (change === 1) {
-      if (cartItem && cartItem.quantity >= product.stock) {
+      if (cartItem && cartItem.quantity >= stockCount) {
         Alert.alert(
           t("stockLimitReached", "Stock Limit Reached"),
-          `${t("only", "Only")} ${product.stock} ${t("itemsAvailable", "items available")}.`
+          `${t("only", "Only")} ${stockCount} ${t("itemsAvailable", "items available")}.`
         );
         return;
       }
@@ -173,11 +185,8 @@ export default function ProductsScreen() {
         addItem({
           id: product.id,
           name: product.name,
-          price:
-            product.on_sale && product.discount_percentage > 0
-              ? product.price - (product.price * product.discount_percentage) / 100
-              : product.price,
-          image: product.images?.[0]?.image,
+          price: unitPrice(product),
+          image: productImageUrl(product.images),
           size: size || "",
           store: storeId,
           quantity: 1,
@@ -335,23 +344,22 @@ export default function ProductsScreen() {
             !error &&
             filteredProducts.map((product, idx) => {
               const hasSale = product.on_sale && product.discount_percentage > 0;
-              const price = hasSale
-                ? product.price - (product.price * product.discount_percentage) / 100
-                : product.price;
+              const price = unitPrice(product);
+              const imageUri = productImageUrl(product.images);
 
               // Stock status
+              const stockCount = Number(product.stock) || 0;
               let stockLabel = "";
               let stockBadgeColor = "";
               let disableAddToCart = false;
-              if (product.stock <= 0) {
+              if (stockCount <= 0) {
                 stockLabel = t("outOfStock", "Esgotado");
                 stockBadgeColor = "#EF4444";
                 disableAddToCart = true;
-              } else if (product.stock === 1) {
+              } else if (stockCount === 1) {
                 stockLabel = t("lastOne", "Último!");
                 stockBadgeColor = "#F59E42";
-                disableAddToCart = true;
-              } else if (product.stock < 10) {
+              } else if (stockCount < 10) {
                 stockLabel = t("lowStock", "Pouco Stock");
                 stockBadgeColor = "#FCD34D";
               }
@@ -386,13 +394,7 @@ export default function ProductsScreen() {
                     >
                       <View>
                         <Image
-                            source={
-                              product.images?.[0]?.image
-                                ? {
-                                    uri: resolveProductImage(product.images[0].image),
-                                  }
-                                : undefined
-                            }
+                            source={imageUri ? { uri: imageUri } : undefined}
                             style={tw`w-full h-28 rounded-lg mb-2 bg-gray-200`}
                             contentFit="cover"
                           />
@@ -493,7 +495,7 @@ export default function ProductsScreen() {
                                 onPress={() => handleChangeQuantity(1, product, selectedSize)}
                                 disabled={
                                   !cartItem ||
-                                  cartItem.quantity >= product.stock
+                                  cartItem.quantity >= stockCount
                                 }
                               >
                                 <Text style={tw`text-xl font-bold`}>+</Text>

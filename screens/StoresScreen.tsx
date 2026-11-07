@@ -43,9 +43,13 @@ export default function StoresScreen() {
       return;
     }
     if (storeTypeId) {
-      dispatch(fetchStoresByType(storeTypeId));
+      dispatch(fetchStoresByType({
+        storeTypeId,
+        latitude: userLocation?.latitude,
+        longitude: userLocation?.longitude,
+      }));
     }
-  }, [storeTypeId, vertical, dispatch]);
+  }, [storeTypeId, vertical, dispatch, userLocation?.latitude, userLocation?.longitude]);
 
   // Calculate store distances
   const storesWithDistance = useMemo(() => {

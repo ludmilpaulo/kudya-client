@@ -25,6 +25,7 @@ import { SizeQuantityModal } from "../components/SizeQuantityModal";
 import * as Localization from "expo-localization";
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Product } from "../services/types";
+import { productImageUrl } from "../utils/productImage";
 
 // Navigation types
 type ProductsByCategoryScreenNavigationProp = StackNavigationProp<RootStackParamList, "ProductsByCategory">;
@@ -79,7 +80,7 @@ const ProductsByCategoryScreen: React.FC<Props> = ({ route }) => {
   }, [search, loadProducts]);
 
   // Handler for add to cart (open modal for sizes)
-  const getProductImage = (product: Product) => product.images?.[0]?.image || "";
+  const getProductImage = (product: Product) => productImageUrl(product.images);
 
   const handleAddToCart = (product: Product) => {
     if (Array.isArray(product.sizes) && product.sizes.length > 0) {
@@ -227,7 +228,7 @@ const ProductsByCategoryScreen: React.FC<Props> = ({ route }) => {
       <SizeQuantityModal
         visible={modalVisible}
         sizes={modalProduct?.sizes || []}
-        maxQuantity={modalProduct?.stock || 1}
+        maxQuantity={Number(modalProduct?.stock) || 1}
         onSelect={handleModalAdd}
         onClose={() => setModalVisible(false)}
       />

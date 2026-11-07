@@ -30,8 +30,9 @@ import {
   type ResolvedLocation,
 } from "../services/locationsApi";
 import { formatDistanceKm } from "../utils/propertyDirections";
+import PropertyLanguageCard from "../components/property/PropertyLanguageCard";
 
-type Purpose = "rent" | "sale";
+type Purpose = "stay" | "rent" | "sale";
 type DiscoveryMode = "nearby" | "search";
 type LocationPermission = "unknown" | "granted" | "denied" | "unavailable";
 
@@ -48,6 +49,7 @@ type Property = {
   suburb?: string;
   listing_type: string;
   listing_type_display?: string;
+  purpose?: string;
   purpose_display?: string;
   property_type_display?: string;
   price: string;
@@ -98,13 +100,13 @@ function unwrapList(data: unknown): Property[] {
 
 export default function PropertiesScreen() {
   const navigation = useAppNavigation();
-  const { t } = useTranslation();
+  const { t, languageCode } = useTranslation();
   const { region: regionCode } = useUserRegion();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [purpose, setPurpose] = useState<Purpose>("rent");
+  const [purpose, setPurpose] = useState<Purpose>("stay");
   const [search, setSearch] = useState("");
   const [cityText, setCityText] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -239,7 +241,9 @@ export default function PropertiesScreen() {
           url = `${baseAPI}/api/properties/search/?${params}`;
         }
 
-        const res = await fetch(url, { headers: { Accept: "application/json" } });
+        const res = await fetch(url, {
+          headers: { Accept: "application/json", "Accept-Language": languageCode },
+        });
         const data: unknown = await res.json().catch(() => null);
         if (!res.ok) {
           const detail =
@@ -269,6 +273,7 @@ export default function PropertiesScreen() {
       discoveryMode,
       coords,
       t,
+      languageCode,
     ],
   );
 
@@ -326,25 +331,13 @@ export default function PropertiesScreen() {
               <MaterialIcons name="home" size={56} color="#cbd5e1" />
             </View>
           )}
-          <View style={tw`absolute bottom-0 left-0 right-0 px-3 py-2 bg-black/55`}>
-            <Text style={tw`text-white text-lg font-bold`}>
-              {formatCurrency(parseFloat(item.price), displayCurrency)}
-              <Text style={tw`text-xs font-normal text-slate-200`}>
-                {item.listing_type === "rent_daily"
-                  ? ` / ${t("perDay")}`
-                  : item.listing_type === "rent_monthly"
-                    ? ` / ${t("perMonth")}`
-                    : item.listing_type === "buy"
-                      ? ""
-                      : item.price_label
-                        ? ` / ${item.price_label.replace(/^per\s+/i, "")}`
-                        : ""}
-              </Text>
-            </Text>
-          </View>
-          <View style={tw`absolute top-2 left-2 px-2 py-1 bg-white rounded-md`}>
-            <Text style={tw`text-slate-800 text-xs font-bold uppercase`}>
-              {item.listing_type === "buy" ? t("forSale") : t("forRent")}
+          <View style={tw`absolute top-2 left-2 px-2 py-1 bg-white rounded-full`}>
+            <Text style={tw`text-violet-800 text-xs font-bold`}>
+              {item.purpose === "stay" || item.listing_type === "rent_daily"
+                ? t("shortTerm", "Short term")
+                : item.purpose === "sale" || item.listing_type === "buy"
+                  ? t("forSale")
+                  : t("longTerm", "Long term")}
             </Text>
           </View>
           {distanceLabel ? (
@@ -383,6 +376,16 @@ export default function PropertiesScreen() {
               <Text style={tw`text-sm text-slate-400 ml-auto`}>{item.property_type_display}</Text>
             ) : null}
           </View>
+          <Text style={tw`text-violet-700 text-base font-bold mt-2`}>
+            {formatCurrency(parseFloat(item.price), displayCurrency)}
+            <Text style={tw`text-xs font-medium text-violet-500`}>
+              {item.purpose === "stay" || item.listing_type === "rent_daily"
+                ? ` / ${t("perNight", "per night")}`
+                : item.purpose === "rent" || item.listing_type === "rent_monthly"
+                  ? ` / ${t("perMonth")}`
+                  : ""}
+            </Text>
+          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -390,7 +393,7 @@ export default function PropertiesScreen() {
 
   return (
     <View style={tw`flex-1 bg-slate-100`}>
-      <View style={tw`bg-slate-900 px-4 pt-12 pb-5`}>
+      <View style={tw`bg-violet-800 px-4 pt-12 pb-5`}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={tw`mb-3 flex-row items-center self-start`}
@@ -400,11 +403,15 @@ export default function PropertiesScreen() {
           <MaterialIcons name="arrow-back" size={22} color="#e2e8f0" />
           <Text style={tw`text-slate-300 ml-1 text-sm`}>{t("back", "Back")}</Text>
         </TouchableOpacity>
-        <Text style={tw`text-xs font-bold uppercase tracking-widest text-amber-400`}>
-          {t("kudyaPropertiesBrand")}
+        <Text style={tw`text-xs font-bold uppercase tracking-widest text-violet-200`}>
+          {t("kudyaPropertiesBrand", "Kudya Property")}
         </Text>
-        <Text style={tw`text-2xl font-bold text-white mt-1`}>{t("Properties")}</Text>
-        <Text style={tw`text-slate-300 mt-1 text-sm`}>{t("rentOrBuy")}</Text>
+        <Text style={tw`text-2xl font-bold text-white mt-1`}>
+          {t("findYourNextHome", "Find your next home")}
+        </Text>
+        <Text style={tw`text-violet-100 mt-1 text-sm`}>
+          {t("propertySearchSubtitle", "Short-term stays and long-term rentals")}
+        </Text>
         {discoveryMode === "nearby" && nearYouLabel ? (
           <View style={tw`flex-row items-center mt-2`}>
             {nearYou?.country?.flag_url ? (
@@ -413,7 +420,7 @@ export default function PropertiesScreen() {
                 style={tw`w-5 h-3 rounded-sm mr-2`}
               />
             ) : null}
-            <Text style={tw`text-amber-100 text-sm`}>
+            <Text style={tw`text-violet-100 text-sm`}>
               {t("nearYou", "Near you")}: {nearYouLabel}
             </Text>
           </View>
@@ -429,18 +436,18 @@ export default function PropertiesScreen() {
             }}
             style={[
               tw`flex-row items-center px-3 py-2 rounded-lg`,
-              discoveryMode === "nearby" ? tw`bg-amber-500` : tw`bg-white/10`,
+              discoveryMode === "nearby" ? tw`bg-white` : tw`bg-white/15`,
             ]}
           >
             <MaterialIcons
               name="my-location"
               size={16}
-              color={discoveryMode === "nearby" ? "#0f172a" : "#fff"}
+              color={discoveryMode === "nearby" ? "#5b21b6" : "#fff"}
             />
             <Text
               style={[
                 tw`ml-1 text-sm font-semibold`,
-                discoveryMode === "nearby" ? tw`text-slate-900` : tw`text-white`,
+                discoveryMode === "nearby" ? tw`text-violet-800` : tw`text-white`,
               ]}
             >
               {locating ? t("locating", "Locating…") : t("nearby", "Nearby")}
@@ -453,13 +460,13 @@ export default function PropertiesScreen() {
             }}
             style={[
               tw`px-3 py-2 rounded-lg`,
-              discoveryMode === "search" ? tw`bg-amber-500` : tw`bg-white/10`,
+              discoveryMode === "search" ? tw`bg-white` : tw`bg-white/15`,
             ]}
           >
             <Text
               style={[
                 tw`text-sm font-semibold`,
-                discoveryMode === "search" ? tw`text-slate-900` : tw`text-white`,
+                discoveryMode === "search" ? tw`text-violet-800` : tw`text-white`,
               ]}
             >
               {t("searchManually", "Search manually")}
@@ -467,10 +474,11 @@ export default function PropertiesScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={tw`flex-row bg-white/10 rounded-xl p-1 mt-4`}>
+        <View style={tw`flex-row bg-white/15 rounded-full p-1 mt-4`}>
           {(
             [
-              { value: "rent" as Purpose, label: t("forRent") },
+              { value: "stay" as Purpose, label: t("shortTerm", "Short term") },
+              { value: "rent" as Purpose, label: t("longTerm", "Long term") },
               { value: "sale" as Purpose, label: t("forSale") },
             ] as const
           ).map((tab) => (
@@ -478,8 +486,8 @@ export default function PropertiesScreen() {
               key={tab.value}
               onPress={() => setPurpose(tab.value)}
               style={[
-                tw`flex-1 py-2.5 rounded-lg items-center`,
-                purpose === tab.value ? tw`bg-amber-500` : undefined,
+                tw`flex-1 py-2.5 rounded-full items-center`,
+                purpose === tab.value ? tw`bg-white` : undefined,
               ]}
               accessibilityRole="tab"
               accessibilityState={{ selected: purpose === tab.value }}
@@ -487,7 +495,7 @@ export default function PropertiesScreen() {
               <Text
                 style={[
                   tw`font-semibold text-sm`,
-                  purpose === tab.value ? tw`text-slate-900` : tw`text-white`,
+                  purpose === tab.value ? tw`text-violet-800` : tw`text-white`,
                 ]}
               >
                 {tab.label}
@@ -498,7 +506,7 @@ export default function PropertiesScreen() {
 
         <TextInput
           style={tw`mt-3 bg-white rounded-xl px-4 py-3 text-slate-800`}
-          placeholder={t("searchPropertiesPlaceholder")}
+          placeholder={t("whereDoYouWantToStay", "Where do you want to stay?")}
           placeholderTextColor="#94a3b8"
           value={search}
           onChangeText={(value) => {
@@ -529,10 +537,10 @@ export default function PropertiesScreen() {
                 }}
                 style={[
                   tw`mr-2 px-3 py-2 rounded-full border`,
-                  !countryCode ? tw`bg-amber-500 border-amber-500` : tw`bg-white/10 border-white/20`,
+                  !countryCode ? tw`bg-white border-white` : tw`bg-white/10 border-white/20`,
                 ]}
               >
-                <Text style={!countryCode ? tw`text-slate-900 text-xs font-semibold` : tw`text-white text-xs`}>
+                <Text style={!countryCode ? tw`text-violet-800 text-xs font-semibold` : tw`text-white text-xs`}>
                   {t("anyCountry", "Any country")}
                 </Text>
               </TouchableOpacity>
@@ -550,7 +558,7 @@ export default function PropertiesScreen() {
                     }}
                     style={[
                       tw`mr-2 px-3 py-2 rounded-full border flex-row items-center`,
-                      active ? tw`bg-amber-500 border-amber-500` : tw`bg-white/10 border-white/20`,
+                      active ? tw`bg-white border-white` : tw`bg-white/10 border-white/20`,
                     ]}
                   >
                     {c.flag_url ? (
@@ -558,7 +566,7 @@ export default function PropertiesScreen() {
                     ) : c.flag_icon ? (
                       <Text style={tw`mr-1`}>{c.flag_icon}</Text>
                     ) : null}
-                    <Text style={active ? tw`text-slate-900 text-xs font-semibold` : tw`text-white text-xs`}>
+                    <Text style={active ? tw`text-violet-800 text-xs font-semibold` : tw`text-white text-xs`}>
                       {c.name}
                     </Text>
                   </TouchableOpacity>
@@ -666,7 +674,7 @@ export default function PropertiesScreen() {
 
       {showLocationFallback ? (
         <View style={tw`flex-1 items-center justify-center px-8`}>
-          <MaterialIcons name="location-off" size={64} color="#f59e0b" />
+          <MaterialIcons name="location-off" size={64} color="#7c3aed" />
           <Text style={tw`text-slate-800 text-center mt-4 font-semibold text-lg`}>
             {t("locationNeeded", "Enable location to see homes near you")}
           </Text>
@@ -685,7 +693,7 @@ export default function PropertiesScreen() {
                 }
               });
             }}
-            style={tw`mt-5 bg-slate-900 px-5 py-3 rounded-xl`}
+            style={tw`mt-5 bg-violet-700 px-5 py-3 rounded-xl`}
           >
             <Text style={tw`text-white font-semibold`}>{t("enableLocation", "Enable location")}</Text>
           </TouchableOpacity>
@@ -703,7 +711,7 @@ export default function PropertiesScreen() {
         </View>
       ) : loading && properties.length === 0 ? (
         <View style={tw`flex-1 items-center justify-center`}>
-          <ActivityIndicator size="large" color="#f59e0b" />
+          <ActivityIndicator size="large" color="#7c3aed" />
           <Text style={tw`text-slate-600 mt-3`}>{t("loadingProperties")}</Text>
         </View>
       ) : error ? (
@@ -715,10 +723,10 @@ export default function PropertiesScreen() {
           <Text style={tw`text-slate-500 text-center mt-2 text-sm`}>{error}</Text>
           <TouchableOpacity
             onPress={() => void load()}
-            style={tw`mt-5 bg-amber-500 px-5 py-3 rounded-xl`}
+            style={tw`mt-5 bg-violet-700 px-5 py-3 rounded-xl`}
             accessibilityRole="button"
           >
-            <Text style={tw`text-slate-900 font-semibold`}>{t("retry", "Retry")}</Text>
+            <Text style={tw`text-white font-semibold`}>{t("retry", "Retry")}</Text>
           </TouchableOpacity>
         </View>
       ) : properties.length === 0 ? (
@@ -728,7 +736,11 @@ export default function PropertiesScreen() {
             {t("noPropertiesFound")}
           </Text>
           <Text style={tw`text-slate-500 text-center mt-2 text-sm`}>
-            {purpose === "sale" ? t("tryRentTab") : t("trySaleTab")}
+            {purpose === "stay"
+              ? t("tryLongTermTab", "Try long-term rentals")
+              : purpose === "rent"
+                ? t("tryShortTermTab", "Try short-term stays")
+                : t("tryRentTab")}
           </Text>
           <TouchableOpacity
             onPress={() => {
@@ -737,12 +749,16 @@ export default function PropertiesScreen() {
               setCountryCode("");
               setRegionId("");
               setCityId("");
-              setPurpose(purpose === "rent" ? "sale" : "rent");
+              setPurpose(purpose === "stay" ? "rent" : purpose === "rent" ? "sale" : "stay");
             }}
-            style={tw`mt-5 bg-slate-900 px-5 py-3 rounded-xl`}
+            style={tw`mt-5 bg-violet-700 px-5 py-3 rounded-xl`}
           >
             <Text style={tw`text-white font-semibold`}>
-              {purpose === "rent" ? t("forSale") : t("forRent")}
+              {purpose === "stay"
+                ? t("longTerm", "Long term")
+                : purpose === "rent"
+                  ? t("forSale")
+                  : t("shortTerm", "Short term")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -753,6 +769,7 @@ export default function PropertiesScreen() {
           renderItem={renderProperty}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={tw`p-4 pb-24`}
+          ListHeaderComponent={<PropertyLanguageCard />}
           initialNumToRender={8}
           windowSize={7}
           refreshControl={
@@ -766,7 +783,7 @@ export default function PropertiesScreen() {
                   void load({ silent: true });
                 }
               }}
-              tintColor="#f59e0b"
+              tintColor="#7c3aed"
             />
           }
         />
