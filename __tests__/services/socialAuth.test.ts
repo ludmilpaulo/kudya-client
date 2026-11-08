@@ -63,6 +63,18 @@ describe('isSocialLoginConfigured', () => {
     expect(mod.isSocialLoginConfigured('google')).toBe(true);
   });
 
+  it('passes a defined web client id when Google is not configured', () => {
+    const { Platform } = require('react-native');
+    Platform.OS = 'web';
+    const { useGoogleAuth } = loadSocialAuth();
+    const google = require('expo-auth-session/providers/google') as {
+      useAuthRequest: jest.Mock;
+    };
+    useGoogleAuth();
+    const config = google.useAuthRequest.mock.calls.at(-1)?.[0] as { webClientId?: string };
+    expect(config.webClientId).toBeTruthy();
+  });
+
   it('detects tiktok client key', () => {
     env.EXPO_PUBLIC_TIKTOK_CLIENT_KEY = 'awtest';
     const { isSocialLoginConfigured } = loadSocialAuth();

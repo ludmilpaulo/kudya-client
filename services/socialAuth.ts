@@ -95,12 +95,16 @@ function googleClientIdForPlatform(): string {
   return GOOGLE_WEB || runtimeConfig.google_web_client_id || '';
 }
 
+// expo-auth-session throws during render when the platform client id is missing; the Google
+// button stays disabled via isSocialLoginConfigured, so a placeholder only keeps the screen alive.
+const GOOGLE_UNCONFIGURED_CLIENT_ID = 'google-client-id-not-configured';
+
 /** Google sign-in (use from component with useGoogleAuth hook). */
 export function useGoogleAuth() {
   return Google.useAuthRequest({
     iosClientId: GOOGLE_IOS,
     androidClientId: GOOGLE_ANDROID,
-    webClientId: GOOGLE_WEB || runtimeConfig.google_web_client_id || undefined,
+    webClientId: GOOGLE_WEB || runtimeConfig.google_web_client_id || GOOGLE_UNCONFIGURED_CLIENT_ID,
     redirectUri: OAUTH_REDIRECT_URI,
   });
 }
