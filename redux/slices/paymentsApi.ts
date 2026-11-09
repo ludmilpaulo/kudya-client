@@ -34,8 +34,8 @@ export const paymentsApi = createApi({
   }),
   tagTypes: ['PaymentMethods', 'Payment'],
   endpoints: (builder) => ({
-    getPaymentMethods: builder.query<PaymentConfiguration, void>({
-      query: () => '/api/payments/methods/',
+    getPaymentMethods: builder.query<PaymentConfiguration, string | void>({
+      query: (service) => ({ url: '/api/payments/methods/', params: service ? { service } : undefined }),
       providesTags: ['PaymentMethods'],
     }),
     createPayment: builder.mutation<PaymentInitializeResponse, CreatePaymentRequest>({

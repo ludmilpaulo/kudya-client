@@ -162,6 +162,7 @@ export default function ServiceDetailScreen() {
         />
 
         <PaymentDetails
+          serviceType="service"
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
           phone={paymentPhone}

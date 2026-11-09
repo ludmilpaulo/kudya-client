@@ -12,6 +12,7 @@ type PaymentDetailsProps = {
   setPhone: (value: string) => void;
   proofName: string | null;
   onPickProof: () => void;
+  serviceType?: string;
 };
 
 const PaymentDetails: React.FC<PaymentDetailsProps> = ({
@@ -21,8 +22,9 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   setPhone,
   proofName,
   onPickProof,
+  serviceType,
 }) => {
-  const { data, isLoading, error } = useGetPaymentMethodsQuery();
+  const { data, isLoading, error } = useGetPaymentMethodsQuery(serviceType);
   const methods = (data?.methods ?? []).filter((method) => method.available);
 
   useEffect(() => {

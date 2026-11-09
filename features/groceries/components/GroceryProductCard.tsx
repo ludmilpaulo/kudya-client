@@ -63,9 +63,12 @@ export default function GroceryProductCard({ product }: { product: GroceryProduc
         price: product.price,
         image,
         store: product.store,
+        store_name: product.store_name,
+        vertical: 'groceries',
         size: '',
         quantity: step,
         selling_unit: unit,
+        allows_fractional: step < 1,
       }),
     );
   }

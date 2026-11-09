@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, TextInput, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, TextInput, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
@@ -13,8 +13,9 @@ import { baseAPI } from '../services/types';
 import { useTranslation } from '../hooks/useTranslation';
 import { useGetPaymentMethodsQuery } from '../redux/slices/paymentsApi';
 import { createTransfer } from '../services/financialService';
+import ThunesTransferCard from '../components/ThunesTransferCard';
 
-type Tab = 'balance' | 'send';
+type Tab = 'balance' | 'send' | 'abroad';
 
 interface WalletData {
   available_balance: string;
@@ -46,7 +47,7 @@ export default function WalletScreen() {
   const [tab, setTab] = useState<Tab>('balance');
   const [recipientPhone, setRecipientPhone] = useState('');
   const [pin, setPin] = useState('');
-  const { data: methods } = useGetPaymentMethodsQuery(undefined, { skip: !token });
+  const { data: methods } = useGetPaymentMethodsQuery('wallet_top_up', { skip: !token });
   const availableMethods = (methods?.methods ?? []).filter((item) => item.available);
   const selectedMethod = method || methods?.default_method || availableMethods[0]?.code || 'card';
   const selected = availableMethods.find((item) => item.code === selectedMethod);
@@ -153,6 +154,7 @@ export default function WalletScreen() {
     <View style={tw`flex-1 bg-slate-950`}>
       <LinearGradient colors={['#0F172A', '#1E293B', '#0F172A']} style={tw`absolute inset-0`} />
       <SafeAreaView style={tw`flex-1`}>
+        <ScrollView contentContainerStyle={tw`pb-10`} keyboardShouldPersistTaps="handled">
         <TouchableOpacity onPress={() => navigation.goBack()} style={tw`p-4 self-start`}>
           <Feather name="arrow-left" size={22} color="#fff" />
         </TouchableOpacity>
@@ -167,8 +169,11 @@ export default function WalletScreen() {
             <TouchableOpacity onPress={() => setTab('balance')} style={tw`mr-2 rounded-full px-4 py-2 ${tab === 'balance' ? 'bg-blue-600' : 'bg-white/10'}`}>
               <Text style={tw`text-white text-sm`}>{t('topUp')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setTab('send')} style={tw`rounded-full px-4 py-2 ${tab === 'send' ? 'bg-blue-600' : 'bg-white/10'}`}>
+            <TouchableOpacity onPress={() => setTab('send')} style={tw`mr-2 rounded-full px-4 py-2 ${tab === 'send' ? 'bg-blue-600' : 'bg-white/10'}`}>
               <Text style={tw`text-white text-sm`}>{t('sendMoney')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setTab('abroad')} style={tw`rounded-full px-4 py-2 ${tab === 'abroad' ? 'bg-blue-600' : 'bg-white/10'}`}>
+              <Text style={tw`text-white text-sm`}>{t('transferTabAbroad')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -193,6 +198,9 @@ export default function WalletScreen() {
                   <Text style={tw`text-blue-200 mt-4 text-sm`}>
                     {t('pending')}: {wallet.currency}{' '}
                     {Number(wallet.pending_balance).toFixed(2)}
+                  </Text>
+                  <Text style={tw`text-blue-100 mt-3 text-xs`}>
+                    {t('walletNotThunesBalance', 'This is your Kudya wallet balance. It is separate from a payment provider balance.')}
                   </Text>
                 </>
               ) : (
@@ -281,6 +289,9 @@ export default function WalletScreen() {
               {message ? <Text style={tw`text-blue-200 mt-2 text-sm`}>{message}</Text> : null}
             </View>
           ) : null}
+          {token && tab === 'abroad' ? (
+            <ThunesTransferCard token={token} currency={wallet?.currency || methods?.currency || 'ZAR'} onSent={loadWallet} />
+          ) : null}
           {history.length > 0 ? (
             <View style={tw`px-6 mt-6`}>
               <Text style={tw`text-white font-semibold mb-3`}>{t('transactions')}</Text>
@@ -295,6 +306,7 @@ export default function WalletScreen() {
             </View>
           ) : null}
         </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );

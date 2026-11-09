@@ -178,6 +178,15 @@ const ProfileScreen: React.FC = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={tw`flex-row items-center p-4 bg-gray-100 rounded-xl mb-3`}
+          onPress={() => navigation.navigate("Settings")}
+        >
+          <Feather name="settings" size={20} color="#2563eb" />
+          <Text style={tw`ml-4 text-base font-semibold`}>
+            {t("acSettings", "Settings")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={tw`flex-row items-center p-4 bg-gray-100 rounded-xl mb-3`}
           onPress={() => navigation.navigate("PropertyApplications")}
         >
           <Feather name="home" size={20} color="#2563eb" />

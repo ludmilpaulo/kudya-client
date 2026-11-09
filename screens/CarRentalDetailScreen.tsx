@@ -112,6 +112,7 @@ export default function CarRentalDetailScreen() {
             onChangeText={setPickup}
           />
           <PaymentDetails
+            serviceType="car_rental"
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
             phone={paymentPhone}

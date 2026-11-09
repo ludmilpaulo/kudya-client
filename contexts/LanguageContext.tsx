@@ -54,7 +54,7 @@ export function LanguageProvider({ children }: { children?: React.ReactNode }) {
         }
 
         const token = store.getState().auth.token;
-        if (token || resolvedChosen) {
+        if (token) {
           try {
             const prefPromise = store
               .dispatch(languageApi.endpoints.getLanguagePreference.initiate())
@@ -63,17 +63,28 @@ export function LanguageProvider({ children }: { children?: React.ReactNode }) {
               setTimeout(() => resolve(null), 4000);
             });
             const pref = await Promise.race([prefPromise, timeoutPromise]);
-            if (
+            if (resolvedChosen) {
+              await store.dispatch(
+                languageApi.endpoints.updateLanguagePreference.initiate({
+                  preferredLanguage: next,
+                  systemLanguage: detectDeviceLanguage(),
+                }),
+              );
+            } else if (
               pref &&
               pref.preferredLanguage &&
-              supportedLocales.includes(pref.preferredLanguage as SupportedLocale)
+              supportedLocales.includes(pref.preferredLanguage)
             ) {
-              next = pref.preferredLanguage as SupportedLocale;
-              if (token && !resolvedChosen) {
-                await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, next);
-                await AsyncStorage.setItem(LANGUAGE_CHOSEN_KEY, 'true');
-                resolvedChosen = true;
-              }
+              next = pref.preferredLanguage;
+              await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, next);
+              await AsyncStorage.setItem(LANGUAGE_CHOSEN_KEY, 'true');
+              resolvedChosen = true;
+            } else {
+              await store.dispatch(
+                languageApi.endpoints.updateLanguagePreference.initiate({
+                  systemLanguage: detectDeviceLanguage(),
+                }),
+              );
             }
           } catch {
             // Use local/device language when backend is unavailable.

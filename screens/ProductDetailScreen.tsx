@@ -21,6 +21,7 @@ import { RootState, AppDispatch } from "../redux/store";
 import { baseAPI, Product, Review } from "../services/types";
 import { productImageUrl } from "../utils/productImage";
 import { addItem } from "../redux/slices/basketSlice";
+import { notify, toast } from "../utils/notify";
 import { selectUser } from "../redux/slices/authSlice";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "../navigation/navigation";
@@ -231,17 +232,22 @@ const ProductDetailScreen = () => {
   const handleAddToCart = () => {
     if (!productToShow) return;
     if (productToShow.sizes && productToShow.sizes.length > 0 && !selectedSize) {
-      Alert.alert(t("selectSize"), t("selectSize"));
+      notify(t("selectSize"));
       return;
     }
     if (isOutOfStock) {
-      Alert.alert(t("outOfStock"), t("outOfStock"));
+      notify(t("outOfStock"));
       return;
     }
     const price = productToShow.on_sale
       ? Number(productToShow.price) -
         (Number(productToShow.price) * productToShow.discount_percentage) / 100
       : Number(productToShow.price);
+    const storeId = Number(productToShow.store ?? productToShow.store_id);
+    if (!Number.isFinite(storeId) || storeId <= 0) {
+      notify(t("outOfStock"));
+      return;
+    }
     dispatch(
       addItem({
         id: productToShow.id,
@@ -249,11 +255,11 @@ const ProductDetailScreen = () => {
         size: selectedSize || "",
         price,
         image: firstImage,
-        store: productToShow.store ?? productToShow.store_id,
+        store: storeId,
         quantity,
       })
     );
-    Alert.alert(t("addToCart"), `${productToShow.name} ${t("addToCart")}!`);
+    toast("success", t("addToCart"), productToShow.name);
   };
 
   // Loading state

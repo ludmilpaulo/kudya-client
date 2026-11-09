@@ -9,15 +9,24 @@ type RootStateWithAuth = {
   auth: { token: string | null };
 };
 
+function asLanguage(value: unknown): SupportedLanguage | null {
+  if (typeof value !== "string" || !value) return null;
+  const code = value.slice(0, 2).toLowerCase();
+  if (code === "en" || code === "pt" || code === "fr" || code === "es") return code;
+  return null;
+}
+
 function mapLanguagePreference(raw: RawRecord): LanguagePreference {
+  const hasFlag = "preferenceSet" in raw || "preference_set" in raw;
+  const preferenceSet = raw.preferenceSet === true || raw.preference_set === true;
+  const preferred =
+    hasFlag && !preferenceSet ? null : asLanguage(raw.preferredLanguage ?? raw.preferred_language);
+  const system = asLanguage(raw.systemLanguage ?? raw.system_language);
   return {
-    preferredLanguage: String(raw.preferredLanguage ?? raw.preferred_language ?? "en") as SupportedLanguage,
-    systemLanguage: raw.systemLanguage
-      ? (String(raw.systemLanguage) as SupportedLanguage)
-      : raw.system_language
-        ? (String(raw.system_language) as SupportedLanguage)
-        : null,
-    activeLanguage: String(raw.activeLanguage ?? raw.active_language ?? "en") as SupportedLanguage,
+    preferredLanguage: preferred,
+    systemLanguage: system,
+    activeLanguage: asLanguage(raw.activeLanguage ?? raw.active_language) ?? preferred ?? system,
+    preferenceSet: hasFlag ? preferenceSet : preferred != null,
   };
 }
 
@@ -43,14 +52,14 @@ export const languageApi = createApi({
     }),
     updateLanguagePreference: builder.mutation<
       LanguagePreference,
-      { preferredLanguage: SupportedLanguage; systemLanguage?: SupportedLanguage | null }
+      { preferredLanguage?: SupportedLanguage; systemLanguage?: SupportedLanguage | null }
     >({
       query: (body) => ({
         url: "/language/",
         method: "PATCH",
         body: {
-          preferredLanguage: body.preferredLanguage,
-          systemLanguage: body.systemLanguage,
+          ...(body.preferredLanguage ? { preferredLanguage: body.preferredLanguage } : {}),
+          ...(body.systemLanguage ? { systemLanguage: body.systemLanguage } : {}),
         },
       }),
       transformResponse: (response: RawRecord) => mapLanguagePreference(response),

@@ -15,13 +15,13 @@ import relatedProductsReducer from './slices/relatedProductsSlice';
 import categoryReducer from './slices/categorySlice';
 import productsByCategoryReducer from './slices/productsByCategorySlice';
 import servicesReducer from './slices/servicesSlice';
+import checkoutDraftReducer from './slices/checkoutDraftSlice';
 import { ridesApi } from './api/ridesApi';
 import { doctorsApi } from './api/doctorsApi';
 import { notificationApi } from './api/notificationApi';
 import { languageApi } from './api/languageApi';
 import { paymentsApi } from './slices/paymentsApi';
 import { groceriesApi } from './api/groceriesApi';
-
 // Combine reducer
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -35,6 +35,7 @@ const rootReducer = combineReducers({
   categories: categoryReducer,
   productsByCategory: productsByCategoryReducer,
   services: servicesReducer,
+  checkoutDraft: checkoutDraftReducer,
   [ridesApi.reducerPath]: ridesApi.reducer,
   [doctorsApi.reducerPath]: doctorsApi.reducer,
   [notificationApi.reducerPath]: notificationApi.reducer,

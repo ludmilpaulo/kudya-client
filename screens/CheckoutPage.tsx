@@ -1,264 +1,499 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ActivityIndicator, Alert, ScrollView, TextInput } from 'react-native';
-import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
-import { useAppNavigation } from '../navigation/hooks';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectUser } from '../redux/slices/authSlice';
-import { selectCartItems, clearCart } from '../redux/slices/basketSlice';
-import { fetchstoreDetails, fetchUserDetails, completeOrderRequest } from '../services/checkoutService';
-import { fetchCheckoutQuote } from '../features/marketplace/api/checkoutApi';
-import ProfileModal, { ProfileFormDetails } from '../components/ProfileModal';
-import AddressInput from '../components/AddressInput';
-import PaymentDetails from '../components/PaymentDetails';
-import { LinearGradient } from 'expo-linear-gradient';
-import { RootStackParamList } from '../navigation/navigation';
 import * as Location from 'expo-location';
 import * as DocumentPicker from 'expo-document-picker';
-import Toast from 'react-native-toast-message';
-import tw from 'twrnc';
-import { initializePayment, uploadPaymentProof } from '../services/paymentService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppNavigation } from '../navigation/hooks';
+import type { RootStackParamList } from '../navigation/navigation';
+import { selectUser } from '../redux/slices/authSlice';
+import { clearStores, selectCartItems } from '../redux/slices/basketSlice';
+import { resetCheckoutDraft, selectCheckoutDraft, setDraftAddress, setDraftCoupon } from '../redux/slices/checkoutDraftSlice';
+import { Feather } from '@expo/vector-icons';
+import { useCartQuote } from '../features/checkout/useCartQuote';
+import { placeOrder, type PlaceOrderResult } from '../features/checkout/placeOrder';
+import { fetchAddresses, fetchStore, type FulfilmentType, type SavedAddress } from '../features/commerce/api';
+import { cartSignature, newIdempotencyKey, quoteLines } from '../features/food/cartLine';
+import { apiErrorCode, foodCheckoutErrorCopy } from '../features/food/checkoutErrors';
+import { placeFoodOrders } from '../features/food/placeFoodOrder';
+import { storeSupportsPickup, type FoodStore } from '../features/food/format';
+import { useRemote } from '../features/food/useRemote';
+import FulfilmentSection from '../features/food/components/FulfilmentSection';
+import SavedAddressPicker from '../features/food/components/SavedAddressPicker';
+import DeliverySection, { type LocationStatus } from '../features/checkout/components/DeliverySection';
+import PaymentMethodSection from '../features/checkout/components/PaymentMethodSection';
+import OrderSummaryCard from '../features/checkout/components/OrderSummaryCard';
+import { VerticalThemeProvider, useVerticalTheme } from '../contexts/VerticalThemeContext';
+import { useTranslation } from '../hooks/useTranslation';
+import { formatMoney } from '../utils/money';
+import { errorMessage, notify } from '../utils/notify';
+import {
+  Card,
+  EmptyState,
+  ErrorState,
+  InlineError,
+  LoadingState,
+  OptionRow,
+  PrimaryButton,
+  ScreenHeader,
+  SectionHeader,
+} from '../components/kudya';
+import type { CartItem } from '../services/types';
 
-type CheckoutPageRouteProp = RouteProp<RootStackParamList, 'Checkout'>;
+type CheckoutRoute = RouteProp<RootStackParamList, 'Checkout'>;
 
-type CheckoutStore = {
-  name: string;
-  logo: string;
-  location: string;
-};
+function verticalForItems(items: CartItem[], fallback?: string): string | undefined {
+  if (fallback) return fallback;
+  const verticals = new Set(items.map((item) => item.vertical).filter(Boolean));
+  return verticals.size === 1 ? Array.from(verticals)[0] : undefined;
+}
 
-const CheckoutPage: React.FC = () => {
-  const [store, setstore] = useState<CheckoutStore | null>(null);
-  const [userAddress, setUserAddress] = useState('');
-  const [location, setLocation] = useState<{ latitude: number; longitude: number }>({ latitude: 0, longitude: 0 });
-  const [userDetails, setUserDetails] = useState<ProfileFormDetails | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [paymentPhone, setPaymentPhone] = useState('');
-  const [proofUri, setProofUri] = useState<string | null>(null);
-  const [proofName, setProofName] = useState<string | null>(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [useCurrentLocation, setUseCurrentLocation] = useState(true);
-  const [deliveryNotes, setDeliveryNotes] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [deliveryFee, setDeliveryFee] = useState(0);
+function CheckoutContent() {
+  const theme = useVerticalTheme();
+  const { t } = useTranslation();
   const navigation = useAppNavigation();
-  const route = useRoute<CheckoutPageRouteProp>();
-  const { storeId } = route.params;
+  const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
-  const allCartItems = useSelector(selectCartItems);
+  const items = useSelector(selectCartItems);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!user) {
-        Alert.alert(
-          'Login Required',
-          'You need to log in to access your cart and complete your purchase.',
-          [
-            { text: 'Login', onPress: () => navigation.navigate('UserLogin') },
-            { text: 'Cancel', style: 'cancel', onPress: () => navigation.goBack() },
-          ],
-        );
-      }
-    }, [user, navigation]),
+  const [useCurrentLocation, setUseCurrentLocation] = useState(true);
+  const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [address, setAddress] = useState('');
+  const [notes, setNotes] = useState('');
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentPhone, setPaymentPhone] = useState('');
+  const [proof, setProof] = useState<{ uri: string; name: string } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [fulfilment, setFulfilment] = useState<FulfilmentType>('delivery');
+  const inFlight = useRef(false);
+
+  const draft = useSelector(selectCheckoutDraft);
+  const groceryStoreIds = Array.from(
+    new Set(items.filter((item) => item.vertical === 'groceries').map((item) => item.store)),
+  );
+
+  /** Food-only carts go through /api/v1/food/checkout/ (pickup, line instructions, Idempotency-Key). */
+  const foodMode = items.length > 0 && items.every((item) => item.vertical === 'food');
+  const foodStoreIds = useMemo(
+    () => (foodMode ? Array.from(new Set(items.map((item) => item.store))).sort((a, b) => a - b) : []),
+    [foodMode, items],
+  );
+  const foodStores = useRemote<FoodStore[]>(
+    () => Promise.all(foodStoreIds.map((storeId) => fetchStore('food', storeId))),
+    [foodStoreIds.join(',')],
+  );
+  const pickupAllowed =
+    foodMode && !!foodStores.data?.length && foodStores.data.every((store) => storeSupportsPickup(store));
+  const pickup = foodMode && fulfilment === 'pickup';
+  const savedAddresses = useRemote<SavedAddress[]>(
+    () => (foodMode && user?.token ? fetchAddresses() : Promise.resolve([])),
+    [foodMode, user?.token],
   );
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (storeId) {
-        try {
-          const storeDetails = await fetchstoreDetails(storeId);
-          setstore(storeDetails);
-          const quote = await fetchCheckoutQuote(storeId);
-          setDeliveryFee(Number(quote.delivery_fee) || 0);
-        } catch {
-          setError('Unable to load checkout.');
-        }
-      }
-      if (user?.user_id) {
-        try {
-          const details = await fetchUserDetails(user.user_id, user.token || '');
-          setUserDetails(details);
-          if (!details?.avatar) setIsProfileModalOpen(true);
-        } catch {
-          // The profile prefill is optional for checkout. A failure here must
-          // not end the session — doing so would clear the token and block
-          // order placement.
-        }
-      }
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const pos = await Location.getCurrentPositionAsync({});
-          setLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-        }
-      } catch {
-        // location optional
-      }
-    };
-    void fetchData();
-  }, [storeId, user?.user_id, dispatch]);
+    if (fulfilment === 'pickup' && !foodStores.loading && !pickupAllowed) setFulfilment('delivery');
+  }, [fulfilment, foodStores.loading, pickupAllowed]);
 
-  const pickProof = async () => {
+  /** A new key whenever the cart contents change; retries of the same cart reuse it so the server dedupes. */
+  const cartKey = useMemo(() => cartSignature(quoteLines(items)), [items]);
+  const idempotencyRef = useRef<{ cart: string; key: string } | null>(null);
+  if (!idempotencyRef.current || idempotencyRef.current.cart !== cartKey) {
+    idempotencyRef.current = { cart: cartKey, key: newIdempotencyKey() };
+  }
+  const idempotencyKey = idempotencyRef.current.key;
+
+  useEffect(() => {
+    if (draft.couponCode && draft.couponCode !== appliedCoupon) {
+      setCouponInput(draft.couponCode);
+      setAppliedCoupon(draft.couponCode);
+    }
+  }, [draft.couponCode, appliedCoupon]);
+
+  useEffect(() => {
+    if (!draft.address) return;
+    setAddress(draft.address.address);
+    if (draft.address.instructions) setNotes(draft.address.instructions);
+    if (draft.address.latitude !== null && draft.address.longitude !== null) {
+      setCoords({ latitude: draft.address.latitude, longitude: draft.address.longitude });
+      setLocationStatus('ready');
+      setUseCurrentLocation(true);
+    } else {
+      setUseCurrentLocation(false);
+    }
+  }, [draft.address]);
+
+  const { quote, loading: quoting, error: quoteError, refresh } = useCartQuote(
+    items,
+    appliedCoupon,
+    foodMode ? { vertical: 'food', fulfilmentType: fulfilment } : {},
+  );
+
+  const locate = useCallback(async () => {
+    setLocationStatus('locating');
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocationStatus('unavailable');
+        return;
+      }
+      const position = await Location.getCurrentPositionAsync({});
+      setCoords({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+      setLocationStatus('ready');
+    } catch {
+      setLocationStatus('unavailable');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (useCurrentLocation && locationStatus === 'idle') void locate();
+  }, [useCurrentLocation, locationStatus, locate]);
+
+  const pickProof = useCallback(async () => {
     const result = await DocumentPicker.getDocumentAsync({
       type: ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
       copyToCacheDirectory: true,
     });
     if (result.canceled || !result.assets?.[0]) return;
-    const asset = result.assets[0];
-    setProofUri(asset.uri);
-    setProofName(asset.name);
+    setProof({ uri: result.assets[0].uri, name: result.assets[0].name });
+  }, []);
+
+  const couponError = appliedCoupon && quote?.coupon_error ? quote.coupon_error : null;
+
+  const describeFoodError = (error: unknown): string => {
+    const copy = foodCheckoutErrorCopy(apiErrorCode(error));
+    return copy ? t(copy.key, copy.fallback) : errorMessage(error, t('ckOrderFailed', 'We could not place your order.'));
   };
 
-  const completeOrder = async () => {
+  const submit = async () => {
+    if (inFlight.current) return;
+    setSubmitError(null);
     if (!user?.token) {
-      Alert.alert('Login Required', 'You need to log in to complete your purchase.');
+      navigation.navigate('UserLogin');
       return;
     }
-    setLoading(true);
-    setError(null);
-    const formattedCartItems = allCartItems.map((item) => ({
-      product_id: item.id,
-      quantity: item.quantity,
-    }));
-    const resId = allCartItems.map(({ store: cartStore }) => cartStore);
-    const orderStoreId = resId[0].toString();
+    const hasCoords = useCurrentLocation && coords !== null;
+    if (!pickup && !hasCoords && !address.trim()) {
+      setSubmitError(t('ckAddressRequired', 'Enter a delivery address or allow location access.'));
+      return;
+    }
+    if (!paymentMethod) {
+      setSubmitError(t('ckPaymentRequired', 'Choose a payment method.'));
+      return;
+    }
+    inFlight.current = true;
+    setSubmitting(true);
     try {
-      const responseData = await completeOrderRequest({
-        access_token: user.token,
-        store_id: orderStoreId,
-        address: useCurrentLocation ? `${location.latitude},${location.longitude}` : userAddress,
-        order_details: formattedCartItems,
-        payment_method: paymentMethod,
-        delivery_notes: deliveryNotes,
-        delivery_fee: String(deliveryFee),
-        use_current_location: useCurrentLocation,
-        location,
-      });
-      if (responseData.status === 'success') {
-        const orderId =
-          typeof responseData.order_id === 'number'
-            ? responseData.order_id
-            : Array.isArray(responseData.created_orders)
-              ? Number(responseData.created_orders[0])
-              : undefined;
-        if (paymentMethod && paymentMethod !== 'cash' && user.token) {
-          try {
-            const pay = await initializePayment(user.token, {
-              amount: finalPrice,
-              method: paymentMethod,
-              phone: paymentPhone || undefined,
-              service_type: 'order',
-              object_id: orderId,
-            });
-            if (proofUri && pay.requires_action === 'upload_proof' && pay.payment_id) {
-              await uploadPaymentProof(user.token, pay.payment_id, {
-                uri: proofUri,
-                name: proofName || 'proof.jpg',
-                type: 'image/jpeg',
-              });
-            }
-            if (pay.customer_message) {
-              Alert.alert('Pagamento', pay.customer_message);
-            }
-          } catch {
-            Alert.alert(
-              'Pedido criado',
-              'Complete o pagamento a partir dos seus pedidos se for pedido.',
-            );
-          }
-        }
-        dispatch(clearCart(parseInt(orderStoreId, 10)));
-        // Toast works on web too (Alert.alert is a no-op on React Native Web),
-        // so the customer always gets confirmation feedback.
-        Toast.show({ type: 'success', text1: 'Pedido Realizado com Sucesso!' });
-        Alert.alert('Pedido Realizado com Sucesso!');
-        navigation.navigate('SuccessScreen');
-      } else {
-        const errorMessage = responseData.error || responseData.status || 'Erro ao criar o pedido.';
-        setError(errorMessage);
-        Toast.show({ type: 'error', text1: 'Erro', text2: errorMessage });
-        Alert.alert('Erro', errorMessage);
+      const delivery = {
+        address,
+        location: hasCoords ? coords : null,
+        useCurrentLocation: hasCoords,
+        notes,
+      };
+      const payment = { method: paymentMethod, phone: paymentPhone, proof };
+      const result: PlaceOrderResult = foodMode
+        ? await placeFoodOrders({
+            items,
+            token: user.token,
+            fulfilmentType: pickup ? 'pickup' : 'delivery',
+            couponCode: couponError ? undefined : appliedCoupon,
+            quote,
+            delivery,
+            payment,
+            idempotencyKey,
+            describeError: describeFoodError,
+          })
+        : await placeOrder({
+            items,
+            token: user.token,
+            couponCode: couponError ? undefined : appliedCoupon,
+            delivery,
+            payment,
+            grocery: {
+              slots: draft.slots,
+              substitutionDefault: draft.substitutionDefault,
+              itemSubstitutions: draft.itemSubstitutions,
+            },
+          });
+      if (result.orders.length === 0) {
+        setSubmitError(result.failures[0]?.error ?? t('ckOrderFailed', 'We could not place your order.'));
+        refresh();
+        return;
       }
-    } catch {
-      const message = 'An error occurred while completing the order.';
-      setError(message);
-      Toast.show({ type: 'error', text1: 'Erro', text2: message });
+      dispatch(clearStores(result.placedStoreIds));
+      dispatch(resetCheckoutDraft());
+      if (result.authorizationUrl) {
+        void Linking.openURL(result.authorizationUrl);
+      }
+      if (result.failures.length > 0) {
+        notify(t('ckPartialOrder', 'Some orders were placed, but not all.'), result.failures.map((f) => f.error).join('\n'));
+      }
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: 'MainTabs' },
+          {
+            name: 'OrderPlaced',
+            params: {
+              orderIds: result.orders.map((order) => order.order_id),
+              vertical: theme.key,
+              notices: result.paymentNotices,
+              orders: result.orders.map((order) => ({
+                order_id: order.order_id,
+                store_id: order.store_id,
+                secret_pin: order.secret_pin,
+                total: order.total,
+                currency: order.currency,
+                payment_method: order.payment_method,
+                fulfilment_type: order.fulfilment_type,
+              })),
+            },
+          },
+        ],
+      });
+    } catch (error) {
+      setSubmitError(foodMode ? describeFoodError(error) : errorMessage(error, t('ckOrderFailed', 'We could not place your order.')));
+      refresh();
     } finally {
-      setLoading(false);
+      inFlight.current = false;
+      setSubmitting(false);
     }
   };
 
-  const totalPrice = allCartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-  const finalPrice = totalPrice + deliveryFee;
+  if (!user) {
+    return (
+      <View style={[styles.screen, { backgroundColor: theme.colors.background }]}>
+        <ScreenHeader title={t('ckCheckout', 'Checkout')} onBack={() => navigation.goBack()} />
+        <EmptyState
+          icon="lock"
+          title={t('ckLoginRequired', 'Sign in to continue')}
+          body={t('ckLoginRequiredBody', 'You need an account to place an order and track delivery.')}
+          actionLabel={t('ckSignIn', 'Sign in')}
+          onAction={() => navigation.navigate('UserLogin')}
+        />
+      </View>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <View style={[styles.screen, { backgroundColor: theme.colors.background }]}>
+        <ScreenHeader title={t('ckCheckout', 'Checkout')} onBack={() => navigation.goBack()} />
+        <EmptyState
+          icon="shopping-bag"
+          title={t('ckCartEmpty', 'Your cart is empty')}
+          body={t('ckCartEmptyBody', 'Add something tasty or a few groceries to get started.')}
+          actionLabel={t('ckStartShopping', 'Start shopping')}
+          onAction={() => navigation.navigate('MainTabs')}
+        />
+      </View>
+    );
+  }
+
+  const canSubmit =
+    !!quote && !quote.has_errors && !quoting && !submitting && !couponError && !(pickup && !pickupAllowed);
+
+  const chooseSavedAddress = (saved: SavedAddress) => {
+    const latitude = saved.latitude === null ? null : Number(saved.latitude);
+    const longitude = saved.longitude === null ? null : Number(saved.longitude);
+    dispatch(
+      setDraftAddress({
+        id: saved.id,
+        label: saved.label,
+        address: saved.address,
+        latitude: latitude !== null && Number.isFinite(latitude) ? latitude : null,
+        longitude: longitude !== null && Number.isFinite(longitude) ? longitude : null,
+        instructions: saved.instructions,
+      }),
+    );
+  };
 
   return (
-    <>
-      <LinearGradient colors={['#FCD34D', '#3B82F6']} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={tw`flex-grow p-6`}>
-          {store ? (
-            <>
-              <Text style={tw`text-3xl font-semibold mb-6 text-gray-800`}>{store.name}</Text>
-              <View style={tw`flex justify-center mb-6`}>
-                <Image source={{ uri: store.logo }} style={tw`w-50 h-50 rounded-lg`} />
-              </View>
-            </>
-          ) : null}
+    <KeyboardAvoidingView
+      style={[styles.screen, { backgroundColor: theme.colors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScreenHeader
+        title={t('ckCheckout', 'Checkout')}
+        subtitle={t('ckItems', '{count} items', { count: items.length })}
+        onBack={() => navigation.goBack()}
+      />
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 140 + insets.bottom }]} keyboardShouldPersistTaps="handled">
+        {foodMode ? (
+          <FulfilmentSection
+            value={pickup ? 'pickup' : 'delivery'}
+            onChange={setFulfilment}
+            pickupAllowed={pickupAllowed}
+            loadingStores={foodStores.loading}
+            stores={foodStores.data ?? []}
+          />
+        ) : null}
 
-          <AddressInput
+        {foodMode && !pickup && user.token ? (
+          <SavedAddressPicker
+            addresses={savedAddresses.data ?? []}
+            loading={savedAddresses.loading}
+            error={!!savedAddresses.error}
+            selectedId={draft.address?.id ?? null}
+            onSelect={chooseSavedAddress}
+            onRetry={savedAddresses.reload}
+            onManage={() => navigation.navigate('Addresses', { selectMode: true, vertical: theme.key })}
+          />
+        ) : null}
+
+        {!pickup ? (
+          <DeliverySection
             useCurrentLocation={useCurrentLocation}
-            setUseCurrentLocation={setUseCurrentLocation}
-            userAddress={userAddress}
-            setUserAddress={setUserAddress}
+            onToggleCurrentLocation={(value) => {
+              setUseCurrentLocation(value);
+              if (value && locationStatus !== 'ready') void locate();
+            }}
+            locationStatus={locationStatus}
+            address={address}
+            onAddressChange={setAddress}
+            notes={notes}
+            onNotesChange={setNotes}
+            savedAddressLabel={draft.address?.label || null}
+            onChooseSaved={() => navigation.navigate('Addresses', { selectMode: true, vertical: theme.key })}
           />
-          <PaymentDetails
-            paymentMethod={paymentMethod}
-            setPaymentMethod={setPaymentMethod}
-            phone={paymentPhone}
-            setPhone={setPaymentPhone}
-            proofName={proofName}
-            onPickProof={() => void pickProof()}
-          />
+        ) : null}
 
-          <TextInput
-            style={tw`w-full p-2 border border-gray-300 rounded mt-4`}
-            placeholder="Notas de entrega para o motorista"
-            value={deliveryNotes}
-            onChangeText={setDeliveryNotes}
-          />
-
-          <View style={tw`flex justify-between items-center my-4`}>
-            <Text style={tw`text-lg font-semibold text-gray-800`}>Total: {totalPrice.toFixed(2)}</Text>
-            <Text style={tw`text-lg font-semibold text-gray-800`}>Taxa de Entrega: {deliveryFee.toFixed(2)}</Text>
-            <Text style={tw`text-lg font-semibold text-gray-800`}>Preço Final: {finalPrice.toFixed(2)}</Text>
-          </View>
-
-          {loading ? (
-            <View style={tw`absolute top-0 left-0 z-50 flex items-center justify-center w-full h-full bg-black bg-opacity-50`}>
-              <ActivityIndicator size="large" color="#3B82F6" />
+        {groceryStoreIds.length > 0 ? (
+          <View>
+            <SectionHeader title={t('ckDeliveryTime', 'Delivery time')} />
+            <View style={styles.rows}>
+              {groceryStoreIds.map((storeId) => {
+                const slot = draft.slots[String(storeId)];
+                const storeName =
+                  quote?.stores.find((store) => store.store_id === storeId)?.store_name ||
+                  items.find((item) => item.store === storeId)?.store_name ||
+                  '';
+                return (
+                  <OptionRow
+                    key={storeId}
+                    title={slot ? `${slot.label ?? slot.date} · ${slot.start}–${slot.end}` : t('ckAsap', 'As soon as possible')}
+                    subtitle={storeName}
+                    onPress={() => navigation.navigate('DeliverySlot', { storeId })}
+                    right={<Feather name="chevron-right" size={18} color={theme.colors.textMuted} />}
+                  />
+                );
+              })}
+              <OptionRow
+                title={t('ckSubstitutions', 'If an item is unavailable')}
+                subtitle={
+                  draft.substitutionDefault === 'allow_similar'
+                    ? t('ckSubAllowSimilar', 'Allow a similar substitute')
+                    : draft.substitutionDefault === 'remove'
+                      ? t('ckSubRemove', 'Remove it from my order')
+                      : t('ckSubSpecific', 'Use the substitutes I chose')
+                }
+                onPress={() => navigation.navigate('Substitutions')}
+                right={<Feather name="chevron-right" size={18} color={theme.colors.textMuted} />}
+              />
             </View>
-          ) : null}
+          </View>
+        ) : null}
 
-          {error ? <Text style={tw`text-red-500 text-center mb-4`}>{error}</Text> : null}
-
-          <TouchableOpacity
-            style={tw`flex items-center justify-center w-full h-10 my-4 bg-blue-600 rounded-full ${loading ? 'opacity-50' : ''}`}
-            onPress={completeOrder}
-            disabled={loading}
-          >
-            <Text style={tw`text-center text-white`}>FAÇA SEU PEDIDO</Text>
-          </TouchableOpacity>
-          <ProfileModal
-            isOpen={isProfileModalOpen}
-            onClose={() => setIsProfileModalOpen(false)}
-            userDetails={userDetails}
-            onUpdate={(updatedDetails: ProfileFormDetails) => setUserDetails(updatedDetails)}
+        <View>
+          <SectionHeader
+            title={t('ckCoupon', 'Coupon')}
+            actionLabel={t('ckViewOffers', 'View offers')}
+            onAction={() =>
+              navigation.navigate('Coupons', { vertical: theme.key, subtotal: quote?.subtotal })
+            }
           />
-        </ScrollView>
-      </LinearGradient>
-      <Toast />
-    </>
-  );
-};
+          <Card style={styles.couponCard}>
+            <TextInput
+              value={couponInput}
+              onChangeText={setCouponInput}
+              autoCapitalize="characters"
+              placeholder={t('ckCouponPlaceholder', 'Enter coupon code')}
+              placeholderTextColor={theme.colors.textMuted}
+              style={[styles.couponInput, { borderColor: theme.colors.border, color: theme.colors.text }]}
+            />
+            <Pressable
+              onPress={() => {
+                setAppliedCoupon(couponInput.trim());
+                dispatch(setDraftCoupon(couponInput.trim()));
+              }}
+              style={[styles.couponButton, { backgroundColor: theme.colors.primary }]}
+              accessibilityRole="button"
+            >
+              <Text style={{ color: theme.colors.onPrimary, fontWeight: '800' }}>{t('ckApply', 'Apply')}</Text>
+            </Pressable>
+          </Card>
+          {couponError ? <View style={styles.gapTop}><InlineError message={couponError} /></View> : null}
+          {appliedCoupon && quote && !quote.coupon_error && Number(quote.discount_amount) > 0 ? (
+            <Text style={[styles.couponOk, { color: theme.colors.success }]}>
+              {t('ckCouponApplied', 'Coupon applied')} · -{formatMoney(quote.discount_amount, quote.currency)}
+            </Text>
+          ) : null}
+        </View>
 
-export default CheckoutPage;
+        <PaymentMethodSection
+          serviceType={foodMode ? 'food' : 'order'}
+          value={paymentMethod}
+          onChange={setPaymentMethod}
+          phone={paymentPhone}
+          onPhoneChange={setPaymentPhone}
+          proofName={proof?.name ?? null}
+          onPickProof={() => void pickProof()}
+        />
+
+        {quote ? (
+          <OrderSummaryCard quote={quote} />
+        ) : quoteError ? (
+          <ErrorState title={t('ckQuoteFailed', 'Could not price your cart.')} body={quoteError} onRetry={refresh} />
+        ) : (
+          <LoadingState label={t('ckPricingCart', 'Updating prices…')} />
+        )}
+
+        {submitError ? <InlineError message={submitError} /> : null}
+      </ScrollView>
+
+      <View
+        style={[
+          styles.footer,
+          { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border, paddingBottom: 14 + insets.bottom },
+        ]}
+      >
+        <PrimaryButton
+          testID="place-order"
+          title={submitting ? t('ckPlacingOrder', 'Placing your order…') : t('ckPlaceOrder', 'Place order')}
+          trailing={quote && !submitting ? formatMoney(quote.total, quote.currency) : undefined}
+          onPress={() => void submit()}
+          loading={submitting}
+          disabled={!canSubmit}
+        />
+      </View>
+    </KeyboardAvoidingView>
+  );
+}
+
+export default function CheckoutPage() {
+  const route = useRoute<CheckoutRoute>();
+  const items = useSelector(selectCartItems);
+  const vertical = verticalForItems(items, route.params?.vertical);
+  return (
+    <VerticalThemeProvider vertical={vertical}>
+      <CheckoutContent />
+    </VerticalThemeProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  content: { padding: 16, gap: 20 },
+  couponCard: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  couponInput: { flex: 1, borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, height: 44, fontSize: 15 },
+  couponButton: { height: 44, borderRadius: 12, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center' },
+  couponOk: { marginTop: 8, fontWeight: '700' },
+  rows: { gap: 10 },
+  gapTop: { marginTop: 8 },
+  footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
+});

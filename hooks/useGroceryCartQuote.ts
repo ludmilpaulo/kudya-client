@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useQuoteGroceryLinesMutation } from "../redux/api/groceryApi";
+import { useMemo } from "react";
+import { useCartQuote } from "../features/checkout/useCartQuote";
 
 type QuoteableCartItem = {
   id: number;
@@ -8,55 +8,14 @@ type QuoteableCartItem = {
   selling_unit?: string;
 };
 
-function groceryKey(items: QuoteableCartItem[]): string {
-  return items
-    .filter((item) => item.selling_unit)
-    .map((item) => `${item.id}:${item.quantity}`)
-    .join("|");
-}
-
+/** Cart subtotal from the server quote, falling back to local prices while it loads. */
 export function useGroceryCartQuote(items: QuoteableCartItem[]) {
-  const [quoteGroceryLines] = useQuoteGroceryLinesMutation();
-  const [quotedGrocerySubtotal, setQuotedGrocerySubtotal] = useState<number | null>(null);
-  const key = groceryKey(items);
-
-  useEffect(() => {
-    const groceryItems = items.filter((item) => item.selling_unit);
-    if (groceryItems.length === 0) {
-      setQuotedGrocerySubtotal(null);
-      return;
-    }
-    let cancelled = false;
-    void quoteGroceryLines({
-      lines: groceryItems.map((item) => ({
-        product_id: item.id,
-        quantity: item.quantity,
-      })),
-    })
-      .unwrap()
-      .then((result) => {
-        if (!cancelled) setQuotedGrocerySubtotal(Number(result.subtotal));
-      })
-      .catch(() => {
-        if (!cancelled) setQuotedGrocerySubtotal(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [key, items, quoteGroceryLines]);
-
+  const { quote } = useCartQuote(items);
   return useMemo(() => {
-    const groceryItems = items.filter((item) => item.selling_unit);
-    const otherSubtotal = items
-      .filter((item) => !item.selling_unit)
-      .reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const groceryFallback = groceryItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0,
-    );
+    const localSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     return {
-      subtotal: otherSubtotal + (quotedGrocerySubtotal ?? groceryFallback),
-      usedServerQuote: quotedGrocerySubtotal !== null,
+      subtotal: quote ? Number(quote.subtotal) : localSubtotal,
+      usedServerQuote: quote !== null,
     };
-  }, [items, quotedGrocerySubtotal]);
+  }, [items, quote]);
 }

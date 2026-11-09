@@ -1,0 +1,27 @@
+export const theme = {
+  colors: {
+    primary: "#6D28D9",
+    primaryDark: "#5B21B6",
+    surface: "#FFFFFF",
+    background: "#F8FAFC",
+    text: "#0F172A",
+    textMuted: "#64748B",
+    border: "#E2E8F0",
+    error: "#DC2626",
+    success: "#059669",
+  },
+  services: {
+    food: "#F59E0B",
+    groceries: "#10B981",
+    property: "#8B5CF6",
+    stay: "#0EA5E9",
+    services: "#2563EB",
+    doctors: "#DC2626",
+    carRental: "#0F766E",
+    sendPackage: "#7C3AED",
+    wallet: "#475569",
+    business: "#1E293B",
+    rides: "#2563EB",
+  },
+  radius: { md: 12, lg: 16, full: 999 },
+} as const;

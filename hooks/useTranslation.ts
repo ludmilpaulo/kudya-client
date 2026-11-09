@@ -4,7 +4,9 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useApiTranslations } from './useApiTranslations';
 import { propertyApplicationTranslations } from "../configs/propertyApplicationTranslations";
 import { financialT } from '../configs/financialTranslations';
+import { thunesT } from '../configs/thunesTranslations';
 import { groceryT } from '../configs/groceryTranslations';
+import { commerceT } from '../configs/commerce';
 
 export type TranslationParams = Record<string, string | number>;
 
@@ -42,7 +44,13 @@ export function useTranslation() {
     const apiValue = apiTranslations[key];
 
     let value: string | undefined;
-    if (financialValue && financialValue !== key) {
+    const thunesValue = thunesT(languageCode, key);
+    const commerceValue = commerceT(languageCode, key);
+    if (commerceValue) {
+      value = commerceValue;
+    } else if (thunesValue && thunesValue !== key) {
+      value = thunesValue;
+    } else if (financialValue && financialValue !== key) {
       value = financialValue;
     } else if (groceryValue) {
       value = groceryValue;

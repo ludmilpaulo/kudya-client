@@ -799,6 +799,7 @@ export default function RidesScreen() {
         t={t}
         paymentSlot={
           <PaymentDetails
+            serviceType="ride"
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
             phone={paymentPhone}

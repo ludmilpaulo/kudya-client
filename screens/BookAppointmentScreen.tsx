@@ -664,6 +664,7 @@ export default function BookAppointmentScreen() {
         ) : null}
 
         <PaymentDetails
+          serviceType="doctor"
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
           phone={paymentPhone}

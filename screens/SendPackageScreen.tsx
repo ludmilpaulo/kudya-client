@@ -243,6 +243,7 @@ export default function SendPackageScreen() {
           </Text>
         )}
         <PaymentDetails
+          serviceType="package"
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
           phone={paymentPhone}

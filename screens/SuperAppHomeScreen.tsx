@@ -19,6 +19,7 @@ import { RootStackParamList } from '../navigation/navigation';
 import { fetchHomeModules, PlatformModule, resolveMobileModuleScreen } from '../services/platformApi';
 import { useTranslation } from '../hooks/useTranslation';
 import NotificationBellButton from '../features/notifications/components/NotificationBellButton';
+import { hasCompletedOnboarding } from '../features/account/onboardingStorage';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -69,13 +70,22 @@ export default function SuperAppHomeScreen() {
     load();
   }, [load]);
 
+  const openVertical = async (vertical: 'food' | 'groceries') => {
+    const next = vertical === 'food' ? 'FoodHome' : 'GroceryHome';
+    if (await hasCompletedOnboarding(vertical)) {
+      navigation.navigate(next);
+    } else {
+      navigation.navigate('Onboarding', { vertical, next });
+    }
+  };
+
   const onModulePress = (mod: PlatformModule) => {
     if (mod.key === 'food') {
-      navigation.navigate('Stores', { vertical: 'food' });
+      void openVertical('food');
       return;
     }
     if (mod.key === 'groceries') {
-      navigation.navigate('Grocery');
+      void openVertical('groceries');
       return;
     }
     const route = resolveMobileModuleScreen(mod.route, mod.key);

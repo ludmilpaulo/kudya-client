@@ -12,16 +12,18 @@ const initialState: BasketState = {
 };
 
 type AddItemPayload = Omit<CartItem, "quantity"> & { quantity?: number };
+type LineRef = { id: number; size: string; line_key?: string };
+
+function sameLine(item: CartItem, ref: LineRef): boolean {
+  return item.id === ref.id && item.size === ref.size && (item.line_key ?? "") === (ref.line_key ?? "");
+}
 
 const basketSlice = createSlice({
   name: "basket",
   initialState,
   reducers: {
     addItem: (state, action: PayloadAction<AddItemPayload>) => {
-      const { id, size } = action.payload;
-      const existingItem = state.items.find(
-        (item) => item.id === id && item.size === size
-      );
+      const existingItem = state.items.find((item) => sameLine(item, action.payload));
       if (existingItem) {
         existingItem.quantity += action.payload.quantity || (existingItem.allows_fractional ? 0.5 : 1);
         existingItem.quantity = Number(existingItem.quantity.toFixed(3));
@@ -33,10 +35,8 @@ const basketSlice = createSlice({
         });
       }
     },
-    removeItem: (state, action: PayloadAction<{ id: number; size: string }>) => {
-      const index = state.items.findIndex(
-        (item) => item.id === action.payload.id && item.size === action.payload.size
-      );
+    removeItem: (state, action: PayloadAction<LineRef>) => {
+      const index = state.items.findIndex((item) => sameLine(item, action.payload));
       if (index !== -1) {
         const step = state.items[index].allows_fractional ? 0.5 : 1;
         if (state.items[index].quantity > step) {
@@ -49,13 +49,26 @@ const basketSlice = createSlice({
     clearCart: (state, action: PayloadAction<number>) => {
       state.items = state.items.filter((item) => item.store !== action.payload);
     },
+    clearStores: (state, action: PayloadAction<number[]>) => {
+      const placed = new Set(action.payload);
+      state.items = state.items.filter((item) => !placed.has(item.store));
+    },
+    setItemQuantity: (state, action: PayloadAction<LineRef & { quantity: number }>) => {
+      const item = state.items.find((entry) => sameLine(entry, action.payload));
+      if (!item) return;
+      if (action.payload.quantity <= 0) {
+        state.items = state.items.filter((entry) => entry !== item);
+      } else {
+        item.quantity = Number(action.payload.quantity.toFixed(3));
+      }
+    },
     clearAllCart: (state) => {
       state.items = [];
     },
   },
 });
 
-export const { addItem, removeItem, clearCart, clearAllCart } = basketSlice.actions;
+export const { addItem, removeItem, clearCart, clearStores, setItemQuantity, clearAllCart } = basketSlice.actions;
 export const selectCartItems = (state: RootState) => state.basket.items;
 
 export default basketSlice.reducer;

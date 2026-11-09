@@ -22,7 +22,7 @@ export default function LanguagePicker({ compact = false }: { compact?: boolean 
               key={code}
               onPress={() => setLanguage(code)}
               style={tw`px-4 py-2 rounded-full border ${
-                selected ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'
+                selected ? 'bg-violet-700 border-violet-700' : 'bg-white border-gray-300'
               }`}
             >
               <Text style={tw`${selected ? 'text-white' : 'text-gray-800'} font-medium text-sm`}>

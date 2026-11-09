@@ -67,6 +67,7 @@ export type PaymentTransaction = {
   id: number;
   kudya_reference: string;
   status: PaymentStatus;
+  raw_provider_status?: string;
   rejection_reason: string;
   amount: string;
   currency: string;

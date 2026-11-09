@@ -136,6 +136,8 @@ export default function ProductsScreen() {
           image: productImageUrl(product.images),
           size: "",
           store: storeId,
+          store_name: storeName,
+          vertical,
           quantity: 1,
         })
       );
@@ -157,6 +159,8 @@ export default function ProductsScreen() {
             image: productImageUrl(product.images),
             size,
             store: storeId,
+            store_name: storeName,
+            vertical,
             quantity: 1,
           })
         );
@@ -189,6 +193,8 @@ export default function ProductsScreen() {
           image: productImageUrl(product.images),
           size: size || "",
           store: storeId,
+          store_name: storeName,
+          vertical,
           quantity: 1,
         })
       );

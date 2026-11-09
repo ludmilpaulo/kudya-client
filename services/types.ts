@@ -218,8 +218,16 @@ export interface CartItem {
   size: string;
   quantity: number;
   store: number;
+  store_name?: string;
+  vertical?: 'food' | 'groceries';
   selling_unit?: string;
   allows_fractional?: boolean;
+  /** Food extras chosen in ItemCustomise; `size` carries a label that keeps configurations distinct. */
+  addons?: Array<{ id: number; name: string; price: number }>;
+  /** Food line note for the kitchen (max 300 chars server-side). */
+  special_instructions?: string;
+  /** Product + add-on ids + instructions; lines with different keys never merge. */
+  line_key?: string;
 }
 
 export interface WishlistItem {

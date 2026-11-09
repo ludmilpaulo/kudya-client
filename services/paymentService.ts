@@ -1,4 +1,5 @@
 import { baseAPI } from "./types";
+import { appendFormDataFile } from "../utils/formDataFile";
 import type { PaymentInitializeResponse, PaymentTransaction } from "../types/payments";
 
 export interface PaymentInitParams {
@@ -63,11 +64,7 @@ export async function uploadPaymentProof(
   file: LocalProofFile,
 ): Promise<void> {
   const form = new FormData();
-  form.append("file", {
-    uri: file.uri,
-    name: file.name,
-    type: file.type,
-  } as unknown as Blob);
+  await appendFormDataFile(form, "file", file);
   const response = await fetch(`${baseAPI}/api/payments/${paymentId}/proof/`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },

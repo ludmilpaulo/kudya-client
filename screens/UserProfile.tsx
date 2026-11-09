@@ -131,7 +131,7 @@ const UserProfile = () => {
       const blob = await response.blob();
 
       let formData = new FormData();
-      appendFormDataFile(formData, "avatar", {
+      await appendFormDataFile(formData, "avatar", {
         uri,
         type: blob.type,
         name: "image.jpg",

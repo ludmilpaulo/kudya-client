@@ -13,6 +13,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import LanguageAuthSync from './components/LanguageAuthSync';
 import AppLanguageGate from './components/AppLanguageGate';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
 const SafeErrorBoundary = ErrorBoundary as React.ComponentType<{ children: React.ReactNode }>;
 const SafeGestureHandlerRootView = GestureHandlerRootView as React.ComponentType<{
@@ -47,6 +48,7 @@ export default function AppContent() {
                   <SafeNavigationContainer>
                     <AppNavigator />
                   </SafeNavigationContainer>
+                  <Toast />
                 </SafeErrorBoundary>
               </AppLanguageGate>
             </LanguageProvider>
