@@ -15,6 +15,20 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   const urlSchemes: string[] = ['kudya']
   if (facebookAppId) urlSchemes.push(`fb${facebookAppId}`)
   if (googleIosScheme) urlSchemes.push(googleIosScheme)
+  if (config.ios?.bundleIdentifier) urlSchemes.push(config.ios.bundleIdentifier)
+
+  // Google returns to `<package>:/oauthredirect`, Facebook to `fb<APP_ID>://authorize`.
+  // Browsers lowercase URI schemes, so register the lowercase package too.
+  const androidPackage = config.android?.package
+  const androidOAuthSchemes = Array.from(
+    new Set(
+      [
+        androidPackage,
+        androidPackage?.toLowerCase(),
+        facebookAppId ? `fb${facebookAppId}` : undefined,
+      ].filter((s): s is string => Boolean(s)),
+    ),
+  )
 
   const existingUrlTypes = config.ios?.infoPlist?.CFBundleURLTypes ?? []
   const existingDomains = (config.ios?.associatedDomains as string[] | undefined) ?? []
@@ -101,6 +115,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           data: [{ scheme: 'kudya', pathPrefix: '/oauth' }],
           category: ['BROWSABLE', 'DEFAULT'],
         },
+        ...androidOAuthSchemes.map((scheme) => ({
+          action: 'VIEW',
+          autoVerify: false,
+          data: [{ scheme }],
+          category: ['BROWSABLE', 'DEFAULT'],
+        })),
       ],
     },
     extra: {

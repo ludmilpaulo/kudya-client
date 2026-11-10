@@ -7,15 +7,16 @@
 3. Restart Expo: `npx expo start --clear`
 4. Sign in once with email/social, then enable **Face ID / biometrics** when prompted.
 
-## Redirect URI (all providers)
+## Redirect URIs (per provider)
 
-Register this in Google, Meta (Facebook), and TikTok developer consoles:
+| Provider | Native redirect | Where it is registered |
+|----------|-----------------|------------------------|
+| Google | `com.ludmil.kudyaclient:/oauthredirect` | Android/iOS OAuth client (enable custom URI scheme on Android) |
+| Facebook | `fb<APP_ID>://authorize` | Meta app Android/iOS platforms (needs `EXPO_PUBLIC_FACEBOOK_APP_ID` at build time) |
+| TikTok | `https://www.appkudya.online/api/auth/social/tiktok/callback/` (API bounces to `kudya://oauth`) | TikTok Login Kit > Web redirect URIs |
+| Instagram | `https://www.appkudya.online/api/auth/social/instagram/callback/` (API bounces to `kudya://oauth`) | Meta > Instagram > Instagram Login > OAuth redirect URIs |
 
-```
-kudya://oauth
-```
-
-Run `npx expo start` and check the console for the exact redirect URI if using Expo Go.
+Social login needs a dev/production build (`npm run android`), not Expo Go.
 
 ---
 
@@ -36,9 +37,21 @@ Run `npx expo start` and check the console for the exact redirect URI if using E
 
 1. [developers.facebook.com](https://developers.facebook.com/) → Create app → **Consumer** → add **Facebook Login**
 2. Settings → Basic → copy **App ID** and **App Secret**
-3. Facebook Login → Settings → Valid OAuth Redirect URIs: `kudya://oauth`
+3. Settings → Basic → add Android (package + key hashes) and iOS (bundle ID) platforms
 4. Mobile: `EXPO_PUBLIC_FACEBOOK_APP_ID`
 5. Backend: `FACEBOOK_APP_ID`, `FACEBOOK_APP_SECRET`
+
+---
+
+## Instagram Login (Meta)
+
+Instagram Basic Display was shut down in Dec 2024; Kudya uses **Instagram API with Instagram Login**
+(Instagram professional accounts only).
+
+1. Meta app → add **Instagram** → API setup with Instagram login
+2. Business login settings → OAuth redirect URI: `https://www.appkudya.online/api/auth/social/instagram/callback/`
+3. Backend: `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET` (code exchange runs on the API)
+4. Mobile: optional `EXPO_PUBLIC_INSTAGRAM_APP_ID` (otherwise read from `/api/auth/social/config/`)
 
 ---
 
@@ -60,6 +73,8 @@ FACEBOOK_APP_ID=
 FACEBOOK_APP_SECRET=
 TIKTOK_CLIENT_KEY=
 TIKTOK_CLIENT_SECRET=
+INSTAGRAM_APP_ID=
+INSTAGRAM_APP_SECRET=
 ```
 
 Deploy these on Render as environment variables. Run migration if needed:

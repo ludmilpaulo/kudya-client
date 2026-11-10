@@ -31,6 +31,9 @@ type SocialPublicConfig = {
   google_web_client_id?: string;
   facebook_app_id?: string;
   tiktok_client_key?: string;
+  instagram_app_id?: string;
+  instagram_redirect_uri?: string;
+  tiktok_redirect_uri?: string;
 };
 
 let runtimeConfig: SocialPublicConfig = {};
@@ -99,13 +102,17 @@ function googleClientIdForPlatform(): string {
 // button stays disabled via isSocialLoginConfigured, so a placeholder only keeps the screen alive.
 const GOOGLE_UNCONFIGURED_CLIENT_ID = 'google-client-id-not-configured';
 
+// Native Google/Facebook clients only accept their provider-default redirects
+// (`<applicationId>:/oauthredirect`, `fb<APP_ID>://authorize`); kudya://oauth is rejected.
+const providerRedirect = Platform.OS === 'web' ? { redirectUri: OAUTH_REDIRECT_URI } : {};
+
 /** Google sign-in (use from component with useGoogleAuth hook). */
 export function useGoogleAuth() {
   return Google.useAuthRequest({
     iosClientId: GOOGLE_IOS,
     androidClientId: GOOGLE_ANDROID,
     webClientId: GOOGLE_WEB || runtimeConfig.google_web_client_id || GOOGLE_UNCONFIGURED_CLIENT_ID,
-    redirectUri: OAUTH_REDIRECT_URI,
+    ...providerRedirect,
   });
 }
 
@@ -113,74 +120,94 @@ export function useGoogleAuth() {
 export function useFacebookAuth() {
   return Facebook.useAuthRequest({
     clientId: FACEBOOK_APP_ID || runtimeConfig.facebook_app_id || '',
-    redirectUri: OAUTH_REDIRECT_URI,
+    ...providerRedirect,
     scopes: ['public_profile', 'email'],
     responseType: AuthSession.ResponseType.Token,
   });
 }
 
-const instagramDiscovery: AuthSession.DiscoveryDocument = {
-  authorizationEndpoint: 'https://api.instagram.com/oauth/authorize',
-  tokenEndpoint: 'https://api.instagram.com/oauth/access_token',
-};
+const INSTAGRAM_AUTHORIZE_ENDPOINT = 'https://www.instagram.com/oauth/authorize';
+/** Must match a key in the backend OAUTH_BOUNCE_TARGETS (state prefix picks the app). */
+const OAUTH_BOUNCE_TARGET = 'kudya';
 
-export async function signInWithInstagram(): Promise<SocialAuthResult> {
-  if (!INSTAGRAM_APP_ID) {
-    throw new Error('Instagram app id not configured (EXPO_PUBLIC_INSTAGRAM_APP_ID).');
-  }
-  const authRequest = new AuthSession.AuthRequest({
-    clientId: INSTAGRAM_APP_ID,
-    redirectUri: OAUTH_REDIRECT_URI,
-    scopes: ['instagram_basic'],
-    responseType: AuthSession.ResponseType.Code,
-    usePKCE: false,
-  });
-  const result = await authRequest.promptAsync(instagramDiscovery);
-  if (result.type !== 'success' || !result.params.code) {
-    throw new Error('Instagram sign-in cancelled.');
-  }
-  const tokenRes = await AuthSession.exchangeCodeAsync(
-    {
-      clientId: INSTAGRAM_APP_ID,
-      code: result.params.code,
-      redirectUri: OAUTH_REDIRECT_URI,
-      extraParams: { grant_type: 'authorization_code' },
-    },
-    instagramDiscovery,
-  );
-  return exchangeSocialToken('instagram', { access_token: tokenRes.accessToken });
+function instagramAppId(): string {
+  return INSTAGRAM_APP_ID || runtimeConfig.instagram_app_id || '';
 }
 
-const tiktokAuthorizeEndpoint = 'https://www.tiktok.com/v2/auth/authorize/';
+type BounceAuthOptions = {
+  clientId: string;
+  redirectUri: string;
+  scopes: string[];
+  authorizationEndpoint: string;
+  extraParams?: Record<string, string>;
+};
 
-export async function signInWithTikTok(): Promise<SocialAuthResult> {
-  const tiktokKey = TIKTOK_CLIENT_KEY || runtimeConfig.tiktok_client_key || '';
-  if (!tiktokKey) {
-    throw new Error('TikTok client key not configured (EXPO_PUBLIC_TIKTOK_CLIENT_KEY).');
-  }
+/**
+ * Instagram and TikTok only redirect to HTTPS, so they land on the API bounce which forwards
+ * code + state to kudya://oauth; the API then exchanges the code with the app secret.
+ */
+async function authorizeViaBounce(label: string, options: BounceAuthOptions): Promise<string> {
+  const { clientId, redirectUri, scopes, authorizationEndpoint, extraParams } = options;
+  const nonce = new AuthSession.AuthRequest({ clientId, redirectUri }).state;
   const authRequest = new AuthSession.AuthRequest({
-    clientId: tiktokKey,
-    redirectUri: OAUTH_REDIRECT_URI,
-    scopes: ['user.info.basic'],
+    clientId,
+    redirectUri,
+    scopes,
     responseType: AuthSession.ResponseType.Code,
-    usePKCE: true,
+    usePKCE: false,
+    state: `${OAUTH_BOUNCE_TARGET}.${nonce}`,
+    extraParams,
+  });
+  const authUrl = await authRequest.makeAuthUrlAsync({ authorizationEndpoint });
+  const browserResult = await WebBrowser.openAuthSessionAsync(authUrl, OAUTH_REDIRECT_URI);
+  if (browserResult.type !== 'success') {
+    throw new Error(`${label} sign-in cancelled.`);
+  }
+  const result = authRequest.parseReturnUrl(browserResult.url);
+  if (result.type !== 'success' || !result.params.code) {
+    if ('params' in result && result.params.error === 'access_denied') {
+      throw new Error(`${label} sign-in cancelled.`);
+    }
+    throw new Error(`We could not sign you in with ${label}. Please try again.`);
+  }
+  return result.params.code;
+}
+
+export async function signInWithInstagram(): Promise<SocialAuthResult> {
+  const config = await loadSocialPublicConfig();
+  const clientId = instagramAppId();
+  const redirectUri = config.instagram_redirect_uri || '';
+  if (!clientId || !redirectUri) {
+    throw new Error('Instagram sign-in is not configured yet.');
+  }
+  const code = await authorizeViaBounce('Instagram', {
+    clientId,
+    redirectUri,
+    scopes: ['instagram_business_basic'],
+    authorizationEndpoint: INSTAGRAM_AUTHORIZE_ENDPOINT,
+  });
+  return exchangeSocialToken('instagram', { code, redirect_uri: redirectUri });
+}
+
+const TIKTOK_AUTHORIZE_ENDPOINT = 'https://www.tiktok.com/v2/auth/authorize/';
+
+/** TikTok web Login Kit: no PKCE (its challenge format is non-standard); the API holds the secret. */
+export async function signInWithTikTok(): Promise<SocialAuthResult> {
+  const config = await loadSocialPublicConfig();
+  const tiktokKey = TIKTOK_CLIENT_KEY || config.tiktok_client_key || '';
+  const redirectUri = config.tiktok_redirect_uri || '';
+  if (!tiktokKey || !redirectUri) {
+    throw new Error('TikTok sign-in is not configured yet.');
+  }
+  const code = await authorizeViaBounce('TikTok', {
+    clientId: tiktokKey,
+    redirectUri,
+    scopes: ['user.info.basic'],
+    authorizationEndpoint: TIKTOK_AUTHORIZE_ENDPOINT,
     extraParams: { client_key: tiktokKey },
   });
-  const result = await authRequest.promptAsync({
-    authorizationEndpoint: tiktokAuthorizeEndpoint,
-  });
-  if (result.type !== 'success' || !result.params.code) {
-    if (result.type === 'dismiss' || result.type === 'cancel') {
-      throw new Error('TikTok sign-in cancelled.');
-    }
-    throw new Error('We could not sign you in with TikTok. Please try again.');
-  }
   try {
-    return await exchangeSocialToken('tiktok', {
-      code: result.params.code,
-      redirect_uri: OAUTH_REDIRECT_URI,
-      code_verifier: authRequest.codeVerifier ?? '',
-    });
+    return await exchangeSocialToken('tiktok', { code, redirect_uri: redirectUri });
   } catch (err: unknown) {
     if (err instanceof Error && /cancel/i.test(err.message)) throw err;
     throw new Error('We could not sign you in with TikTok. Please try again.');
@@ -252,11 +279,15 @@ export function isSocialLoginConfigured(provider: SocialProvider): boolean {
     case 'google':
       return !!googleClientIdForPlatform();
     case 'facebook':
-      return !!(FACEBOOK_APP_ID || runtimeConfig.facebook_app_id);
+      // Native builds need the fb<APP_ID> scheme baked in by app.config.ts at build time.
+      return Platform.OS === 'web'
+        ? !!(FACEBOOK_APP_ID || runtimeConfig.facebook_app_id)
+        : !!FACEBOOK_APP_ID;
+    // Both finish through the API bounce into the app scheme, which a web page cannot receive.
     case 'instagram':
-      return !!INSTAGRAM_APP_ID;
+      return Platform.OS !== 'web' && !!instagramAppId();
     case 'tiktok':
-      return !!(TIKTOK_CLIENT_KEY || runtimeConfig.tiktok_client_key);
+      return Platform.OS !== 'web' && !!(TIKTOK_CLIENT_KEY || runtimeConfig.tiktok_client_key);
     default:
       return false;
   }
@@ -279,7 +310,7 @@ export function getSocialLoginSetupHint(provider: SocialProvider): string {
     case 'tiktok':
       return 'Set EXPO_PUBLIC_TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET on the API';
     case 'instagram':
-      return 'Set EXPO_PUBLIC_INSTAGRAM_APP_ID and add kudya://oauth (or localhost) in Meta app settings';
+      return 'Set INSTAGRAM_APP_ID/INSTAGRAM_APP_SECRET on the API and register INSTAGRAM_REDIRECT_URI in Meta (Instagram Login)';
     default:
       return 'OAuth keys missing in app config';
   }
