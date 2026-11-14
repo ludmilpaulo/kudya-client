@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 /** Deploy target once super-app API is live in production. */
-export const PRODUCTION_API = 'https://www.kudya.store';
+export const PRODUCTION_API = 'https://www.appkudya.online';
 
 const DEV_API_PORT = process.env.EXPO_PUBLIC_API_PORT || '8000';
 
